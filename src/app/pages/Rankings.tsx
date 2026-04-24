@@ -12,6 +12,9 @@ import {
 import { WinnerCard } from "../components/ui/WinnerCard";
 import { CubePodium } from "../components/ui/CubePodium";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import malePlayer from "../../assets/male_avatar.jfif";
+import femalePlayer from "../../assets/female_avatar.jfif";
+import doublePlayer from "../../assets/doubles_avatar.jfif";
 
 import Podium from "../components/ui/Podium";
 
@@ -21,7 +24,7 @@ const rankingsData = {
     {
       rank: 1,
       name: "Nadeem",
-      image: "src/assets/male_avatar.jfif",
+      image: malePlayer,
       points: 140,
       matches: 4,
       wins: 2,
@@ -30,7 +33,7 @@ const rankingsData = {
     {
       rank: 2,
       name: "Saravanan",
-      image: "src/assets/male_avatar.jfif",
+      image: malePlayer,
       points: 140,
       matches: 4,
       wins: 2,
@@ -39,7 +42,7 @@ const rankingsData = {
     {
       rank: 3,
       name: "Manoj",
-      image: "src/assets/male_avatar.jfif",
+      image: malePlayer,
       points: 120,
       matches: 4,
       wins: 1,
@@ -174,7 +177,7 @@ const rankingsData = {
       matches: 4,
       wins: 0,
       trend: "up",
-      image: "src/assets/female_avatar.jfif",
+      image: femalePlayer,
     },
     {
       rank: 2,
@@ -183,7 +186,7 @@ const rankingsData = {
       matches: 4,
       wins: 0,
       trend: "same",
-      image: "src/assets/female_avatar.jfif",
+      image: femalePlayer,
     },
     {
       rank: 3,
@@ -192,7 +195,7 @@ const rankingsData = {
       matches: 4,
       wins: 0,
       trend: "up",
-      image: "src/assets/female_avatar.jfif",
+      image: femalePlayer,
     },
     {
       rank: 4,
@@ -331,7 +334,7 @@ const rankingsData = {
       matches: 0,
       wins: 0,
       trend: "up",
-      image: "src/assets/doubles_avatar.jfif",
+      image: doublePlayer,
     },
     {
       rank: 2,
@@ -341,7 +344,7 @@ const rankingsData = {
       matches: 0,
       wins: 0,
       trend: "same",
-      image: "src/assets/doubles_avatar.jfif",
+      image: doublePlayer,
     },
     {
       rank: 3,
@@ -351,7 +354,7 @@ const rankingsData = {
       matches: 0,
       wins: 0,
       trend: "up",
-      image: "src/assets/doubles_avatar.jfif",
+      image: doublePlayer,
     },
     {
       rank: 4,

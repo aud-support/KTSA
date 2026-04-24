@@ -436,7 +436,7 @@ export function Home() {
       </section>
 
       {/* About Foosbal and KTSA */}
-      <section className="py-16 md:py-12 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg relative">
+      <section className="py-8 md:py-12 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg relative">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 items-start">
           {/* LEFT SIDE */}
           <div>
@@ -522,7 +522,7 @@ export function Home() {
       </section>
 
       {/* Pillar Section */}
-      <section className="py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <motion.div
@@ -574,7 +574,7 @@ export function Home() {
       </section>
 
       {/* ── Recent Achievement ──────────────────────────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
             {/* <span className="text-xs font-bold tracking-widest text-ktsa-accent/60 uppercase mb-2 block">
@@ -634,7 +634,7 @@ export function Home() {
       </section>
 
       {/* Tournaments */}
-      <section className="py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
         <div className="absolute inset-0 opacity-5">
           <ImageWithFallback
             src="https://www.euroschoolindia.com/blogs/wp-content/uploads/2023/11/foosball-table-techniques-jpg.webp"
@@ -679,7 +679,7 @@ export function Home() {
 
       {/* Top Players */}
       <section
-        className="py-14 px-4 relative overflow-hidden bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary"
+        className="py-8 px-4 relative overflow-hidden bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary"
         // style={{
         //   background:
         //     "radial-gradient(circle, var(--ktsa-secondary) 7%, var(--ktsa-secondary) -15%, #000000 100%)",
@@ -736,7 +736,7 @@ export function Home() {
       </section>
 
       {/* Gallery */}
-      <section className="py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <motion.div
@@ -795,7 +795,7 @@ export function Home() {
       </section>
 
       {/* Stats */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary relative overflow-hidden">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary relative overflow-hidden">
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-0 left-1/4 w-64 h-64 bg-ktsa-accent rounded-full blur-3xl animate-pulse" />
           <div
@@ -866,7 +866,7 @@ export function Home() {
       </section>
 
       {/* Videos */}
-      <section className="py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
         <div className="absolute inset-0 opacity-5">
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1733648203550-0cacea85fa35?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YWJsZSUyMGZvb3RiYWxsJTIwY29tcGV0aXRpdmUlMjBtYXRjaHxlbnwxfHx8fDE3NzQ5MzkwNzF8MA&ixlib=rb-4.1.0&q=80&w=1080"
@@ -964,7 +964,7 @@ export function Home() {
         </div>
       </section>
       {/* News */}
-      <section className="py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <motion.div

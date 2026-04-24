@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import team from "../../assets/ktsa.jpg";
+import rulebook from "../../assets/Rulebook.png";
 import { useState } from "react";
 
 const achievements = [
@@ -130,7 +131,7 @@ const ktsakProvides = [
   {
     icon: Award,
     title: "Certification & Badges",
-    desc: "Referee and coaching certification recognised by ITSF.",
+    desc: "Referee and coaching certification recognised by FTSI.",
   },
   {
     icon: Star,
@@ -141,6 +142,7 @@ const ktsakProvides = [
 
 export function About() {
   const [expanded, setExpanded] = useState(false);
+  const [expandedfounder, setExpandedfounder] = useState(false);
 
   return (
     <div className="min-h-screen pt-20">
@@ -254,8 +256,8 @@ export function About() {
                 <button
                   onClick={() => {
                     const link = document.createElement("a");
-                    link.href = "src/assets/Rulebook.pdf";
-                    link.download = "Rulebook.pdf";
+                    link.href = rulebook;
+                    link.download = "Rulebook.png";
                     link.click();
                   }}
                   className="flex items-center gap-1.5 px-4 py-2 bg-ktsa-primary/70 text-ktsa-text rounded-full font-bold text-xs shadow-lg"
@@ -300,7 +302,7 @@ export function About() {
                   {/* Hidden extra content */}
                   <div
                     className={`overflow-hidden transition-all duration-500 ${
-                      expanded
+                      expandedfounder
                         ? "max-h-40 opacity-100 mt-2"
                         : "max-h-0 opacity-0"
                     }`}
@@ -316,14 +318,14 @@ export function About() {
 
                   {/* Read More Button */}
                   <button
-                    onClick={() => setExpanded(!expanded)}
+                    onClick={() => setExpandedfounder(!expandedfounder)}
                     className="flex items-center gap-1 text-ktsa-accent text-[11px] font-bold mt-1"
                   >
-                    {expanded ? "Read Less" : "Read More"}
+                    {expandedfounder ? "Read Less" : "Read More"}
                     <ChevronRight
                       size={12}
                       className={`transition-transform ${
-                        expanded ? "rotate-90" : ""
+                        expandedfounder ? "rotate-90" : ""
                       }`}
                     />
                   </button>

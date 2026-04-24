@@ -76,43 +76,6 @@ const timeline = [
   },
 ];
 
-// const recognitions = [
-//   "Karnataka Sports Council Recognition",
-//   "National Sports Development Partnership",
-//   "Youth Sports Excellence Award 2024",
-// ];
-
-// const governingCommittee = [
-//   {
-//     name: "Sayeed Ahmed Shariff",
-//     role: "Founder & President · KTSA",
-//     initials: "SAS",
-//     color: "from-ktsa-accent/20 to-ktsa-primary/20",
-//     border: "border-ktsa-accent/40",
-//   },
-//   {
-//     name: "Arjun Deshmukh",
-//     role: "Vice President",
-//     initials: "AD",
-//     color: "from-ktsa-accent/20 to-ktsa-primary/20",
-//     border: "border-ktsa-accent/40",
-//   },
-//   {
-//     name: "Priya Venkatesh",
-//     role: "Secretary General",
-//     initials: "PV",
-//     color: "from-ktsa-accent/20 to-ktsa-primary/20",
-//     border: "border-ktsa-accent/40",
-//   },
-//   {
-//     name: "Rahul Shetty",
-//     role: "Treasurer",
-//     initials: "RS",
-//     color: "from-ktsa-accent/20 to-ktsa-primary/20",
-//     border: "border-ktsa-accent/40",
-//   },
-// ];
-
 const whyItMatters = [
   {
     title: "A Sport Without Boundaries",
@@ -215,7 +178,7 @@ export function About() {
       </section>
 
       {/* ── The Story Behind KTSA ────────────────────────────── */}
-      <section className="py-12 md:py-16 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
+      <section className="py-8 md:py-16 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
             {/* Left — story text */}
@@ -426,7 +389,7 @@ export function About() {
       </section>
 
       {/* ── Who We Are + Team photo ───────────────────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-ktsa-bg/95">
+      <section className="py-8 md:py-14 px-4 bg-ktsa-bg/95">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
@@ -478,7 +441,7 @@ export function About() {
       </section>
 
       {/* ── Foosball in India — Why This Matters ─────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
             {/* Why it matters list */}
@@ -590,7 +553,7 @@ export function About() {
       </section>
 
       {/* ── Vision & Mission ──────────────────────────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
             {/* <span className="text-xs font-bold tracking-widest text-ktsa-accent/60 uppercase mb-2 block">
@@ -717,7 +680,7 @@ export function About() {
       </section>
 
       {/* ── What KTSA Provides ───────────────────────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
             {/* <span className="text-xs font-bold tracking-widest text-ktsa-accent/60 uppercase mb-2 block">
@@ -763,7 +726,7 @@ export function About() {
       </section>
 
       {/* ── Achievements ─────────────────────────────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary relative overflow-hidden">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-0 left-1/4 w-72 h-72 bg-ktsa-accent rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-ktsa-highlight rounded-full blur-3xl animate-pulse" />
@@ -846,7 +809,7 @@ export function About() {
       </section> */}
 
       {/* ── CTA Banner ────────────────────────────────────────── */}
-      <section className="py-12 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg text-center">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg text-center">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}

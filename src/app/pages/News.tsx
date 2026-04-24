@@ -154,7 +154,7 @@ export function News() {
 
       {/* Featured Article */}
       {featuredArticle && (
-        <section className="py-16 px-4 bg-ktsa-bg">
+        <section className="py-12 px-4 bg-ktsa-bg">
           <div className="max-w-6xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -231,7 +231,7 @@ export function News() {
       </section>
 
       {/* News Grid */}
-      <section className="py-16 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
+      <section className="py-12 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
         {/* Background */}
         <div className="absolute inset-0 opacity-5">
           <div

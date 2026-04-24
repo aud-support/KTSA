@@ -8,10 +8,10 @@ const categories = ["All", "Global", "KTSA", "Events"];
 const newsArticles = [
   {
     id: 1,
-    title: "KTSA Announces Record Prize Pool for 2026 Season",
+    title: "KTSA Officially Launched",
     excerpt:
-      "The Karnataka Table Soccer Association has unveiled an unprecedented prize pool of ₹10 lakhs for the 2026 championship season, marking the largest prize fund in the organization's history.",
-    date: "March 25, 2026",
+      "The Karnataka Table Soccer Association (KTSA) proudly announces its official launch, bringing together players, clubs, and supporters to grow the sport across Karnataka.",
+    date: "April 25, 2026",
     category: "KTSA",
     featured: true,
     image:
@@ -19,91 +19,59 @@ const newsArticles = [
   },
   {
     id: 2,
-    title: "New Training Academy Opens in Bangalore",
+    title: "Bangalore Open",
     excerpt:
-      "KTSA inaugurates Karnataka's first dedicated table soccer training academy, featuring state-of-the-art equipment and coaching from international experts.",
-    date: "March 20, 2026",
+      "The much-anticipated Bangalore Open is scheduled for May, bringing together top foosball talent from across the region. Get ready for a day of high-energy matches and competitive action.",
+    date: "May, 2026, Bangalore",
     category: "Events",
-    featured: false,
-    image:
-      "https://images.unsplash.com/photo-1746396887626-6bd54c6b2181?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm91cCUyMGF0aGxldGVzJTIwY2VsZWJyYXRpbmclMjB2aWN0b3J5fGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    id: 3,
-    title: "Interview with Champion Arjun Sharma",
-    excerpt:
-      "An exclusive conversation with Karnataka's top-ranked player about his journey, training regimen, and aspirations for international competition.",
-    date: "March 18, 2026",
-    category: "Global",
-    featured: false,
-    image:
-      "https://images.unsplash.com/photo-1765607081473-8b44507dfdf9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0ZWFtJTIwY29tbXVuaXR5JTIwcGxheWVyc3xlbnwxfHx8fDE3NzQ5MzgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    id: 4,
-    title: "Bangalore Open Series: Day 1 Highlights",
-    excerpt:
-      "Thrilling matches and unexpected upsets mark the opening day of the Bangalore Open Series with over 200 participants competing.",
-    date: "March 15, 2026",
-    category: "Events",
-    featured: false,
-    image:
-      "https://images.unsplash.com/photo-1666193183124-3f27c7800370?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRhYmxlJTIwc29jY2VyJTIwYWN0aW9uJTIwZ2FtZXxlbnwxfHx8fDE3NzQ5MzgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    id: 5,
-    title: "ITSF World Championship Qualification Announced",
-    excerpt:
-      "KTSA players now eligible for direct qualification to the ITSF World Championship through performance in state tournaments.",
-    date: "March 10, 2026",
-    category: "Global",
     featured: false,
     image:
       "https://images.unsplash.com/photo-1751916856395-3dd0c4fe49e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRvdXJuYW1lbnQlMjBjb21wZXRpdGl2ZSUyMHNwb3J0c3xlbnwxfHx8fDE3NzQ5MzgyOTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
-    id: 6,
-    title: "Women's League Sees Record Participation",
+    id: 3,
+    title: "Karnataka Open",
     excerpt:
-      "The women's division of KTSA tournaments has grown by 150% this year, with new players joining from across Karnataka.",
-    date: "March 5, 2026",
+      "The much-anticipated Karnataka Open is scheduled for April 25, bringing together top foosball talent from across the region. Get ready for a day of high-energy matches and competitive action.",
+    date: "25th April, 2026, Bangalore",
+    category: "Events",
+    featured: false,
+    image:
+      "https://images.unsplash.com/photo-1746396887626-6bd54c6b2181?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm91cCUyMGF0aGxldGVzJTIwY2VsZWJyYXRpbmclMjB2aWN0b3J5fGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+  },
+  {
+    id: 4,
+    title: "Women's Foosball",
+    excerpt:
+      "Taking place near Silkboard on April 25, this event celebrates women in foosball, showcasing skill, strategy, and growing participation in the sport.",
+    date: "25th April, 2026, Near Silkboard",
+    category: "Events",
+    featured: false,
+    image:
+      "https://images.unsplash.com/photo-1765607081473-8b44507dfdf9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0ZWFtJTIwY29tbXVuaXR5JTIwcGxheWVyc3xlbnwxfHx8fDE3NzQ5MzgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+  },
+  {
+    id: 5,
+    title: "Banglore Foosball Tournament",
+    excerpt:
+      "Held in Whitefield on January 31, the tournament concluded with exciting matches and strong performances, marking a great start to the year for foosball enthusiasts.",
+    date: "29th March, 2026, Kormangla",
+    category: "Events",
+    featured: false,
+    image:
+      "https://images.unsplash.com/photo-1666193183124-3f27c7800370?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRhYmxlJTIwc29jY2VyJTIwYWN0aW9uJTIwZ2FtZXxlbnwxfHx8fDE3NzQ5MzgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+  },
+
+  {
+    id: 6,
+    title: "Banglore Foosball Tournament",
+    excerpt:
+      "The March 29 event in Koramangala saw intense gameplay and enthusiastic participation, further strengthening the local foosball community.",
+    date: "31 January, 2026, Whitefield",
     category: "KTSA",
     featured: false,
     image:
       "https://images.unsplash.com/photo-1770067665792-9975acdec4fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRvb3IlMjBzcG9ydHMlMjBzdGFkaXVtJTIwYXJlbmElMjBsaWdodHN8ZW58MXx8fHwxNzc0OTM4MzAyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    id: 7,
-    title: "Youth Development Program Launch",
-    excerpt:
-      "New initiative aims to introduce table soccer to schools and colleges across Karnataka, nurturing the next generation of champions.",
-    date: "February 28, 2026",
-    category: "Events",
-    featured: false,
-    image:
-      "https://images.unsplash.com/photo-1652318694732-fa6532505a49?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YWJsZSUyMHNvY2NlciUyMHBsYXllciUyMGNvbmNlbnRyYXRpb258ZW58MXx8fHwxNzc0OTM4Mjk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    id: 8,
-    title: "Mysore City League Registration Open",
-    excerpt:
-      "Players from Mysore and surrounding areas can now register for the upcoming city league, scheduled for May 2026.",
-    date: "February 25, 2026",
-    category: "KTSA",
-    featured: false,
-    image:
-      "https://images.unsplash.com/photo-1560880792-3c36a3f17944?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMGNsb3NlJTIwdXAlMjBnYW1lfGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    id: 9,
-    title: "International Coach Workshop Success",
-    excerpt:
-      "Over 50 coaches attended the first international table soccer coaching workshop organized by KTSA in partnership with ITSF.",
-    date: "February 20, 2026",
-    category: "Global",
-    featured: false,
-    image:
-      "https://images.unsplash.com/photo-1746396887626-6bd54c6b2181?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm91cCUyMGF0aGxldGVzJTIwY2VsZWJyYXRpbmclMjB2aWN0b3J5fGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
   },
 ];
 
@@ -154,7 +122,7 @@ export function News() {
 
       {/* Featured Article */}
       {featuredArticle && (
-        <section className="py-16 px-4 bg-ktsa-bg">
+        <section className="py-12 px-4 bg-ktsa-bg">
           <div className="max-w-6xl mx-auto">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -170,7 +138,7 @@ export function News() {
                 alt={featuredArticle.title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-ktsa-bg via-ktsa-bg/70 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-ktsa-bg via-ktsa-bg/70 to-transparent" />
               <div className="absolute inset-0 p-4 sm:p-6 md:p-10 flex flex-col justify-end">
                 {/* Tags */}
                 <div className="flex items-center gap-2 mb-3">
@@ -183,12 +151,12 @@ export function News() {
                 </div>
 
                 {/* Title */}
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-3 max-w-xl leading-tight">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-ktsa-accent mb-3 max-w-xl leading-tight">
                   {featuredArticle.title}
                 </h2>
 
                 {/* Description */}
-                <p className="text-sm sm:text-base md:text-lg text-ktsa-text/90 mb-3 max-w-md leading-relaxed line-clamp-3">
+                <p className="text-sm sm:text-base md:text-lg text-ktsa-text mb-3 max-w-md leading-relaxed line-clamp-3">
                   {featuredArticle.excerpt}
                 </p>
 
@@ -203,7 +171,7 @@ export function News() {
         </section>
       )}
 
-      {/* Category Tabs */}
+      {/* Category Tabs 
       <section className="bg-ktsa-bg/95 py-3 sticky top-20 z-40 border-b border-ktsa-accent/20 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-3">
           <div className="flex flex-wrap gap-4 justify-center">
@@ -216,22 +184,16 @@ export function News() {
                     ? "text-ktsa-text bg-ktsa-highlight shadow-lg scale-105"
                     : "bg-ktsa-primary/40 text-ktsa-text border-2 border-ktsa-accent/30 hover:border-ktsa-accent/60"
                 }`}
-                // style={{
-                //   boxShadow:
-                //     selectedCategory === category
-                //       ? "0 0 30px rgba(250, 0, 0, 0.1)"
-                //       : "none",
-                // }}
               >
                 {category}
               </button>
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* News Grid */}
-      <section className="py-16 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
+      <section className="py-12 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
         {/* Background */}
         <div className="absolute inset-0 opacity-5">
           <div

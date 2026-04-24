@@ -12,6 +12,9 @@ import {
 import { WinnerCard } from "../components/ui/WinnerCard";
 import { CubePodium } from "../components/ui/CubePodium";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import malePlayer from "../../assets/male_avatar.jfif";
+import femalePlayer from "../../assets/female_avatar.jfif";
+import doublePlayer from "../../assets/doubles_avatar.jfif";
 
 import Podium from "../components/ui/Podium";
 
@@ -21,7 +24,7 @@ const rankingsData = {
     {
       rank: 1,
       name: "Nadeem",
-      image: "src/assets/Media.jpg",
+      image: malePlayer,
       points: 140,
       matches: 4,
       wins: 2,
@@ -30,7 +33,7 @@ const rankingsData = {
     {
       rank: 2,
       name: "Saravanan",
-      image: "src/assets/Media (1).jpg",
+      image: malePlayer,
       points: 140,
       matches: 4,
       wins: 2,
@@ -39,7 +42,7 @@ const rankingsData = {
     {
       rank: 3,
       name: "Manoj",
-      image: "src/assets/TANJOT SINGH.png",
+      image: malePlayer,
       points: 120,
       matches: 4,
       wins: 1,
@@ -167,7 +170,15 @@ const rankingsData = {
   ],
 
   Women: [
-    { rank: 1, name: "Akshatha", points: 40, matches: 4, wins: 0, trend: "up" },
+    {
+      rank: 1,
+      name: "Akshatha",
+      points: 40,
+      matches: 4,
+      wins: 0,
+      trend: "up",
+      image: femalePlayer,
+    },
     {
       rank: 2,
       name: "Prashanthi",
@@ -175,8 +186,17 @@ const rankingsData = {
       matches: 4,
       wins: 0,
       trend: "same",
+      image: femalePlayer,
     },
-    { rank: 3, name: "Akila", points: 20, matches: 4, wins: 0, trend: "up" },
+    {
+      rank: 3,
+      name: "Akila",
+      points: 20,
+      matches: 4,
+      wins: 0,
+      trend: "up",
+      image: femalePlayer,
+    },
     {
       rank: 4,
       name: "Amrithaa",
@@ -309,29 +329,32 @@ const rankingsData = {
     {
       rank: 1,
       names: ["Manoj", "Saravanan"],
-      image: "src/assets/double.jpg",
+
       points: 120,
       matches: 0,
       wins: 0,
       trend: "up",
+      image: doublePlayer,
     },
     {
       rank: 2,
       names: ["Nadeem", "Rishav"],
-      image: "src/assets/double.jpg",
+
       points: 70,
       matches: 0,
       wins: 0,
       trend: "same",
+      image: doublePlayer,
     },
     {
       rank: 3,
       names: ["Nadeem", "Owais"],
-      image: "src/assets/double.jpg",
+
       points: 50,
       matches: 0,
       wins: 0,
       trend: "up",
+      image: doublePlayer,
     },
     {
       rank: 4,
@@ -867,7 +890,7 @@ export function Rankings() {
             >
               <button
                 onClick={() => setCategoryOpen(!categoryOpen)}
-                className="flex items-center gap-2 text-sm px-4 py-1.5 w-full bg-ktsa-primary/40 text-ktsa-text border border-ktsa-accent/30 rounded-lg font-bold hover:border-ktsa-accent transition-colors justify-between"
+                className="flex items-center gap-2 text-sm px-4 py-1.5 w-full bg-ktsa-primary/75 text-ktsa-text border border-ktsa-accent/30 rounded-lg font-bold hover:border-ktsa-accent transition-colors justify-between"
               >
                 {selectedCategory}
                 <ChevronDown

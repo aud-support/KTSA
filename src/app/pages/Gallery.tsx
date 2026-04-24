@@ -3,6 +3,19 @@ import { useState, useEffect } from "react";
 import Masonry from "react-responsive-masonry";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { Camera } from "lucide-react";
+import image1 from "../../assets/ktsa-image.jpg";
+import image2 from "../../assets/ktsa-image11.jpg";
+import image3 from "../../assets/ktsa-image3.jpg";
+import image4 from "../../assets/ktsa-image4.jpg";
+import image5 from "../../assets/ktsa-image5.jpg";
+import image6 from "../../assets/ktsa-image6.jpg";
+import image7 from "../../assets/ktsa-image7.jpg";
+import image8 from "../../assets/ktsa-image8.jpg";
+import image9 from "../../assets/ktsa-image9.jpg";
+import image10 from "../../assets/ktsa-image10.jpg";
+import image11 from "../../assets/ktsa-image2.jpg";
+import image12 from "../../assets/ktsa-image14.jpg";
+import image13 from "../../assets/ktsa-image13.jpg";
 
 const years = ["2026", "2025", "2024", "2023"];
 const tournaments = [
@@ -16,101 +29,111 @@ const tournaments = [
 const galleryImages = [
   {
     id: 1,
-    src: "https://instagram.fblr22-2.fna.fbcdn.net/v/t51.82787-15/656668225_17931958677212904_5687285780780719136_n.jpg?stp=dst-jpegr_e35_tt6&_nc_cat=100&ig_cache_key=Mzg2MzY0NDU2NDczNzkyNDAyNw%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTA4MC5oZHIuQzMifQ%3D%3D&_nc_ohc=_z93E_wM2A0Q7kNvwGy36In&_nc_oc=AdoGA-uTUmR-TR148C5XAwjU9GKbTBIcxCh712JT44DuYEXuWCTcFebw_ouH0JNDvxLeDLX-87xaKO56yDXZiv8K&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&se=-1&_nc_ht=instagram.fblr22-2.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af1pOx6xMOPebKE9MLXH2J246I_WyzMBeZhwGABgkS8vFw&oe=69DEC52F",
+    src: image2,
     tournament: "State Championship",
     year: "2026",
-    caption: "Intense competition at the State Championship finals",
+    caption: `More than a game — it’s the vibe ⚽
+KTSA moments, memories & madness 🏆
+Big thanks to everyone who made this tournament unforgettable `,
   },
   {
     id: 2,
-    src: "https://images.unsplash.com/photo-1751916856395-3dd0c4fe49e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRvdXJuYW1lbnQlMjBjb21wZXRpdGl2ZSUyMHNwb3J0c3xlbnwxfHx8fDE3NzQ5MzgyOTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    src: image1,
     tournament: "Bangalore Open",
     year: "2026",
-    caption: "Players competing in the Bangalore Open Series",
+    caption: `What an exciting Sunday at The Godown – Gaming Arena, Kalyan Nagar!
+Amazing matches, great sportsmanship, and a fantastic foosball community coming together.`,
   },
   {
     id: 3,
-    src: "https://images.unsplash.com/photo-1770067665792-9975acdec4fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRvb3IlMjBzcG9ydHMlMjBzdGFkaXVtJTIwYXJlbmElMjBsaWdodHN8ZW58MXx8fHwxNzc0OTM4MzAyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    src: image3,
     tournament: "State Championship",
-    year: "2025",
-    caption: "The arena packed with enthusiastic spectators",
+    year: "2026",
+    caption: `What an exciting Sunday at The Godown – Gaming Arena, Kalyan Nagar!
+Amazing matches, great sportsmanship, and a fantastic foosball community coming together.`,
   },
   {
     id: 4,
-    src: "https://images.unsplash.com/photo-1652318694732-fa6532505a49?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YWJsZSUyMHNvY2NlciUyMHBsYXllciUyMGNvbmNlbnRyYXRpb258ZW58MXx8fHwxNzc0OTM4Mjk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    src: image4,
     tournament: "Training Sessions",
-    year: "2026",
-    caption: "Focused training session with expert coaches",
+    year: "2025",
+    caption: `September series comes to an end with a smile.Let’s prep for Oct “Are you Ready for More`,
   },
   {
     id: 5,
-    src: "https://images.unsplash.com/photo-1560880792-3c36a3f17944?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMGNsb3NlJTIwdXAlMjBnYW1lfGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+    src: image5,
     tournament: "Bangalore Open",
     year: "2025",
-    caption: "Close-up action from the championship match",
+    caption: `September series comes to an end with a smile.Let’s prep for Oct “Are you Ready for More`,
   },
   {
     id: 6,
-    src: "https://images.unsplash.com/photo-1764408721535-2dcb912db83e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0cm9waHklMjBjaGFtcGlvbnNoaXAlMjBhd2FyZHxlbnwxfHx8fDE3NzQ5MzgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    src: image6,
     tournament: "State Championship",
     year: "2026",
-    caption: "Champion lifting the trophy in celebration",
+    caption: `September series comes to an end with a smile.Let’s prep for Oct “Are you Ready for More`,
   },
   {
     id: 7,
-    src: "https://images.unsplash.com/photo-1746396887626-6bd54c6b2181?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm91cCUyMGF0aGxldGVzJTIwY2VsZWJyYXRpbmclMjB2aWN0b3J5fGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+    src: image7,
     tournament: "Mysore League",
     year: "2025",
-    caption: "Team celebrating their victory together",
+    caption: ` It was an absolute honour to be part of the ITSF World Cup 2025 in Zaragoza, Spain!
+Meeting “Farid”, the President of ITSF, was truly inspiring — his humility and warmth made the experience even more memorable.`,
   },
   {
     id: 8,
-    src: "https://images.unsplash.com/photo-1765607081473-8b44507dfdf9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0ZWFtJTIwY29tbXVuaXR5JTIwcGxheWVyc3xlbnwxfHx8fDE3NzQ5MzgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    src: image8,
     tournament: "Training Sessions",
     year: "2025",
-    caption: "Community gathering at KTSA headquarters",
+    caption: "world cup diaries - with Umesh Nepal federation president",
   },
   {
     id: 9,
-    src: "https://images.unsplash.com/photo-1666193183124-3f27c7800370?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRhYmxlJTIwc29jY2VyJTIwYWN0aW9uJTIwZ2FtZXxlbnwxfHx8fDE3NzQ5MzgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    src: image9,
     tournament: "Bangalore Open",
     year: "2024",
-    caption: "Historic moment from 2024 tournament",
+    caption: "Glimpse of the May 2025 - Roller Category",
   },
   {
     id: 10,
-    src: "https://images.unsplash.com/photo-1751916856395-3dd0c4fe49e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRvdXJuYW1lbnQlMjBjb21wZXRpdGl2ZSUyMHNwb3J0c3xlbnwxfHx8fDE3NzQ5MzgyOTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    src: image10,
     tournament: "State Championship",
     year: "2024",
-    caption: "Competitive spirit on full display",
+    caption: ` **A HUGE Thank You to Everyone Who Participated in the KTSA Foosball Tournament at KOS!** 
+Your energy, sportsmanship, and passion for the game made this event unforgettable! 🙌
+🏆 **BIG Shoutout to Our Champions** 🏆
+You crushed it and showed everyone how it’s done! `,
   },
   {
     id: 11,
-    src: "https://images.unsplash.com/photo-1770067665792-9975acdec4fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRvb3IlMjBzcG9ydHMlMjBzdGFkaXVtJTIwYXJlbmElMjBsaWdodHN8ZW58MXx8fHwxNzc0OTM4MzAyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    src: image11,
     tournament: "Mysore League",
-    year: "2024",
-    caption: "Spectacular venue lighting",
+    year: "2026",
+    caption: `What an exciting Sunday at The Godown – Gaming Arena, Kalyan Nagar!
+Amazing matches, great sportsmanship, and a fantastic foosball community coming together.`,
   },
   {
     id: 12,
-    src: "https://images.unsplash.com/photo-1652318694732-fa6532505a49?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YWJsZSUyMHNvY2NlciUyMHBsYXllciUyMGNvbmNlbnRyYXRpb258ZW58MXx8fHwxNzc0OTM4Mjk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+    src: image12,
     tournament: "Training Sessions",
     year: "2024",
-    caption: "Dedication and focus in training",
+    caption: `17 teams, endless energy, and pure foosball spirit 🙌⚽
+A huge thank you to every player who made the August Tournament by KTSA such a success! 🏆🔥
+
+Take a look at the glimpse of our August tournament highlights 🎥✨
+The passion is growing, the community is stronger — and we’re just getting started 🚀`,
   },
   {
     id: 13,
-    src: "https://instagram.fblr22-2.fna.fbcdn.net/v/t51.82787-15/651809172_17929971138212904_8599779955604411425_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=105&ig_cache_key=Mzg1NDE5MTQ5Mjg3Mzc1MzMwOA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTkyMC5zZHIuQzMifQ%3D%3D&_nc_ohc=yX7LgRMIQYUQ7kNvwFLtZm_&_nc_oc=Ado0810tkh0-DRZEl_9OvHoflc1z2kgk_z8MIqfvqTwSU3ijB9OfOjcb6se9-beiw5ZhDNyGVhI9pCPM7AyBohmI&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fblr22-2.fna&_nc_gid=YoZ1rQkgT1Ar7wj0nn9ziA&_nc_ss=7a32e&oh=00_Af02SybaltYtXxj3draARD50kbDMHd31ed8uwZocuXtopw&oe=69D2B6A7",
+    src: image13,
     tournament: "Training Sessions",
-    year: "2024",
-    caption: "March Showdown",
+    year: "2025",
+    caption: "Glimpse of the May 2025 - Roller Category",
   },
 ];
 
 export function Gallery() {
-  const [selectedYear, setSelectedYear] = useState("2026");
-  const [selectedTournament, setSelectedTournament] =
-    useState("All Tournaments");
   const [selectedImage, setSelectedImage] = useState<
     (typeof galleryImages)[0] | null
   >(null);
@@ -122,14 +145,6 @@ export function Gallery() {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
-
-  const filteredImages = galleryImages.filter((image) => {
-    const yearMatch = image.year === selectedYear;
-    const tournamentMatch =
-      selectedTournament === "All Tournaments" ||
-      image.tournament === selectedTournament;
-    return yearMatch && tournamentMatch;
-  });
 
   return (
     <div className="min-h-screen pt-20">
@@ -160,51 +175,6 @@ export function Gallery() {
         </div>
       </section>
 
-      {/* ── Filters ───────────────────────────────────────────── */}
-      <section className="py-3 px-3 bg-ktsa-bg/95 sticky top-20 z-40 border-b border-ktsa-accent/20 backdrop-blur-lg">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-3 md:gap-8 items-start md:items-center justify-between">
-            {/* Year tabs — scrollable on mobile */}
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 w-full md:w-auto md:overflow-visible">
-              {years.map((year) => (
-                <button
-                  key={year}
-                  onClick={() => setSelectedYear(year)}
-                  className={`flex-shrink-0 px-5 py-1.5 rounded-xl font-bold text-sm transition-all duration-300 ${
-                    selectedYear === year
-                      ? "bg-gradient-to-r from-ktsa-accent to-ktsa-primary text-ktsa-bg scale-105"
-                      : "bg-ktsa-primary/40 text-ktsa-text border border-ktsa-accent/30 hover:border-ktsa-accent/60"
-                  }`}
-                  style={{
-                    boxShadow:
-                      selectedYear === year
-                        ? "0 0 20px rgba(0,229,255,0.4)"
-                        : "none",
-                  }}
-                >
-                  {year}
-                </button>
-              ))}
-            </div>
-
-            {/* Tournament dropdown */}
-            <div className="w-full md:w-auto">
-              <select
-                value={selectedTournament}
-                onChange={(e) => setSelectedTournament(e.target.value)}
-                className="w-full md:w-64 px-4 py-1.5 bg-ktsa-primary/40 text-ktsa-text border border-ktsa-accent/30 rounded-xl focus:outline-none focus:border-ktsa-accent transition-colors font-bold text-sm"
-              >
-                {tournaments.map((tournament) => (
-                  <option key={tournament} value={tournament}>
-                    {tournament}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ── Gallery Grid ──────────────────────────────────────── */}
       <section className="py-10 px-2 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
         <div className="absolute inset-0 opacity-5">
@@ -220,9 +190,9 @@ export function Gallery() {
         </div>
 
         <div className="max-w-5xl mx-auto relative z-10">
-          {filteredImages.length > 0 ? (
+          {galleryImages.length > 0 ? (
             <Masonry columnsCount={3} gutter="1rem">
-              {filteredImages.map((image, index) => (
+              {galleryImages.map((image, index) => (
                 <motion.div
                   key={image.id}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -243,9 +213,6 @@ export function Gallery() {
                     <div className="absolute bottom-0 left-0 right-0 p-4">
                       <p className="text-ktsa-text font-bold text-sm">
                         {image.caption}
-                      </p>
-                      <p className="text-ktsa-text/60 text-xs mt-0.5">
-                        {image.tournament} · {image.year}
                       </p>
                     </div>
                   </div>
@@ -298,9 +265,6 @@ export function Gallery() {
             <div className="px-4 pt-4 pb-2 border-t border-ktsa-accent/20 mt-4">
               <p className="text-sm font-black text-ktsa-text mb-1">
                 {selectedImage.caption}
-              </p>
-              <p className="text-xs text-ktsa-text/50">
-                {selectedImage.tournament} · {selectedImage.year}
               </p>
             </div>
 

@@ -19,6 +19,9 @@ import april from "../../assets/april-25-2026.jpg";
 import april1 from "../../assets/april-2026.jpg";
 import jan from "../../assets/jan-2026.jpg";
 import march from "../../assets/march-2026.jpg";
+import image1 from "../../assets/ktsa-image10.jpg";
+import image2 from "../../assets/ktsa-image7.jpg";
+import image3 from "../../assets/ktsa-image11.jpg";
 
 const tournaments = [
   {
@@ -99,38 +102,31 @@ const pillars = [
 const newsArticles = [
   {
     id: 1,
-    title: "KTSA Announces Record Prize Pool for 2026 Season",
-    date: "March 25, 2026",
+    title: "KTSA Officially Launched",
+    date: "April 25, 2026",
     category: "KTSA",
     image:
-      "https://instagram.fblr22-1.fna.fbcdn.net/v/t51.71878-15/657111868_924948450346322_1146867286322566528_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=103&ig_cache_key=Mzg2NjQ5MTg4NDUzMzg5MTk3Mg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjY0MHgxMTM2LnNkci5DMyJ9&_nc_ohc=UHmHkG1PKxIQ7kNvwFIbC4p&_nc_oc=AdpVAt5BCqfw7g8_CqN5H6cu1mdC3vo7N5Ar1QuHm3aZXp3vuNmMMBm9OwgqFx0lK2Y0O8vHt-hb5VYQRunu8mq3&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fblr22-1.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af0dkZy_YKNiDDR5unGOpSw0X-U6wPgs59r-SkmgKTxUYQ&oe=69DEDEF1",
+      "https://images.unsplash.com/photo-1764408721535-2dcb912db83e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0cm9waHklMjBjaGFtcGlvbnNoaXAlMjBhd2FyZHxlbnwxfHx8fDE3NzQ5MzgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     id: 2,
-    title: "New Training Academy Opens in Bangalore",
-    date: "March 20, 2026",
+    title: "Bangalore Open",
+    date: "May, 2026, Bangalore",
     category: "Events",
     image:
-      "https://instagram.fblr22-1.fna.fbcdn.net/v/t51.71878-15/519003066_4208693196065850_5771027984412155748_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=108&ig_cache_key=MzY3NjcyODQ1MTYxNzAzODc3Mg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjY0MHgxMTM2LnNkci5DMyJ9&_nc_ohc=Ej5xA2BLseYQ7kNvwF_myUk&_nc_oc=AdpwuJm1-oXFIw9h3xGRckYjq2v2gOS_YxBgS9tdJefjW5i9znb41-EIdl7GnEakp6r0uMQOxt4rDX-2B9BmaI9T&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fblr22-1.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af36mdIQGUlY7Lh4arXYACZhVr243BVoxKNQhIYOu8aJcg&oe=69DED820",
+      "https://images.unsplash.com/photo-1751916856395-3dd0c4fe49e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRvdXJuYW1lbnQlMjBjb21wZXRpdGl2ZSUyMHNwb3J0c3xlbnwxfHx8fDE3NzQ5MzgyOTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     id: 3,
-    title: "Interview with Champion Arjun Sharma",
-    date: "March 18, 2026",
-    category: "Global",
+    title: "Karnataka Open",
+    date: "25th April, 2026, Bangalore",
+    category: "Events",
     image:
-      "https://instagram.fblr22-2.fna.fbcdn.net/v/t51.82787-15/656668225_17931958677212904_5687285780780719136_n.jpg?stp=dst-jpegr_e35_tt6&_nc_cat=100&ig_cache_key=Mzg2MzY0NDU2NDczNzkyNDAyNw%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTA4MC5oZHIuQzMifQ%3D%3D&_nc_ohc=_z93E_wM2A0Q7kNvwGy36In&_nc_oc=AdoGA-uTUmR-TR148C5XAwjU9GKbTBIcxCh712JT44DuYEXuWCTcFebw_ouH0JNDvxLeDLX-87xaKO56yDXZiv8K&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&se=-1&_nc_ht=instagram.fblr22-2.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af1pOx6xMOPebKE9MLXH2J246I_WyzMBeZhwGABgkS8vFw&oe=69DEC52F",
+      "https://images.unsplash.com/photo-1746396887626-6bd54c6b2181?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm91cCUyMGF0aGxldGVzJTIwY2VsZWJyYXRpbmclMjB2aWN0b3J5fGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
   },
 ];
 
-const galleryImages = [
-  "https://instagram.fblr22-2.fna.fbcdn.net/v/t51.82787-15/651809172_17929971138212904_8599779955604411425_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=105&ig_cache_key=Mzg1NDE5MTQ5Mjg3Mzc1MzMwOA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTkyMC5zZHIuQzMifQ%3D%3D&_nc_ohc=kl8Otz5saLMQ7kNvwFNUbBw&_nc_oc=Adr0GlzNqiCVxy3H7N-0HJ9loNUNjiJlKSTPyYRa4iBN1f2SPTRZdVakLLarbU4VQBuZ6GiuqAmBAToZqAlzULP0&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fblr22-2.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af3eHQkxPEjS3AJoJ2fuivnAztJFMiX9kk-fKLFxu0q7Dw&oe=69DECC67",
-  "https://instagram.fblr22-1.fna.fbcdn.net/v/t51.71878-15/657442736_936027782555192_1960907205301419746_n.jpg?stp=dst-jpegr_e15_tt6&_nc_cat=106&ig_cache_key=Mzg2NDA0ODk4MDYzNjkwOTY2MQ%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjY0MHgxMTM2Lmhkci5DMyJ9&_nc_ohc=SXu3EQJCGpIQ7kNvwE3w9sC&_nc_oc=AdpOftgc4LAPnqmUvHwMezKbTismGWyk9Fl5yFBQS0sp_B1l3Y083WOkX-ynfNLMPWds2kVekLfStkFVlLJld7PG&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&se=-1&_nc_ht=instagram.fblr22-1.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af3dJAXI9earB-xg2wzaCeY3NgdGkT54qFHqcciKzW0gNA&oe=69DED2EC",
-  "https://instagram.fblr22-1.fna.fbcdn.net/v/t51.71878-15/657111868_924948450346322_1146867286322566528_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=103&ig_cache_key=Mzg2NjQ5MTg4NDUzMzg5MTk3Mg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjY0MHgxMTM2LnNkci5DMyJ9&_nc_ohc=UHmHkG1PKxIQ7kNvwFIbC4p&_nc_oc=AdpVAt5BCqfw7g8_CqN5H6cu1mdC3vo7N5Ar1QuHm3aZXp3vuNmMMBm9OwgqFx0lK2Y0O8vHt-hb5VYQRunu8mq3&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fblr22-1.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af0dkZy_YKNiDDR5unGOpSw0X-U6wPgs59r-SkmgKTxUYQ&oe=69DEDEF1",
-  "https://images.unsplash.com/photo-1652318694732-fa6532505a49?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YWJsZSUyMHNvY2NlciUyMGNvbmNlbnRyYXRpb258ZW58MXx8fHwxNzc0OTM4Mjk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
-  "https://images.unsplash.com/photo-1560880792-3c36a3f17944?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMGNsb3NlJTIwdXAlMjBnYW1lfGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
-  "https://images.unsplash.com/photo-1764408721535-2dcb912db83e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0cm9waHklMjBjaGFtcGlvbnNoaXAlMjBhd2FyZHxlbnwxfHx8fDE3NzQ5MzgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-];
+const galleryImages = [image1, image2, image3];
 
 function Counter({ end, duration = 2 }: { end: number; duration?: number }) {
   const [count, setCount] = useState(0);
@@ -351,7 +347,7 @@ export function Home() {
         {/* Background image */}
         <div className="cover mx-auto absolute inset-0 opacity-80">
           <ImageWithFallback
-            src="https://plus.unsplash.com/premium_photo-1723478555114-2bebac948a50?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            src="https://images.unsplash.com/photo-1716703370285-d7ff2960abb4?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             alt="Foosball Action"
             className="w-full h-full object-cover scale-110 sm:scale-105"
           />
@@ -440,7 +436,7 @@ export function Home() {
       </section>
 
       {/* About Foosbal and KTSA */}
-      <section className="py-16 md:py-12 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg relative">
+      <section className="py-8 md:py-12 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg relative">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 items-start">
           {/* LEFT SIDE */}
           <div>
@@ -526,7 +522,7 @@ export function Home() {
       </section>
 
       {/* Pillar Section */}
-      <section className="py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <motion.div
@@ -578,7 +574,7 @@ export function Home() {
       </section>
 
       {/* ── Recent Achievement ──────────────────────────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
             {/* <span className="text-xs font-bold tracking-widest text-ktsa-accent/60 uppercase mb-2 block">
@@ -638,7 +634,7 @@ export function Home() {
       </section>
 
       {/* Tournaments */}
-      <section className="py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
         <div className="absolute inset-0 opacity-5">
           <ImageWithFallback
             src="https://www.euroschoolindia.com/blogs/wp-content/uploads/2023/11/foosball-table-techniques-jpg.webp"
@@ -683,7 +679,7 @@ export function Home() {
 
       {/* Top Players */}
       <section
-        className="py-14 px-4 relative overflow-hidden bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary"
+        className="py-8 px-4 relative overflow-hidden bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary"
         // style={{
         //   background:
         //     "radial-gradient(circle, var(--ktsa-secondary) 7%, var(--ktsa-secondary) -15%, #000000 100%)",
@@ -740,7 +736,7 @@ export function Home() {
       </section>
 
       {/* Gallery */}
-      <section className="py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <motion.div
@@ -799,7 +795,7 @@ export function Home() {
       </section>
 
       {/* Stats */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary relative overflow-hidden">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary relative overflow-hidden">
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-0 left-1/4 w-64 h-64 bg-ktsa-accent rounded-full blur-3xl animate-pulse" />
           <div
@@ -870,7 +866,7 @@ export function Home() {
       </section>
 
       {/* Videos */}
-      <section className="py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
         <div className="absolute inset-0 opacity-5">
           <ImageWithFallback
             src="https://images.unsplash.com/photo-1733648203550-0cacea85fa35?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YWJsZSUyMGZvb3RiYWxsJTIwY29tcGV0aXRpdmUlMjBtYXRjaHxlbnwxfHx8fDE3NzQ5MzkwNzF8MA&ixlib=rb-4.1.0&q=80&w=1080"
@@ -968,7 +964,7 @@ export function Home() {
         </div>
       </section>
       {/* News */}
-      <section className="py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <motion.div

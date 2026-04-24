@@ -102,27 +102,27 @@ const pillars = [
 const newsArticles = [
   {
     id: 1,
-    title: "KTSA Announces Record Prize Pool for 2026 Season",
-    date: "March 25, 2026",
+    title: "KTSA Officially Launched",
+    date: "April 25, 2026",
     category: "KTSA",
     image:
-      "https://instagram.fblr22-1.fna.fbcdn.net/v/t51.71878-15/657111868_924948450346322_1146867286322566528_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=103&ig_cache_key=Mzg2NjQ5MTg4NDUzMzg5MTk3Mg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjY0MHgxMTM2LnNkci5DMyJ9&_nc_ohc=UHmHkG1PKxIQ7kNvwFIbC4p&_nc_oc=AdpVAt5BCqfw7g8_CqN5H6cu1mdC3vo7N5Ar1QuHm3aZXp3vuNmMMBm9OwgqFx0lK2Y0O8vHt-hb5VYQRunu8mq3&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fblr22-1.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af0dkZy_YKNiDDR5unGOpSw0X-U6wPgs59r-SkmgKTxUYQ&oe=69DEDEF1",
+      "https://images.unsplash.com/photo-1764408721535-2dcb912db83e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0cm9waHklMjBjaGFtcGlvbnNoaXAlMjBhd2FyZHxlbnwxfHx8fDE3NzQ5MzgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     id: 2,
-    title: "New Training Academy Opens in Bangalore",
-    date: "March 20, 2026",
+    title: "Bangalore Open",
+    date: "May, 2026, Bangalore",
     category: "Events",
     image:
-      "https://instagram.fblr22-1.fna.fbcdn.net/v/t51.71878-15/519003066_4208693196065850_5771027984412155748_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=108&ig_cache_key=MzY3NjcyODQ1MTYxNzAzODc3Mg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjY0MHgxMTM2LnNkci5DMyJ9&_nc_ohc=Ej5xA2BLseYQ7kNvwF_myUk&_nc_oc=AdpwuJm1-oXFIw9h3xGRckYjq2v2gOS_YxBgS9tdJefjW5i9znb41-EIdl7GnEakp6r0uMQOxt4rDX-2B9BmaI9T&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fblr22-1.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af36mdIQGUlY7Lh4arXYACZhVr243BVoxKNQhIYOu8aJcg&oe=69DED820",
+      "https://images.unsplash.com/photo-1751916856395-3dd0c4fe49e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRvdXJuYW1lbnQlMjBjb21wZXRpdGl2ZSUyMHNwb3J0c3xlbnwxfHx8fDE3NzQ5MzgyOTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     id: 3,
-    title: "Interview with Champion Arjun Sharma",
-    date: "March 18, 2026",
-    category: "Global",
+    title: "Karnataka Open",
+    date: "25th April, 2026, Bangalore",
+    category: "Events",
     image:
-      "https://instagram.fblr22-2.fna.fbcdn.net/v/t51.82787-15/656668225_17931958677212904_5687285780780719136_n.jpg?stp=dst-jpegr_e35_tt6&_nc_cat=100&ig_cache_key=Mzg2MzY0NDU2NDczNzkyNDAyNw%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTA4MC5oZHIuQzMifQ%3D%3D&_nc_ohc=_z93E_wM2A0Q7kNvwGy36In&_nc_oc=AdoGA-uTUmR-TR148C5XAwjU9GKbTBIcxCh712JT44DuYEXuWCTcFebw_ouH0JNDvxLeDLX-87xaKO56yDXZiv8K&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&se=-1&_nc_ht=instagram.fblr22-2.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af1pOx6xMOPebKE9MLXH2J246I_WyzMBeZhwGABgkS8vFw&oe=69DEC52F",
+      "https://images.unsplash.com/photo-1746396887626-6bd54c6b2181?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm91cCUyMGF0aGxldGVzJTIwY2VsZWJyYXRpbmclMjB2aWN0b3J5fGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
   },
 ];
 

@@ -171,7 +171,7 @@ export function News() {
         </section>
       )}
 
-      {/* Category Tabs */}
+      {/* Category Tabs 
       <section className="bg-ktsa-bg/95 py-3 sticky top-20 z-40 border-b border-ktsa-accent/20 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-3">
           <div className="flex flex-wrap gap-4 justify-center">
@@ -190,7 +190,7 @@ export function News() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* News Grid */}
       <section className="py-12 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">

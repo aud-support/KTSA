@@ -21,7 +21,7 @@ const rankingsData = {
     {
       rank: 1,
       name: "Nadeem",
-      image: "src/assets/Media.jpg",
+      image: "src/assets/male_avatar.jfif",
       points: 140,
       matches: 4,
       wins: 2,
@@ -30,7 +30,7 @@ const rankingsData = {
     {
       rank: 2,
       name: "Saravanan",
-      image: "src/assets/Media (1).jpg",
+      image: "src/assets/male_avatar.jfif",
       points: 140,
       matches: 4,
       wins: 2,
@@ -39,7 +39,7 @@ const rankingsData = {
     {
       rank: 3,
       name: "Manoj",
-      image: "src/assets/TANJOT SINGH.png",
+      image: "src/assets/male_avatar.jfif",
       points: 120,
       matches: 4,
       wins: 1,
@@ -167,7 +167,15 @@ const rankingsData = {
   ],
 
   Women: [
-    { rank: 1, name: "Akshatha", points: 40, matches: 4, wins: 0, trend: "up" },
+    {
+      rank: 1,
+      name: "Akshatha",
+      points: 40,
+      matches: 4,
+      wins: 0,
+      trend: "up",
+      image: "src/assets/female_avatar.jfif",
+    },
     {
       rank: 2,
       name: "Prashanthi",
@@ -175,8 +183,17 @@ const rankingsData = {
       matches: 4,
       wins: 0,
       trend: "same",
+      image: "src/assets/female_avatar.jfif",
     },
-    { rank: 3, name: "Akila", points: 20, matches: 4, wins: 0, trend: "up" },
+    {
+      rank: 3,
+      name: "Akila",
+      points: 20,
+      matches: 4,
+      wins: 0,
+      trend: "up",
+      image: "src/assets/female_avatar.jfif",
+    },
     {
       rank: 4,
       name: "Amrithaa",
@@ -309,29 +326,32 @@ const rankingsData = {
     {
       rank: 1,
       names: ["Manoj", "Saravanan"],
-      image: "src/assets/double.jpg",
+
       points: 120,
       matches: 0,
       wins: 0,
       trend: "up",
+      image: "src/assets/doubles_avatar.jfif",
     },
     {
       rank: 2,
       names: ["Nadeem", "Rishav"],
-      image: "src/assets/double.jpg",
+
       points: 70,
       matches: 0,
       wins: 0,
       trend: "same",
+      image: "src/assets/doubles_avatar.jfif",
     },
     {
       rank: 3,
       names: ["Nadeem", "Owais"],
-      image: "src/assets/double.jpg",
+
       points: 50,
       matches: 0,
       wins: 0,
       trend: "up",
+      image: "src/assets/doubles_avatar.jfif",
     },
     {
       rank: 4,

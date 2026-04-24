@@ -351,7 +351,7 @@ export function Home() {
         {/* Background image */}
         <div className="cover mx-auto absolute inset-0 opacity-80">
           <ImageWithFallback
-            src="https://plus.unsplash.com/premium_photo-1723478555114-2bebac948a50?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            src="https://images.unsplash.com/photo-1716703370285-d7ff2960abb4?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
             alt="Foosball Action"
             className="w-full h-full object-cover scale-110 sm:scale-105"
           />

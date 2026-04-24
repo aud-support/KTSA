@@ -450,7 +450,6 @@ export function About() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              style={{ marginBottom: 100 }}
             >
               <h2 className="text-2xl md:text-3xl font-black text-ktsa-text mb-3">
                 Who{" "}
@@ -482,7 +481,47 @@ export function About() {
       <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
-            {/* India stat card */}
+            {/* Why it matters list */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.15 }}
+            >
+              <h3 className="text-xl md:text-2xl font-black text-ktsa-text mb-5">
+                Why{" "}
+                <span className="bg-gradient-to-r from-ktsa-accent to-ktsa-highlight bg-clip-text text-transparent">
+                  This Matters
+                </span>
+              </h3>
+              <div className="flex flex-col gap-3">
+                {whyItMatters.map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: 16 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.08 }}
+                    className="flex gap-3 p-3 rounded-xl border border-ktsa-accent/15 bg-ktsa-primary/15 hover:border-ktsa-accent/35 transition-colors"
+                  >
+                    <div
+                      className="w-1.5 flex-shrink-0 rounded-full bg-gradient-to-b from-ktsa-accent to-ktsa-highlight mt-1"
+                      style={{ height: "auto", minHeight: 32 }}
+                    />
+                    <div>
+                      <p className="text-xs font-black text-ktsa-accent mb-0.5">
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-white leading-relaxed">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* foosball pillar card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -544,46 +583,6 @@ export function About() {
                     </div>
                   ))}
                 </div>
-              </div>
-            </motion.div>
-
-            {/* Why it matters list */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.15 }}
-            >
-              <h3 className="text-xl md:text-2xl font-black text-ktsa-text mb-5">
-                Why{" "}
-                <span className="bg-gradient-to-r from-ktsa-accent to-ktsa-highlight bg-clip-text text-transparent">
-                  This Matters
-                </span>
-              </h3>
-              <div className="flex flex-col gap-3">
-                {whyItMatters.map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: 16 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.08 }}
-                    className="flex gap-3 p-3 rounded-xl border border-ktsa-accent/15 bg-ktsa-primary/15 hover:border-ktsa-accent/35 transition-colors"
-                  >
-                    <div
-                      className="w-1.5 flex-shrink-0 rounded-full bg-gradient-to-b from-ktsa-accent to-ktsa-highlight mt-1"
-                      style={{ height: "auto", minHeight: 32 }}
-                    />
-                    <div>
-                      <p className="text-xs font-black text-ktsa-accent mb-0.5">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-white leading-relaxed">
-                        {item.desc}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
               </div>
             </motion.div>
           </div>
@@ -652,7 +651,7 @@ export function About() {
       </section>
 
       {/* ── Journey Timeline ──────────────────────────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg relative">
+      <section className=" md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg relative">
         <div className="max-w-5xl mx-auto relative z-10">
           <div className="text-center mb-8">
             {/* <span className="text-xs font-bold tracking-widest text-ktsa-accent/60 uppercase mb-2 block">

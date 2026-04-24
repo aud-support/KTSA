@@ -954,13 +954,17 @@ export function Home() {
           </div>
         </div>
         <div className="text-center">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
+          <motion.a
+            href="https://www.youtube.com/@KTSA_Official"
+            target="_blank"
+            rel="noopener noreferrer"
+            whileHover={{ scale: 1.05, borderColor: "rgba(0,229,255,1)" }}
             whileTap={{ scale: 0.95 }}
-            className="px-8 py-4 bg-ktsa-primary/80 text-ktsa-text rounded-full font-bold text-base border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-400"
+            className="inline-block px-8 py-4 bg-ktsa-primary/80 text-ktsa-text rounded-full font-bold text-base border border-ktsa-accent/30"
+            style={{ willChange: "transform" }}
           >
             Watch on Youtube
-          </motion.button>
+          </motion.a>
         </div>
       </section>
       {/* News */}

@@ -19,6 +19,9 @@ import april from "../../assets/april-25-2026.jpg";
 import april1 from "../../assets/april-2026.jpg";
 import jan from "../../assets/jan-2026.jpg";
 import march from "../../assets/march-2026.jpg";
+import image1 from "../../assets/ktsa-image10.jpg";
+import image2 from "../../assets/ktsa-image7.jpg";
+import image3 from "../../assets/ktsa-image11.jpg";
 
 const tournaments = [
   {
@@ -123,14 +126,7 @@ const newsArticles = [
   },
 ];
 
-const galleryImages = [
-  "https://instagram.fblr22-2.fna.fbcdn.net/v/t51.82787-15/651809172_17929971138212904_8599779955604411425_n.jpg?stp=dst-jpg_e35_tt6&_nc_cat=105&ig_cache_key=Mzg1NDE5MTQ5Mjg3Mzc1MzMwOA%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjE0NDB4MTkyMC5zZHIuQzMifQ%3D%3D&_nc_ohc=kl8Otz5saLMQ7kNvwFNUbBw&_nc_oc=Adr0GlzNqiCVxy3H7N-0HJ9loNUNjiJlKSTPyYRa4iBN1f2SPTRZdVakLLarbU4VQBuZ6GiuqAmBAToZqAlzULP0&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fblr22-2.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af3eHQkxPEjS3AJoJ2fuivnAztJFMiX9kk-fKLFxu0q7Dw&oe=69DECC67",
-  "https://instagram.fblr22-1.fna.fbcdn.net/v/t51.71878-15/657442736_936027782555192_1960907205301419746_n.jpg?stp=dst-jpegr_e15_tt6&_nc_cat=106&ig_cache_key=Mzg2NDA0ODk4MDYzNjkwOTY2MQ%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjY0MHgxMTM2Lmhkci5DMyJ9&_nc_ohc=SXu3EQJCGpIQ7kNvwE3w9sC&_nc_oc=AdpOftgc4LAPnqmUvHwMezKbTismGWyk9Fl5yFBQS0sp_B1l3Y083WOkX-ynfNLMPWds2kVekLfStkFVlLJld7PG&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&se=-1&_nc_ht=instagram.fblr22-1.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af3dJAXI9earB-xg2wzaCeY3NgdGkT54qFHqcciKzW0gNA&oe=69DED2EC",
-  "https://instagram.fblr22-1.fna.fbcdn.net/v/t51.71878-15/657111868_924948450346322_1146867286322566528_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=103&ig_cache_key=Mzg2NjQ5MTg4NDUzMzg5MTk3Mg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjY0MHgxMTM2LnNkci5DMyJ9&_nc_ohc=UHmHkG1PKxIQ7kNvwFIbC4p&_nc_oc=AdpVAt5BCqfw7g8_CqN5H6cu1mdC3vo7N5Ar1QuHm3aZXp3vuNmMMBm9OwgqFx0lK2Y0O8vHt-hb5VYQRunu8mq3&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fblr22-1.fna&_nc_gid=7jczeJ8BNcxKUPfGqBRFnA&_nc_ss=7a32e&oh=00_Af0dkZy_YKNiDDR5unGOpSw0X-U6wPgs59r-SkmgKTxUYQ&oe=69DEDEF1",
-  "https://images.unsplash.com/photo-1652318694732-fa6532505a49?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YWJsZSUyMHNvY2NlciUyMGNvbmNlbnRyYXRpb258ZW58MXx8fHwxNzc0OTM4Mjk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
-  "https://images.unsplash.com/photo-1560880792-3c36a3f17944?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMGNsb3NlJTIwdXAlMjBnYW1lfGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
-  "https://images.unsplash.com/photo-1764408721535-2dcb912db83e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0cm9waHklMjBjaGFtcGlvbnNoaXAlMjBhd2FyZHxlbnwxfHx8fDE3NzQ5MzgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-];
+const galleryImages = [image1, image2, image3];
 
 function Counter({ end, duration = 2 }: { end: number; duration?: number }) {
   const [count, setCount] = useState(0);

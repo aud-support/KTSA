@@ -19,10 +19,10 @@ const newsArticles = [
   },
   {
     id: 2,
-    title: "New Training Academy Opens in Bangalore",
+    title: "Karnataka Open",
     excerpt:
       "KTSA inaugurates Karnataka's first dedicated table soccer training academy, featuring state-of-the-art equipment and coaching from international experts.",
-    date: "March 20, 2026",
+    date: "25th April, 2026, Bangalore",
     category: "Events",
     featured: false,
     image:
@@ -30,21 +30,21 @@ const newsArticles = [
   },
   {
     id: 3,
-    title: "Interview with Champion Arjun Sharma",
+    title: "Women's Foosball",
     excerpt:
       "An exclusive conversation with Karnataka's top-ranked player about his journey, training regimen, and aspirations for international competition.",
-    date: "March 18, 2026",
-    category: "Global",
+    date: "25th April, 2026, Near Silkboard",
+    category: "Events",
     featured: false,
     image:
       "https://images.unsplash.com/photo-1765607081473-8b44507dfdf9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0ZWFtJTIwY29tbXVuaXR5JTIwcGxheWVyc3xlbnwxfHx8fDE3NzQ5MzgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     id: 4,
-    title: "Bangalore Open Series: Day 1 Highlights",
+    title: "Banglore Foosball Tournament",
     excerpt:
       "Thrilling matches and unexpected upsets mark the opening day of the Bangalore Open Series with over 200 participants competing.",
-    date: "March 15, 2026",
+    date: "29th March, 2026, Kormangla",
     category: "Events",
     featured: false,
     image:
@@ -56,17 +56,17 @@ const newsArticles = [
     excerpt:
       "KTSA players now eligible for direct qualification to the ITSF World Championship through performance in state tournaments.",
     date: "March 10, 2026",
-    category: "Global",
+    category: "Events",
     featured: false,
     image:
       "https://images.unsplash.com/photo-1751916856395-3dd0c4fe49e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRvdXJuYW1lbnQlMjBjb21wZXRpdGl2ZSUyMHNwb3J0c3xlbnwxfHx8fDE3NzQ5MzgyOTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
     id: 6,
-    title: "Women's League Sees Record Participation",
+    title: "Banglore Foosball Tournament",
     excerpt:
       "The women's division of KTSA tournaments has grown by 150% this year, with new players joining from across Karnataka.",
-    date: "March 5, 2026",
+    date: "31 January, 2026, Whitefield",
     category: "KTSA",
     featured: false,
     image:
@@ -100,7 +100,7 @@ const newsArticles = [
     excerpt:
       "Over 50 coaches attended the first international table soccer coaching workshop organized by KTSA in partnership with ITSF.",
     date: "February 20, 2026",
-    category: "Global",
+    category: "Events",
     featured: false,
     image:
       "https://images.unsplash.com/photo-1746396887626-6bd54c6b2181?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm91cCUyMGF0aGxldGVzJTIwY2VsZWJyYXRpbmclMjB2aWN0b3J5fGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
@@ -183,12 +183,12 @@ export function News() {
                 </div>
 
                 {/* Title */}
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white mb-3 max-w-xl leading-tight">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-ktsa-accent mb-3 max-w-xl leading-tight">
                   {featuredArticle.title}
                 </h2>
 
                 {/* Description */}
-                <p className="text-sm sm:text-base md:text-lg text-ktsa-text/90 mb-3 max-w-md leading-relaxed line-clamp-3">
+                <p className="text-sm sm:text-base md:text-lg text-ktsa-text mb-3 max-w-md leading-relaxed line-clamp-3">
                   {featuredArticle.excerpt}
                 </p>
 

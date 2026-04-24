@@ -683,9 +683,6 @@ export function About() {
       <section className="py-8 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
-            {/* <span className="text-xs font-bold tracking-widest text-ktsa-accent/60 uppercase mb-2 block">
-              Community Benefits
-            </span> */}
             <h2 className="text-2xl md:text-4xl font-black text-ktsa-text mb-1">
               What KTSA{" "}
               <span className="bg-gradient-to-r text-white to-ktsa-highlight bg-clip-text">
@@ -766,48 +763,6 @@ export function About() {
         </div>
       </section>
 
-      {/* ── Governing Committee ───────────────────────────────── */}
-      {/* <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8">
-            <span className="text-xs font-bold tracking-widest text-ktsa-accent/60 uppercase mb-2 block">
-              The People Behind KTSA
-            </span>
-            <h2 className="text-2xl md:text-4xl font-black text-ktsa-text mb-1">
-              Governing{" "}
-              <span className="bg-gradient-to-r from-ktsa-accent to-ktsa-highlight bg-clip-text text-transparent">
-                {" "}
-                Committee
-              </span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {governingCommittee.map((member, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.08 }}
-                whileHover={{ y: -4 }}
-                className={`rounded-2xl p-4 border ${member.border} bg-gradient-to-br ${member.color} text-center transition-all duration-300`}
-              >
-                <div
-                  className={`w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br ${member.color} border ${member.border} flex items-center justify-center text-sm font-black text-white`}
-                >
-                  {member.initials}
-                </div>
-                <p className="text-xs font-black text-ktsa-accent leading-tight mb-1">
-                  {member.name}
-                </p>
-                <p className="text-[10px] text-ktsa-text/50">{member.role}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section> */}
-
       {/* ── CTA Banner ────────────────────────────────────────── */}
       <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg text-center">
         <motion.div
@@ -829,12 +784,6 @@ export function About() {
             Join the association, register your club, or attend your first
             tournament.
           </p>
-          {/* <div className="flex gap-3 justify-center">
-            <button className="px-5 py-2.5 bg-ktsa-primary/70 text-ktsa-text rounded-full font-bold text-xs shadow-lg">
-              Contact KTSA
-            </button>
-           
-          </div> */}
         </motion.div>
       </section>
     </div>

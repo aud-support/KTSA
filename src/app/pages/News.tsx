@@ -8,10 +8,10 @@ const categories = ["All", "Global", "KTSA", "Events"];
 const newsArticles = [
   {
     id: 1,
-    title: "KTSA Announces Record Prize Pool for 2026 Season",
+    title: "KTSA Officially Launched",
     excerpt:
-      "The Karnataka Table Soccer Association has unveiled an unprecedented prize pool of ₹10 lakhs for the 2026 championship season, marking the largest prize fund in the organization's history.",
-    date: "March 25, 2026",
+      "The Karnataka Table Soccer Association (KTSA) proudly announces its official launch, bringing together players, clubs, and supporters to grow the sport across Karnataka.",
+    date: "April 25, 2026",
     category: "KTSA",
     featured: true,
     image:
@@ -170,7 +170,7 @@ export function News() {
                 alt={featuredArticle.title}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-ktsa-bg via-ktsa-bg/70 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-ktsa-bg via-ktsa-bg/70 to-transparent" />
               <div className="absolute inset-0 p-4 sm:p-6 md:p-10 flex flex-col justify-end">
                 {/* Tags */}
                 <div className="flex items-center gap-2 mb-3">
@@ -216,12 +216,6 @@ export function News() {
                     ? "text-ktsa-text bg-ktsa-highlight shadow-lg scale-105"
                     : "bg-ktsa-primary/40 text-ktsa-text border-2 border-ktsa-accent/30 hover:border-ktsa-accent/60"
                 }`}
-                // style={{
-                //   boxShadow:
-                //     selectedCategory === category
-                //       ? "0 0 30px rgba(250, 0, 0, 0.1)"
-                //       : "none",
-                // }}
               >
                 {category}
               </button>

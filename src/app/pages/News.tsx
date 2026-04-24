@@ -19,9 +19,20 @@ const newsArticles = [
   },
   {
     id: 2,
+    title: "Bangalore Open",
+    excerpt:
+      "The much-anticipated Bangalore Open is scheduled for May, bringing together top foosball talent from across the region. Get ready for a day of high-energy matches and competitive action.",
+    date: "May, 2026, Bangalore",
+    category: "Events",
+    featured: false,
+    image:
+      "https://images.unsplash.com/photo-1751916856395-3dd0c4fe49e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRvdXJuYW1lbnQlMjBjb21wZXRpdGl2ZSUyMHNwb3J0c3xlbnwxfHx8fDE3NzQ5MzgyOTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+  },
+  {
+    id: 3,
     title: "Karnataka Open",
     excerpt:
-      "KTSA inaugurates Karnataka's first dedicated table soccer training academy, featuring state-of-the-art equipment and coaching from international experts.",
+      "The much-anticipated Karnataka Open is scheduled for April 25, bringing together top foosball talent from across the region. Get ready for a day of high-energy matches and competitive action.",
     date: "25th April, 2026, Bangalore",
     category: "Events",
     featured: false,
@@ -29,10 +40,10 @@ const newsArticles = [
       "https://images.unsplash.com/photo-1746396887626-6bd54c6b2181?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm91cCUyMGF0aGxldGVzJTIwY2VsZWJyYXRpbmclMjB2aWN0b3J5fGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
-    id: 3,
+    id: 4,
     title: "Women's Foosball",
     excerpt:
-      "An exclusive conversation with Karnataka's top-ranked player about his journey, training regimen, and aspirations for international competition.",
+      "Taking place near Silkboard on April 25, this event celebrates women in foosball, showcasing skill, strategy, and growing participation in the sport.",
     date: "25th April, 2026, Near Silkboard",
     category: "Events",
     featured: false,
@@ -40,70 +51,27 @@ const newsArticles = [
       "https://images.unsplash.com/photo-1765607081473-8b44507dfdf9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0ZWFtJTIwY29tbXVuaXR5JTIwcGxheWVyc3xlbnwxfHx8fDE3NzQ5MzgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
   },
   {
-    id: 4,
+    id: 5,
     title: "Banglore Foosball Tournament",
     excerpt:
-      "Thrilling matches and unexpected upsets mark the opening day of the Bangalore Open Series with over 200 participants competing.",
+      "Held in Whitefield on January 31, the tournament concluded with exciting matches and strong performances, marking a great start to the year for foosball enthusiasts.",
     date: "29th March, 2026, Kormangla",
     category: "Events",
     featured: false,
     image:
       "https://images.unsplash.com/photo-1666193183124-3f27c7800370?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRhYmxlJTIwc29jY2VyJTIwYWN0aW9uJTIwZ2FtZXxlbnwxfHx8fDE3NzQ5MzgzMDF8MA&ixlib=rb-4.1.0&q=80&w=1080",
   },
-  {
-    id: 5,
-    title: "ITSF World Championship Qualification Announced",
-    excerpt:
-      "KTSA players now eligible for direct qualification to the ITSF World Championship through performance in state tournaments.",
-    date: "March 10, 2026",
-    category: "Events",
-    featured: false,
-    image:
-      "https://images.unsplash.com/photo-1751916856395-3dd0c4fe49e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRvdXJuYW1lbnQlMjBjb21wZXRpdGl2ZSUyMHNwb3J0c3xlbnwxfHx8fDE3NzQ5MzgyOTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-  },
+
   {
     id: 6,
     title: "Banglore Foosball Tournament",
     excerpt:
-      "The women's division of KTSA tournaments has grown by 150% this year, with new players joining from across Karnataka.",
+      "The March 29 event in Koramangala saw intense gameplay and enthusiastic participation, further strengthening the local foosball community.",
     date: "31 January, 2026, Whitefield",
     category: "KTSA",
     featured: false,
     image:
       "https://images.unsplash.com/photo-1770067665792-9975acdec4fb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRvb3IlMjBzcG9ydHMlMjBzdGFkaXVtJTIwYXJlbmElMjBsaWdodHN8ZW58MXx8fHwxNzc0OTM4MzAyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    id: 7,
-    title: "Youth Development Program Launch",
-    excerpt:
-      "New initiative aims to introduce table soccer to schools and colleges across Karnataka, nurturing the next generation of champions.",
-    date: "February 28, 2026",
-    category: "Events",
-    featured: false,
-    image:
-      "https://images.unsplash.com/photo-1652318694732-fa6532505a49?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0YWJsZSUyMHNvY2NlciUyMHBsYXllciUyMGNvbmNlbnRyYXRpb258ZW58MXx8fHwxNzc0OTM4Mjk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    id: 8,
-    title: "Mysore City League Registration Open",
-    excerpt:
-      "Players from Mysore and surrounding areas can now register for the upcoming city league, scheduled for May 2026.",
-    date: "February 25, 2026",
-    category: "KTSA",
-    featured: false,
-    image:
-      "https://images.unsplash.com/photo-1560880792-3c36a3f17944?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMGNsb3NlJTIwdXAlMjBnYW1lfGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
-  },
-  {
-    id: 9,
-    title: "International Coach Workshop Success",
-    excerpt:
-      "Over 50 coaches attended the first international table soccer coaching workshop organized by KTSA in partnership with ITSF.",
-    date: "February 20, 2026",
-    category: "Events",
-    featured: false,
-    image:
-      "https://images.unsplash.com/photo-1746396887626-6bd54c6b2181?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm91cCUyMGF0aGxldGVzJTIwY2VsZWJyYXRpbmclMjB2aWN0b3J5fGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
   },
 ];
 

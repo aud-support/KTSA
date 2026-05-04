@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import team from "../../assets/ktsa.jpg";
-import rulebook from "../../assets/Rulebook.png";
+import rulebook from "../../assets/Rulebook.pdf";
 import { useState } from "react";
 
 const achievements = [
@@ -131,7 +131,7 @@ const ktsakProvides = [
   {
     icon: Award,
     title: "Certification & Badges",
-    desc: "Referee and coaching certification recognised by FTSI.",
+    desc: "Referee and coaching certification recognised by KTSA.",
   },
   {
     icon: Star,
@@ -257,7 +257,7 @@ export function About() {
                   onClick={() => {
                     const link = document.createElement("a");
                     link.href = rulebook;
-                    link.download = "Rulebook.png";
+                    link.download = "Rulebook.pdf";
                     link.click();
                   }}
                   className="flex items-center gap-1.5 px-4 py-2 bg-ktsa-primary/70 text-ktsa-text rounded-full font-bold text-xs shadow-lg"
@@ -299,20 +299,35 @@ export function About() {
                     and connected to the world."
                   </p>
 
-                  {/* Hidden extra content */}
+                  {/* Expanded founder story */}
                   <div
                     className={`overflow-hidden transition-all duration-500 ${
                       expandedfounder
-                        ? "max-h-40 opacity-100 mt-2"
+                        ? "max-h-96 opacity-100 mt-2"
                         : "max-h-0 opacity-0"
                     }`}
                   >
                     <p className="text-xs text-white/80 leading-relaxed">
-                      Sayeed Ahmed Shariff has been instrumental in building
-                      KTSA from the ground up. His vision focuses on creating
-                      structured pathways, national-level exposure, and a strong
-                      grassroots ecosystem for foosball players across
-                      Karnataka.
+                      "My journey into foosball started casually — like most
+                      players, it began as a recreational activity. But over
+                      time, it became more than just a game. As I played more
+                      and interacted with other players, I realized there was
+                      real potential in the sport — talent, competitiveness, and
+                      passion — but no system to support it. That realization
+                      stayed with me. I started taking small steps — organizing
+                      local matches, connecting players, and eventually hosting
+                      tournaments. Each step came with its own challenges.
+                      Finding venues, managing logistics, ensuring participation
+                      — everything had to be figured out from scratch. There
+                      were moments of uncertainty. Some events had lower turnout
+                      than expected, resources were always limited. But what
+                      kept things going was consistency and belief. That
+                      experience on the world stage not only pushed me
+                      personally but reinforced the potential of Indian players
+                      in global competition. Today, what started as a personal
+                      interest has become a larger mission — building a
+                      structured ecosystem where players can compete, improve,
+                      and be recognized."
                     </p>
                   </div>
 
@@ -331,7 +346,14 @@ export function About() {
                   </button>
                 </div>
               </div>
-              <div className="flex flex-col gap-3">
+
+              <div
+                className={`flex flex-col gap-3 overflow-hidden transition-all duration-500 ${
+                  expandedfounder
+                    ? "max-h-0 opacity-0"
+                    : "max-h-[500px] opacity-100"
+                }`}
+              >
                 {info.map((item, i) => (
                   <motion.div
                     key={i}
@@ -358,7 +380,13 @@ export function About() {
               </div>
 
               {/* Stats grid */}
-              <div className="grid grid-cols-2 gap-3">
+              <div
+                className={`grid grid-cols-2 gap-3 overflow-hidden transition-all duration-500 ${
+                  expandedfounder
+                    ? "max-h-0 opacity-0"
+                    : "max-h-[300px] opacity-100"
+                }`}
+              >
                 {[
                   {
                     value: "700+",

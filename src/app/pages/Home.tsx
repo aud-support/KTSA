@@ -28,7 +28,7 @@ const tournaments = [
     id: 1,
     title: "Karnataka Open",
     date: "25th April, 2026",
-    location: "Bangalore",
+    location: "Bengaluru",
     status: "Upcoming",
     image: april,
   },
@@ -36,23 +36,23 @@ const tournaments = [
     id: 2,
     title: "Women's Foosball",
     date: "25th April, 2026",
-    location: "Near Silkboard, Bangalore",
+    location: "Near Silkboard, Bengaluru",
     status: "Upcoming",
     image: april1,
   },
   {
     id: 3,
-    title: "Banglore Foosball Tournament",
+    title: "Bengaluru Foosball Tournament",
     date: "31 January, 2026",
-    location: "Whitefield, Bangalore",
+    location: "Whitefield, Bengaluru",
     status: "Completed",
     image: jan,
   },
   {
     id: 4,
-    title: "Banglore Foosball Tournament",
+    title: "Bengaluru Foosball Tournament",
     date: "29th March, 2026",
-    location: "Kormangla, Bangalore",
+    location: "Kormangala, Bengaluru",
     status: "Completed",
     image: march,
   },
@@ -99,6 +99,77 @@ const pillars = [
       "KTSA continues to grow the sport through clubs, tournaments, community engagement, and educational institutions.",
   },
 ];
+const trainingAndDevelopment = [
+  {
+    id: "01",
+    title: "Player Training",
+    description:
+      "Learn the game, improve your technique, and build the confidence you need for structured competition at every level.",
+    ctatext: "Join a Training Program",
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        className="w-5 h-5 stroke-ktsa-text fill-none stroke-[1.7] stroke-linecap-round stroke-linejoin-round"
+      >
+        <path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2z" />
+        <path d="M20 21a8 8 0 1 0-16 0" />
+        <path d="M12 14v4" />
+        <path d="M9.5 17.5l2.5-2 2.5 2" />
+      </svg>
+    ),
+  },
+  {
+    id: "02",
+    title: "Referee Development",
+    description:
+      "Become part of a credible and organised competitive ecosystem through official referee registration and structured development.",
+    ctatext: "Become a Registered Referee",
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        className="w-5 h-5 stroke-ktsa-text fill-none stroke-[1.7] stroke-linecap-round stroke-linejoin-round"
+      >
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="9" y1="13" x2="15" y2="13" />
+        <line x1="9" y1="17" x2="12" y2="17" />
+      </svg>
+    ),
+  },
+  {
+    id: "03",
+    title: "Workshops & Intro Sessions",
+    description:
+      "Bring guided foosball sessions to your campus, company, or organisation — tailored intro programmes for groups of all sizes.",
+    ctatext: "Host a Workshop",
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        className="w-5 h-5 stroke-ktsa-text fill-none stroke-[1.7] stroke-linecap-round stroke-linejoin-round"
+      >
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    id: "04",
+    title: "Development Pathways",
+    description:
+      "Explore structured opportunities to grow within the sport — from casual play to competitive careers, coaching, and club leadership.",
+    ctatext: "Learn More",
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        className="w-5 h-5 stroke-ktsa-text fill-none stroke-[1.7] stroke-linecap-round stroke-linejoin-round"
+      >
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+    ),
+  },
+];
 const newsArticles = [
   {
     id: 1,
@@ -110,8 +181,8 @@ const newsArticles = [
   },
   {
     id: 2,
-    title: "Bangalore Open",
-    date: "May, 2026, Bangalore",
+    title: "Bengaluru Open",
+    date: "May, 2026, Bengaluru",
     category: "Events",
     image:
       "https://images.unsplash.com/photo-1751916856395-3dd0c4fe49e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRvdXJuYW1lbnQlMjBjb21wZXRpdGl2ZSUyMHNwb3J0c3xlbnwxfHx8fDE3NzQ5MzgyOTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -119,7 +190,7 @@ const newsArticles = [
   {
     id: 3,
     title: "Karnataka Open",
-    date: "25th April, 2026, Bangalore",
+    date: "25th April, 2026, Bengaluru",
     category: "Events",
     image:
       "https://images.unsplash.com/photo-1746396887626-6bd54c6b2181?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm91cCUyMGF0aGxldGVzJTIwY2VsZWJyYXRpbmclMjB2aWN0b3J5fGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
@@ -570,6 +641,132 @@ export function Home() {
               </motion.div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Training & Development */}
+      <section className="py-20 px-8 bg-gradient-to-b from-ktsa-bg to-[#070d0a] relative overflow-hidden">
+        {/* Subtle glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-[radial-gradient(ellipse_at_top,rgba(0,200,130,0.07),transparent_70%)] pointer-events-none" />
+
+        <div className="max-w-6xl mx-auto relative">
+          {/* Header */}
+          <motion.div
+            className="text-center mb-14"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl md:text-[44px] font-black text-ktsa-text tracking-tight leading-tight mb-4">
+              <span className="text-ktsa-accent">Training</span> & Development
+            </h2>
+            <p className="text-ktsa-text/70 text-sm font-light max-w-xl mx-auto leading-relaxed">
+              KTSA is growing foosball through structured learning, player
+              development, referee pathways, and institutional engagement —
+              building deeper roles within the sport for players and supporters
+              alike.
+            </p>
+          </motion.div>
+
+          {/* Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-10 gap-y-0 items-start">
+            {trainingAndDevelopment.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="group relative px-3 mb-24"
+              >
+                {/* Floating circular icon */}
+                <div className="relative left-1/2 -translate-x-1/2 w-[76px] h-[76px] rounded-full bg-ktsa-accent shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex items-center justify-center z-10 mb-[-60px] transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:translate-x-[-50%]">
+                  <div className="w-[65px] h-[65px] rounded-full bg-ktsa shadow-[6px_6px_18px_rgba(0,0,0,0.5),-3px_-3px_10px_rgba(0,200,130,0.06)] flex items-center justify-center">
+                    {item.icon}
+                  </div>
+                </div>
+
+                {/* Card */}
+                <div className="relative  bg-transparent pt-[72px] px-6 pb-7 overflow-visible transition-all duration-300">
+                  {/* Curved right border accent */}
+                  <div className="absolute w-[calc(100%+100px)] h-[calc(100%+24px)] top-[-12px] left-1/2 overflow-hidden rounded-[18px] pointer-events-none">
+                    <div className="absolute w-full h-full top-0 left-[-50%] rounded-[600px] border-[8px] border-ktsa-accent/[0.18] group-hover:border-ktsa-accent/40 transition-colors duration-300" />
+                  </div>
+
+                  {/* Number pill + title */}
+                  <div className="flex justify-center mb-3.5">
+                    <div
+                      className="relative flex items-center bg-ktsa-accent/30 rounded-r-[50px] pl-10 pr-4 py-2 ml-5"
+                      style={{
+                        boxShadow:
+                          "10px 14px 24px rgba(0,0,0,0.4), 5px 0 32px rgba(0,0,0,0.2)",
+                      }}
+                    >
+                      {/* Number badge */}
+                      <span
+                        className="absolute -left-[18px] top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-ktsa-accent border border-ktsa-accent/20 flex items-center justify-center font-['Outfit'] text-sm font-black text-ktsa-text"
+                        style={{ boxShadow: "10px 10px 22px rgba(0,0,0,0.45)" }}
+                      >
+                        {item.id}
+                      </span>
+                      <span className="font-['Outfit'] text-[15px] font-extrabold text-[#e0f7ed] whitespace-nowrap">
+                        {item.title}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-ktsa-text/80 text-[13px] font-light leading-relaxed text-center px-2 mb-6">
+                    {item.description}
+                  </p>
+
+                  {/* CTA */}
+                  <div className="border-t border-ktsa-accent/10 group-hover:border-ktsa-accent/25 transition-colors pt-4 flex justify-center">
+                    <span className="font-['Outfit'] text-[12.5px] font-bold text-ktsa-accent tracking-[0.3px]">
+                      {item.ctatext}
+                    </span>
+                  </div>
+
+                  {/* Bottom arrow button */}
+                  <div
+                    className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-[#0e1f17] border border-ktsa-accent/20 flex items-center justify-center z-10 transition-all duration-300 group-hover:bg-ktsa-accent group-hover:border-transparent"
+                    style={{ boxShadow: "6px 6px 20px rgba(0,0,0,0.5)" }}
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      className="w-4 h-4 fill-none stroke-ktsa-accent group-hover:stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round transition-colors"
+                    >
+                      <path d="M5 12h14" />
+                      <path d="m12 5 7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          {/* Footer CTA */}
+          <motion.div
+            className="text-center -mt-5"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
+          >
+            <p className="text-ktsa-text/70 text-sm font-light mb-5">
+              Interested in bringing foosball to your institution or
+              organisation?
+            </p>
+            <button className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex items-center gap-2.5 px-8 py-3.5  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300">
+              Get in Touch with KTSA
+              <svg
+                viewBox="0 0 24 24"
+                className="w-4 h-4 stroke-ktsa-text fill-none stroke-[2.2] stroke-linecap-round stroke-linejoin-round"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </button>
+          </motion.div>
         </div>
       </section>
 

@@ -257,7 +257,7 @@ export function Gallery() {
               <ImageWithFallback
                 src={selectedImage.src}
                 alt={selectedImage.caption}
-                className="w-full h-64 object-cover rounded-2xl border border-ktsa-accent/30"
+                className="w-full h-100 object-cover rounded-2xl border border-ktsa-accent/30"
               />
             </div>
 

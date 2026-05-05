@@ -680,8 +680,8 @@ export function Home() {
                 className="group relative px-3 mb-24"
               >
                 {/* Floating circular icon */}
-                <div className="relative left-1/2 -translate-x-1/2 w-[76px] h-[76px] rounded-full bg-ktsa-accent shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex items-center justify-center z-10 mb-[-60px] transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:translate-x-[-50%]">
-                  <div className="w-[65px] h-[65px] rounded-full bg-ktsa shadow-[6px_6px_18px_rgba(0,0,0,0.5),-3px_-3px_10px_rgba(0,200,130,0.06)] flex items-center justify-center">
+                <div className="relative left-1/2 -translate-x-1/2 w-[74px] h-[74px] rounded-full bg-ktsa-accent shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex items-center justify-center z-10 mb-[-60px] transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:translate-x-[-50%]">
+                  <div className="w-[55px] h-[55px] rounded-full bg-ktsa shadow-[6px_6px_18px_rgba(0,0,0,0.5),-3px_-3px_10px_rgba(0,200,130,0.06)] flex items-center justify-center">
                     {item.icon}
                   </div>
                 </div>
@@ -731,15 +731,7 @@ export function Home() {
                   <div
                     className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-[#0e1f17] border border-ktsa-accent/20 flex items-center justify-center z-10 transition-all duration-300 group-hover:bg-ktsa-accent group-hover:border-transparent"
                     style={{ boxShadow: "6px 6px 20px rgba(0,0,0,0.5)" }}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="w-4 h-4 fill-none stroke-ktsa-accent group-hover:stroke-white stroke-[2.2] stroke-linecap-round stroke-linejoin-round transition-colors"
-                    >
-                      <path d="M5 12h14" />
-                      <path d="m12 5 7 7-7 7" />
-                    </svg>
-                  </div>
+                  ></div>
                 </div>
               </motion.div>
             ))}

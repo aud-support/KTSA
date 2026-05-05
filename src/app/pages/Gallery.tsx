@@ -86,7 +86,7 @@ Meeting “Farid”, the President of ITSF, was truly inspiring — his humility
     src: image8,
     tournament: "Training Sessions",
     year: "2025",
-    caption: "world cup diaries - with Umesh Nepal federation president",
+    caption: "",
   },
   {
     id: 9,
@@ -100,17 +100,14 @@ Meeting “Farid”, the President of ITSF, was truly inspiring — his humility
     src: image10,
     tournament: "State Championship",
     year: "2024",
-    caption: ` **A HUGE Thank You to Everyone Who Participated in the KTSA Foosball Tournament at KOS!** 
-Your energy, sportsmanship, and passion for the game made this event unforgettable! 🙌
-🏆 **BIG Shoutout to Our Champions** 🏆
-You crushed it and showed everyone how it’s done! `,
+    caption: ` `,
   },
   {
     id: 11,
     src: image11,
     tournament: "Mysore League",
     year: "2026",
-    caption: `What an exciting Sunday at The Godown – Gaming Arena, Kalyan Nagar!
+    caption: `What an exciting Sunday at The Godown - Gaming Arena, Kalyan Nagar!
 Amazing matches, great sportsmanship, and a fantastic foosball community coming together.`,
   },
   {
@@ -122,7 +119,7 @@ Amazing matches, great sportsmanship, and a fantastic foosball community coming 
 A huge thank you to every player who made the August Tournament by KTSA such a success! 🏆🔥
 
 Take a look at the glimpse of our August tournament highlights 🎥✨
-The passion is growing, the community is stronger — and we’re just getting started 🚀`,
+The passion is growing, the community is stronger — and we're just getting started 🚀`,
   },
   {
     id: 13,

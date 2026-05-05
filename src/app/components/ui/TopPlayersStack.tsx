@@ -2,28 +2,28 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Trophy } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import palyer1 from "../../../assets/male_avatar.jfif";
+import palyer2 from "../../../assets/female_avatar.jfif";
+import palyer3 from "../../../assets/doubles_avatar.jfif";
 
 const topPlayers = [
   {
     rank: 1,
-    name: "Arjun Sharma",
-    points: 2850,
-    image:
-      "https://instagram.fblr22-1.fna.fbcdn.net/v/t51.71878-15/519003066_4208693196065850_5771027984412155748_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=108&ig_cache_key=MzY3NjcyODQ1MTYxNzAzODc3Mg%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjY0MHgxMTM2LnNkci5DMyJ9&_nc_ohc=IVgdlY8TlDIQ7kNvwE6TktL&_nc_oc=AdqteSUkfCrBW0plTnyZK4aQYV_kiifxjNZcO-YSbUgTk-F_Irfco4H5A_Sw5M8wC6bSlotq1flyJMuzJRXTGB1f&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fblr22-1.fna&_nc_gid=YoZ1rQkgT1Ar7wj0nn9ziA&_nc_ss=7a32e&oh=00_Af1rU73tJyk1wGXV_g-XxZaM8a-FmM3E4SCqSrGu74KokA&oe=69D2C260",
+    name: "Nadeem",
+    points: 140,
+    image: palyer1,
   },
   {
     rank: 2,
-    name: "Priya Menon",
-    points: 2720,
-    image:
-      "https://instagram.fblr22-2.fna.fbcdn.net/v/t51.71878-15/658175772_1241326494648751_4780876928066013296_n.jpg?stp=dst-jpg_e15_tt6&_nc_cat=107&ig_cache_key=Mzg2NDk5OTkyMTIwMDE5MzcyMw%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjY0MHgxMTM2LnNkci5DMyJ9&_nc_ohc=8pNnJ1Hz5WcQ7kNvwGDDKYa&_nc_oc=Adrf75F61fbx9FljevcKorQivEGZNUpp66_0D9DwCyRE5CdMfBZx3p68EHAGvtMH40j5Mg69vn1AzS4QA1339BTC&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=instagram.fblr22-2.fna&_nc_gid=_-zPTf9oeHYNQHWP3PXWig&_nc_ss=7a32e&oh=00_Af2-vgaM2M1_DE8tzbri2OnWTAI1y6jrdkKKrq_FQlWDbw&oe=69DED653",
+    name: "Akshatha",
+    points: 40,
+    image: palyer2,
   },
   {
     rank: 3,
-    name: "Rahul Patel",
-    points: 2680,
-    image:
-      "https://instagram.fblr22-1.fna.fbcdn.net/v/t51.71878-15/657442736_936027782555192_1960907205301419746_n.jpg?stp=dst-jpegr_e15_tt6&_nc_cat=106&ig_cache_key=Mzg2NDA0ODk4MDYzNjkwOTY2MQ%3D%3D.3-ccb7-5&ccb=7-5&_nc_sid=58cdad&efg=eyJ2ZW5jb2RlX3RhZyI6InhwaWRzLjY0MHgxMTM2Lmhkci5DMyJ9&_nc_ohc=SXu3EQJCGpIQ7kNvwE3w9sC&_nc_oc=AdpOftgc4LAPnqmUvHwMezKbTismGWyk9Fl5yFBQS0sp_B1l3Y083WOkX-ynfNLMPWds2kVekLfStkFVlLJld7PG&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&se=-1&_nc_ht=instagram.fblr22-1.fna&_nc_gid=j2DwgiP-1TZsuvrcCL9WTA&_nc_ss=7a32e&oh=00_Af0W_9bsg2hl3QgcoV4XuhT5HJrY6_3_fQcbCJ_wA0PG3g&oe=69DED2EC",
+    name: "Manoj & Saravanan",
+    points: 120,
+    image: palyer3,
   },
 ];
 
@@ -120,7 +120,7 @@ export function TopPlayersStack() {
           const zIndex = getZIndex(displayIdx);
 
           const medalEmoji =
-            player.rank === 1 ? "🥇" : player.rank === 2 ? "🥈" : "🥉";
+            player.rank === 1 ? "🥇" : player.rank === 2 ? "🥇" : "🥇";
 
           const borderColor =
             isHovered || isFocused
@@ -172,13 +172,6 @@ export function TopPlayersStack() {
               {/* Gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-              {/* Rank #1 badge */}
-              {player.rank === 1 && (
-                <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-lg">
-                  <Trophy size={14} className="text-yellow-900" />
-                </div>
-              )}
-
               {/* Player info */}
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 <div className="flex items-center gap-1 mb-0.5">
@@ -227,7 +220,7 @@ export function TopPlayersStack() {
         <motion.button
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="px-6 py-2 rounded-full border border-ktsa-accent/40 text-ktsa-accent text-xs font-bold hover:bg-ktsa-accent/10 transition-colors"
+          className="px-6 py-2 rounded-full border border-ktsa-text text-ktsa-text text-xs font-bold"
           onClick={() => {
             setOpened(false);
             setHoveredIndex(null);

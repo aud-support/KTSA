@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import team from "../../assets/ktsa.jpg";
+import rulebook from "../../assets/Rulebook.pdf";
 import { useState } from "react";
 
 const achievements = [
@@ -76,43 +77,6 @@ const timeline = [
   },
 ];
 
-// const recognitions = [
-//   "Karnataka Sports Council Recognition",
-//   "National Sports Development Partnership",
-//   "Youth Sports Excellence Award 2024",
-// ];
-
-// const governingCommittee = [
-//   {
-//     name: "Sayeed Ahmed Shariff",
-//     role: "Founder & President · KTSA",
-//     initials: "SAS",
-//     color: "from-ktsa-accent/20 to-ktsa-primary/20",
-//     border: "border-ktsa-accent/40",
-//   },
-//   {
-//     name: "Arjun Deshmukh",
-//     role: "Vice President",
-//     initials: "AD",
-//     color: "from-ktsa-accent/20 to-ktsa-primary/20",
-//     border: "border-ktsa-accent/40",
-//   },
-//   {
-//     name: "Priya Venkatesh",
-//     role: "Secretary General",
-//     initials: "PV",
-//     color: "from-ktsa-accent/20 to-ktsa-primary/20",
-//     border: "border-ktsa-accent/40",
-//   },
-//   {
-//     name: "Rahul Shetty",
-//     role: "Treasurer",
-//     initials: "RS",
-//     color: "from-ktsa-accent/20 to-ktsa-primary/20",
-//     border: "border-ktsa-accent/40",
-//   },
-// ];
-
 const whyItMatters = [
   {
     title: "A Sport Without Boundaries",
@@ -167,7 +131,7 @@ const ktsakProvides = [
   {
     icon: Award,
     title: "Certification & Badges",
-    desc: "Referee and coaching certification recognised by ITSF.",
+    desc: "Referee and coaching certification recognised by KTSA.",
   },
   {
     icon: Star,
@@ -178,6 +142,7 @@ const ktsakProvides = [
 
 export function About() {
   const [expanded, setExpanded] = useState(false);
+  const [expandedfounder, setExpandedfounder] = useState(false);
 
   return (
     <div className="min-h-screen pt-20">
@@ -215,7 +180,7 @@ export function About() {
       </section>
 
       {/* ── The Story Behind KTSA ────────────────────────────── */}
-      <section className="py-12 md:py-16 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
+      <section className="py-8 md:py-16 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
             {/* Left — story text */}
@@ -291,7 +256,7 @@ export function About() {
                 <button
                   onClick={() => {
                     const link = document.createElement("a");
-                    link.href = "src/assets/Rulebook.pdf";
+                    link.href = rulebook;
                     link.download = "Rulebook.pdf";
                     link.click();
                   }}
@@ -334,39 +299,61 @@ export function About() {
                     and connected to the world."
                   </p>
 
-                  {/* Hidden extra content */}
+                  {/* Expanded founder story */}
                   <div
                     className={`overflow-hidden transition-all duration-500 ${
-                      expanded
-                        ? "max-h-40 opacity-100 mt-2"
+                      expandedfounder
+                        ? "max-h-96 opacity-100 mt-2"
                         : "max-h-0 opacity-0"
                     }`}
                   >
                     <p className="text-xs text-white/80 leading-relaxed">
-                      Sayeed Ahmed Shariff has been instrumental in building
-                      KTSA from the ground up. His vision focuses on creating
-                      structured pathways, national-level exposure, and a strong
-                      grassroots ecosystem for foosball players across
-                      Karnataka.
+                      "My journey into foosball started casually — like most
+                      players, it began as a recreational activity. But over
+                      time, it became more than just a game. As I played more
+                      and interacted with other players, I realized there was
+                      real potential in the sport — talent, competitiveness, and
+                      passion — but no system to support it. That realization
+                      stayed with me. I started taking small steps — organizing
+                      local matches, connecting players, and eventually hosting
+                      tournaments. Each step came with its own challenges.
+                      Finding venues, managing logistics, ensuring participation
+                      — everything had to be figured out from scratch. There
+                      were moments of uncertainty. Some events had lower turnout
+                      than expected, resources were always limited. But what
+                      kept things going was consistency and belief. That
+                      experience on the world stage not only pushed me
+                      personally but reinforced the potential of Indian players
+                      in global competition. Today, what started as a personal
+                      interest has become a larger mission — building a
+                      structured ecosystem where players can compete, improve,
+                      and be recognized."
                     </p>
                   </div>
 
                   {/* Read More Button */}
                   <button
-                    onClick={() => setExpanded(!expanded)}
+                    onClick={() => setExpandedfounder(!expandedfounder)}
                     className="flex items-center gap-1 text-ktsa-accent text-[11px] font-bold mt-1"
                   >
-                    {expanded ? "Read Less" : "Read More"}
+                    {expandedfounder ? "Read Less" : "Read More"}
                     <ChevronRight
                       size={12}
                       className={`transition-transform ${
-                        expanded ? "rotate-90" : ""
+                        expandedfounder ? "rotate-90" : ""
                       }`}
                     />
                   </button>
                 </div>
               </div>
-              <div className="flex flex-col gap-3">
+
+              <div
+                className={`flex flex-col gap-3 overflow-hidden transition-all duration-500 ${
+                  expandedfounder
+                    ? "max-h-0 opacity-0"
+                    : "max-h-[500px] opacity-100"
+                }`}
+              >
                 {info.map((item, i) => (
                   <motion.div
                     key={i}
@@ -393,7 +380,13 @@ export function About() {
               </div>
 
               {/* Stats grid */}
-              <div className="grid grid-cols-2 gap-3">
+              <div
+                className={`grid grid-cols-2 gap-3 overflow-hidden transition-all duration-500 ${
+                  expandedfounder
+                    ? "max-h-0 opacity-0"
+                    : "max-h-[300px] opacity-100"
+                }`}
+              >
                 {[
                   {
                     value: "700+",
@@ -426,7 +419,7 @@ export function About() {
       </section>
 
       {/* ── Who We Are + Team photo ───────────────────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-ktsa-bg/95">
+      <section className="py-8 md:py-14 px-4 bg-ktsa-bg/95">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
@@ -478,7 +471,7 @@ export function About() {
       </section>
 
       {/* ── Foosball in India — Why This Matters ─────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-start">
             {/* Why it matters list */}
@@ -590,7 +583,7 @@ export function About() {
       </section>
 
       {/* ── Vision & Mission ──────────────────────────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
             {/* <span className="text-xs font-bold tracking-widest text-ktsa-accent/60 uppercase mb-2 block">
@@ -717,12 +710,9 @@ export function About() {
       </section>
 
       {/* ── What KTSA Provides ───────────────────────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
-            {/* <span className="text-xs font-bold tracking-widest text-ktsa-accent/60 uppercase mb-2 block">
-              Community Benefits
-            </span> */}
             <h2 className="text-2xl md:text-4xl font-black text-ktsa-text mb-1">
               What KTSA{" "}
               <span className="bg-gradient-to-r text-white to-ktsa-highlight bg-clip-text">
@@ -763,7 +753,7 @@ export function About() {
       </section>
 
       {/* ── Achievements ─────────────────────────────────────── */}
-      <section className="py-10 md:py-14 px-4 bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary relative overflow-hidden">
+      <section className="py-8 md:py-14 px-4 bg-gradient-to-r from-ktsa-secondary via-ktsa-primary/75 to-ktsa-secondary relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-0 left-1/4 w-72 h-72 bg-ktsa-accent rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-ktsa-highlight rounded-full blur-3xl animate-pulse" />
@@ -803,50 +793,8 @@ export function About() {
         </div>
       </section>
 
-      {/* ── Governing Committee ───────────────────────────────── */}
-      {/* <section className="py-10 md:py-14 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-8">
-            <span className="text-xs font-bold tracking-widest text-ktsa-accent/60 uppercase mb-2 block">
-              The People Behind KTSA
-            </span>
-            <h2 className="text-2xl md:text-4xl font-black text-ktsa-text mb-1">
-              Governing{" "}
-              <span className="bg-gradient-to-r from-ktsa-accent to-ktsa-highlight bg-clip-text text-transparent">
-                {" "}
-                Committee
-              </span>
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {governingCommittee.map((member, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.08 }}
-                whileHover={{ y: -4 }}
-                className={`rounded-2xl p-4 border ${member.border} bg-gradient-to-br ${member.color} text-center transition-all duration-300`}
-              >
-                <div
-                  className={`w-12 h-12 mx-auto mb-3 rounded-full bg-gradient-to-br ${member.color} border ${member.border} flex items-center justify-center text-sm font-black text-white`}
-                >
-                  {member.initials}
-                </div>
-                <p className="text-xs font-black text-ktsa-accent leading-tight mb-1">
-                  {member.name}
-                </p>
-                <p className="text-[10px] text-ktsa-text/50">{member.role}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section> */}
-
       {/* ── CTA Banner ────────────────────────────────────────── */}
-      <section className="py-12 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg text-center">
+      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg/95 to-ktsa-bg text-center">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -866,12 +814,6 @@ export function About() {
             Join the association, register your club, or attend your first
             tournament.
           </p>
-          {/* <div className="flex gap-3 justify-center">
-            <button className="px-5 py-2.5 bg-ktsa-primary/70 text-ktsa-text rounded-full font-bold text-xs shadow-lg">
-              Contact KTSA
-            </button>
-           
-          </div> */}
         </motion.div>
       </section>
     </div>

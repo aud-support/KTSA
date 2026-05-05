@@ -4,11 +4,13 @@ import { Menu, X, Trophy } from "lucide-react";
 import { motion } from "motion/react";
 import logo from "../../assets/logo.png";
 import emblem from "../../assets/emblem.jpg";
+import LoginModal from "./ui/LoginModel"; // adjust path if needed
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -90,6 +92,14 @@ export function Navbar() {
                 )}
               </Link>
             ))}
+
+            {/* ✅ Login Button */}
+            <button
+              onClick={() => setIsLoginOpen(true)}
+              className="px-5 py-2 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-bold hover:bg-ktsa-accent transition-all duration-300"
+            >
+              Log In
+            </button>
           </div>
 
           {/* Mobile Menu Button */}
@@ -114,16 +124,29 @@ export function Navbar() {
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`block py-3 text-ktsa-accent hover:text-white transition-colors ${
-                  location.pathname === link.path ? "text-white" : ""
+                className={`block py-3 text-ktsa-accent hover:text-ktsa-text font-bold transition-colors ${
+                  location.pathname === link.path ? "text-ktsa-text" : ""
                 }`}
               >
                 {link.name}
               </Link>
             ))}
+
+            {/* ✅ Login Button (Mobile) */}
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setIsLoginOpen(true);
+              }}
+              className="block mt-3 py-3 text-center bg-ktsa-primary/70 font-bold text-ktsa-text rounded-lg w-full"
+            >
+              Log In
+            </button>
           </motion.div>
         )}
       </div>
+
+      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </nav>
   );
 }

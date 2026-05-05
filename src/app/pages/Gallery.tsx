@@ -12,7 +12,7 @@ import image6 from "../../assets/ktsa-image6.jpg";
 import image7 from "../../assets/ktsa-image7.jpg";
 import image8 from "../../assets/ktsa-image8.jpg";
 import image9 from "../../assets/ktsa-image9.jpg";
-import image10 from "../../assets/ktsa-image10.jpg";
+import image10 from "../../assets/ktsa-image10.png";
 import image11 from "../../assets/ktsa-image2.jpg";
 import image12 from "../../assets/ktsa-image14.jpg";
 import image13 from "../../assets/ktsa-image13.jpg";

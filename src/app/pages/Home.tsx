@@ -19,7 +19,7 @@ import april from "../../assets/april-25-2026.jpg";
 import april1 from "../../assets/april-2026.jpg";
 import jan from "../../assets/jan-2026.jpg";
 import march from "../../assets/march-2026.jpg";
-import image1 from "../../assets/ktsa-image10.jpg";
+import image1 from "../../assets/ktsa-image10.png";
 import image2 from "../../assets/ktsa-image7.jpg";
 import image3 from "../../assets/ktsa-image11.jpg";
 
@@ -689,7 +689,7 @@ export function Home() {
                 {/* Card */}
                 <div className="relative  bg-transparent pt-[72px] px-6 pb-7 overflow-visible transition-all duration-300">
                   {/* Curved right border accent */}
-                  <div className="absolute w-[calc(100%+100px)] h-[calc(100%+24px)] top-[-12px] left-1/2 overflow-hidden rounded-[18px] pointer-events-none">
+                  <div className="hidden md:block absolute w-[calc(100%+100px)] h-[calc(100%+24px)] top-[-12px] left-1/2 overflow-hidden rounded-[18px] pointer-events-none">
                     <div className="absolute w-full h-full top-0 left-[-50%] rounded-[600px] border-[8px] border-ktsa-accent/[0.18] group-hover:border-ktsa-accent/40 transition-colors duration-300" />
                   </div>
 

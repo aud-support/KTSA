@@ -3,14 +3,17 @@ import { Link, useLocation } from "react-router";
 import { Menu, X, Trophy } from "lucide-react";
 import { motion } from "motion/react";
 import logo from "../../assets/logo.png";
-import emblem from "../../assets/emblem.jpg";
-import LoginModal from "./ui/LoginModel"; // adjust path if needed
 
-export function Navbar() {
+export function Navbar({
+  onLoginClick,
+  onSignupClick,
+}: {
+  onLoginClick: () => void;
+  onSignupClick: () => void;
+}) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,10 +98,17 @@ export function Navbar() {
 
             {/* ✅ Login Button */}
             <button
-              onClick={() => setIsLoginOpen(true)}
-              className="px-5 py-2 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-bold hover:bg-ktsa-accent transition-all duration-300"
+              onClick={onLoginClick}
+              className="px-4 py-2 rounded-lg bg-transparent border border-ktsa-accent text-ktsa-primary/70 font-bold hover:bg-ktsa-accent hover:text-ktsa-text transition-all duration-300"
             >
               Log In
+            </button>
+            {/* ✅ Sign up Button */}
+            <button
+              onClick={onSignupClick}
+              className="px-5 py-2 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-bold hover:bg-ktsa-accent transition-all duration-300"
+            >
+              Sign Up
             </button>
           </div>
 
@@ -136,17 +146,18 @@ export function Navbar() {
             <button
               onClick={() => {
                 setIsMobileMenuOpen(false);
-                setIsLoginOpen(true);
+                onLoginClick();
               }}
               className="block mt-3 py-3 text-center bg-ktsa-primary/70 font-bold text-ktsa-text rounded-lg w-full"
             >
               Log In
             </button>
+            <button className="block mt-3 py-3 text-center bg-ktsa-primary/70 font-bold text-ktsa-text rounded-lg w-full">
+              Sign Up
+            </button>
           </motion.div>
         )}
       </div>
-
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </nav>
   );
 }

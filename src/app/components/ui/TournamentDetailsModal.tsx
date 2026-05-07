@@ -74,7 +74,7 @@ export default function TournamentDetailsModal({ tournament, onClose }: Props) {
   const isLive = tournament.status === "Live";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4">
+    <div className="fixed inset-0 top-20 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4">
       <motion.div
         ref={modalRef}
         initial={{
@@ -85,7 +85,7 @@ export default function TournamentDetailsModal({ tournament, onClose }: Props) {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: window.innerWidth < 768 ? 100 : 40 }}
         transition={{ type: "spring", stiffness: 120, damping: 18 }}
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto no-scrollbar bg-black/60 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 relative"
+        className="w-full max-w-md max-h-[85vh] overflow-y-auto no-scrollbar bg-black/60 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 relative"
       >
         {/* Close */}
         <button

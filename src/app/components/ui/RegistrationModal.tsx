@@ -67,7 +67,7 @@ export default function RegistrationModal({ tournament, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4">
+    <div className="fixed top-20 inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4">
       <motion.div
         ref={modalRef}
         initial={{
@@ -78,7 +78,7 @@ export default function RegistrationModal({ tournament, onClose }: Props) {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: window.innerWidth < 768 ? 100 : 40 }}
         transition={{ type: "spring", stiffness: 120, damping: 18 }}
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto no-scrollbar bg-black/60 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 relative"
+        className="w-full max-w-md max-h-[85vh] overflow-y-auto no-scrollbar bg-black/60 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 relative"
       >
         {/* Close */}
         <button

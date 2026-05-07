@@ -924,7 +924,7 @@ export function Home() {
         //     "radial-gradient(circle, var(--ktsa-secondary) 7%, var(--ktsa-secondary) -15%, #000000 100%)",
         // }}
       >
-        <div className="max-w-4xl mx-auto relative z-10">
+        <div className="max-w-4xl mx-auto relative z-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
             {/* ── Left — text panel ── */}
             <motion.div

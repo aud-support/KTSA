@@ -148,7 +148,7 @@ export function Navbar({
                 setIsMobileMenuOpen(false);
                 onLoginClick();
               }}
-              className="block mt-3 py-3 text-center bg-ktsa-primary/70 font-bold text-ktsa-text rounded-lg w-full"
+              className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold  rounded-lg w-full"
             >
               Log In
             </button>

@@ -42,7 +42,7 @@ const tournaments = [
   },
   {
     id: 3,
-    title: "Bengaluru Foosball Tournament",
+    title: "Bengaluru Tournament",
     date: "31 January, 2026",
     location: "Whitefield, Bengaluru",
     status: "Completed",
@@ -50,7 +50,7 @@ const tournaments = [
   },
   {
     id: 4,
-    title: "Bengaluru Foosball Tournament",
+    title: "Bengaluru Tournament",
     date: "29th March, 2026",
     location: "Kormangala, Bengaluru",
     status: "Completed",
@@ -389,6 +389,18 @@ function TournamentCarousel() {
                       {tournament.location}
                     </span>
                   </div>
+                  <button className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex justify-center items-center gap-2.5 px-8 py-1 w-full  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300">
+                    {" "}
+                    <span
+                      className={"px-3 py-1 rounded-full text-xs font-bold "}
+                    >
+                      {tournament.status === "Live"
+                        ? "ONGOING"
+                        : tournament.status === "Completed"
+                          ? "VIEW RESULTS"
+                          : "REGISTER"}
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -677,7 +689,7 @@ export function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="group relative px-3 mb-24"
+                className="group relative px-3 sm:mb-24 mb-10"
               >
                 {/* Floating circular icon */}
                 <div className="relative left-1/2 -translate-x-1/2 w-[74px] h-[74px] rounded-full bg-ktsa-accent shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex items-center justify-center z-10 mb-[-60px] transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:translate-x-[-50%]">
@@ -687,12 +699,7 @@ export function Home() {
                 </div>
 
                 {/* Card */}
-                <div className="relative  bg-transparent pt-[72px] px-6 pb-7 overflow-visible transition-all duration-300">
-                  {/* Curved right border accent */}
-                  <div className="hidden md:block absolute w-[calc(100%+100px)] h-[calc(100%+24px)] top-[-12px] left-1/2 overflow-hidden rounded-[18px] pointer-events-none">
-                    <div className="absolute w-full h-full top-0 left-[-50%] rounded-[600px] border-[8px] border-ktsa-accent/[0.18] group-hover:border-ktsa-accent/40 transition-colors duration-300" />
-                  </div>
-
+                <div className="relative border border-ktsa bg-transparent pt-[72px] px-6 pb-7 overflow-visible transition-all duration-300">
                   {/* Number pill + title */}
                   <div className="flex justify-center mb-3.5">
                     <div
@@ -728,10 +735,6 @@ export function Home() {
                   </div>
 
                   {/* Bottom arrow button */}
-                  <div
-                    className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-[#0e1f17] border border-ktsa-accent/20 flex items-center justify-center z-10 transition-all duration-300 group-hover:bg-ktsa-accent group-hover:border-transparent"
-                    style={{ boxShadow: "6px 6px 20px rgba(0,0,0,0.5)" }}
-                  ></div>
                 </div>
               </motion.div>
             ))}

@@ -14,6 +14,8 @@ import { Link } from "react-router";
 import { TopPlayersStack } from "../components/ui/TopPlayersStack";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useEffect, useState, useRef, useCallback } from "react";
+import RegistrationModal from "../components/ui/RegistrationModal";
+import TournamentDetailsModal from "../components/ui/TournamentDetailsModal";
 import logo from "../../assets/LOGO gif.gif";
 import april from "../../assets/april-25-2026.jpg";
 import april1 from "../../assets/april-2026.jpg";
@@ -23,7 +25,17 @@ import image1 from "../../assets/ktsa-image10.png";
 import image2 from "../../assets/ktsa-image7.jpg";
 import image3 from "../../assets/ktsa-image11.jpg";
 
-const tournaments = [
+type Tournament = {
+  id: number;
+  title: string;
+  date: string;
+  location: string;
+  status: "Upcoming" | "Live" | "Completed";
+  image: string;
+  _key?: string;
+};
+
+const tournaments: Tournament[] = [
   {
     id: 1,
     title: "Karnataka Open",
@@ -247,6 +259,18 @@ function TournamentCarousel() {
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const SPEED = 0.05;
 
+  const [modalTournament, setModalTournament] = useState<Tournament | null>(
+    null,
+  );
+  const [modalType, setModalType] = useState<"register" | "details" | null>(
+    null,
+  );
+
+  const handleCardButton = (tournament: Tournament) => {
+    setModalTournament(tournament);
+    setModalType(tournament.status === "Upcoming" ? "register" : "details");
+  };
+
   const applyOffset = useCallback((offset: number, withTransition = false) => {
     const el = trackRef.current;
     if (!el) return;
@@ -305,109 +329,132 @@ function TournamentCarousel() {
   };
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => step("left")}
-        onMouseEnter={pause}
-        onMouseLeave={() => resume(800)}
-        aria-label="Previous"
-        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-10 h-10 rounded-full flex items-center justify-center border border-ktsa-accent/40 bg-ktsa-bg/80 backdrop-blur-sm text-ktsa-accent hover:bg-ktsa-accent hover:text-ktsa-bg transition-all duration-200 cursor-pointer"
-      >
-        <ChevronLeft size={20} />
-      </button>
-      <button
-        onClick={() => step("right")}
-        onMouseEnter={pause}
-        onMouseLeave={() => resume(800)}
-        aria-label="Next"
-        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-10 h-10 rounded-full flex items-center justify-center border border-ktsa-accent/40 bg-ktsa-bg/80 backdrop-blur-sm text-ktsa-accent hover:bg-ktsa-accent hover:text-ktsa-bg transition-all duration-200 cursor-pointer"
-      >
-        <ChevronRight size={20} />
-      </button>
-
-      <div
-        className="overflow-hidden"
-        onMouseEnter={pause}
-        onMouseLeave={() => resume(800)}
-        onTouchStart={pause}
-        onTouchEnd={() => resume(3000)}
-      >
-        <div
-          ref={trackRef}
-          className="flex pb-4"
-          style={{ gap: CARD_GAP + "px", willChange: "transform" }}
+    <>
+      <div className="relative">
+        <button
+          onClick={() => step("left")}
+          onMouseEnter={pause}
+          onMouseLeave={() => resume(800)}
+          aria-label="Previous"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-10 h-10 rounded-full flex items-center justify-center border border-ktsa-accent/40 bg-ktsa-bg/80 backdrop-blur-sm text-ktsa-accent hover:bg-ktsa-accent hover:text-ktsa-bg transition-all duration-200 cursor-pointer"
         >
-          {infiniteTournaments.map((tournament) => (
-            <div
-              key={tournament._key}
-              className="flex-shrink-0 bg-gradient-to-br from-ktsa-primary/40 to-ktsa-secondary/30 rounded-2xl overflow-hidden backdrop-blur-sm border border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-300 group"
-              style={{
-                width: CARD_W + "px",
-                boxShadow: "0 8px 30px rgba(0,229,255,0.12)",
-              }}
-            >
-              <div className="relative h-44 overflow-hidden">
-                <ImageWithFallback
-                  src={tournament.image}
-                  alt={tournament.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="absolute inset-0" />
-                <div className="absolute top-3 right-3">
-                  <span
-                    className={
-                      "px-3 py-1 rounded-full text-xs font-bold " +
-                      (tournament.status === "Live"
-                        ? "bg-red-500 text-white animate-pulse"
-                        : tournament.status === "Completed"
-                          ? "bg-green-600 text-white"
-                          : "bg-ktsa-highlight text-ktsa-text")
-                    }
-                  >
-                    {tournament.status === "Live"
-                      ? "LIVE"
-                      : tournament.status === "Completed"
-                        ? "COMPLETED"
-                        : "UPCOMING"}
-                  </span>
-                </div>
-              </div>
-              <div className="p-5">
-                <h3 className="text-lg font-black text-ktsa-accent mb-3 group-hover:text-ktsa-text transition-colors leading-tight">
-                  {tournament.title}
-                </h3>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-ktsa-text/80">
-                    <Calendar size={14} className="text-ktsa-accent" />
-                    <span className="font-semibold text-ktsa-text text-sm">
-                      {tournament.date}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-ktsa-text/80">
-                    <MapPin size={14} className="text-ktsa-accent" />
-                    <span className="font-semibold text-ktsa-text text-sm">
-                      {tournament.location}
-                    </span>
-                  </div>
-                  <button className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex justify-center items-center gap-2.5 px-8 py-1 w-full  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300">
-                    {" "}
+          <ChevronLeft size={20} />
+        </button>
+        <button
+          onClick={() => step("right")}
+          onMouseEnter={pause}
+          onMouseLeave={() => resume(800)}
+          aria-label="Next"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-10 h-10 rounded-full flex items-center justify-center border border-ktsa-accent/40 bg-ktsa-bg/80 backdrop-blur-sm text-ktsa-accent hover:bg-ktsa-accent hover:text-ktsa-bg transition-all duration-200 cursor-pointer"
+        >
+          <ChevronRight size={20} />
+        </button>
+
+        <div
+          className="overflow-hidden"
+          onMouseEnter={pause}
+          onMouseLeave={() => resume(800)}
+          onTouchStart={pause}
+          onTouchEnd={() => resume(3000)}
+        >
+          <div
+            ref={trackRef}
+            className="flex pb-4"
+            style={{ gap: CARD_GAP + "px", willChange: "transform" }}
+          >
+            {infiniteTournaments.map((tournament) => (
+              <div
+                key={tournament._key}
+                className="flex-shrink-0 bg-gradient-to-br from-ktsa-primary/40 to-ktsa-secondary/30 rounded-2xl overflow-hidden backdrop-blur-sm border border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-300 group"
+                style={{
+                  width: CARD_W + "px",
+                  boxShadow: "0 8px 30px rgba(0,229,255,0.12)",
+                }}
+              >
+                <div className="relative h-44 overflow-hidden">
+                  <ImageWithFallback
+                    src={tournament.image}
+                    alt={tournament.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute inset-0" />
+                  <div className="absolute top-3 right-3">
                     <span
-                      className={"px-3 py-1 rounded-full text-xs font-bold "}
+                      className={
+                        "px-3 py-1 rounded-full text-xs font-bold " +
+                        (tournament.status === "Live"
+                          ? "bg-red-500 text-white animate-pulse"
+                          : tournament.status === "Completed"
+                            ? "bg-green-600 text-white"
+                            : "bg-ktsa-highlight text-ktsa-text")
+                      }
                     >
                       {tournament.status === "Live"
-                        ? "ONGOING"
+                        ? "LIVE"
                         : tournament.status === "Completed"
-                          ? "VIEW RESULTS"
-                          : "REGISTER"}
+                          ? "COMPLETED"
+                          : "UPCOMING"}
                     </span>
-                  </button>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="text-lg font-black text-ktsa-accent mb-3 group-hover:text-ktsa-text transition-colors leading-tight">
+                    {tournament.title}
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-ktsa-text/80">
+                      <Calendar size={14} className="text-ktsa-accent" />
+                      <span className="font-semibold text-ktsa-text text-sm">
+                        {tournament.date}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 text-ktsa-text/80">
+                      <MapPin size={14} className="text-ktsa-accent" />
+                      <span className="font-semibold text-ktsa-text text-sm">
+                        {tournament.location}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleCardButton(tournament)}
+                      className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex justify-center items-center gap-2.5 px-8 py-1 w-full  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300"
+                    >
+                      {" "}
+                      <span
+                        className={"px-3 py-1 rounded-full text-xs font-bold "}
+                      >
+                        {tournament.status === "Live"
+                          ? "ONGOING"
+                          : tournament.status === "Completed"
+                            ? "VIEW RESULTS"
+                            : "REGISTER"}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+      {modalTournament && modalType === "register" && (
+        <RegistrationModal
+          tournament={modalTournament}
+          onClose={() => {
+            setModalTournament(null);
+            setModalType(null);
+          }}
+        />
+      )}
+      {modalTournament && modalType === "details" && (
+        <TournamentDetailsModal
+          tournament={modalTournament}
+          onClose={() => {
+            setModalTournament(null);
+            setModalType(null);
+          }}
+        />
+      )}
+    </>
   );
 }
 

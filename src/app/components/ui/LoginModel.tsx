@@ -9,12 +9,15 @@ interface Props {
 }
 
 export default function LoginModal({ isOpen, onClose }: Props) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   // Close on outside click + disable scroll
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      if (e.button === 2) return; // ← add this line
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
         onClose();
       }
@@ -22,7 +25,7 @@ export default function LoginModal({ isOpen, onClose }: Props) {
 
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = "auto";
     }
 
     return () => {
@@ -34,7 +37,7 @@ export default function LoginModal({ isOpen, onClose }: Props) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4">
       <motion.div
         ref={modalRef}
         initial={{
@@ -56,7 +59,7 @@ export default function LoginModal({ isOpen, onClose }: Props) {
           stiffness: 120,
           damping: 18,
         }}
-        className="w-full max-w-md bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl shadow-xl p-8 relative"
+        className="w-full max-w-md max-h-[90vh] overflow-y-auto no-scrollbar bg-black/60 backdrop-blur-lg border border-white/10 rounded-2xl shadow-xl p-8 relative"
       >
         {/* ❌ Close Button */}
         <button
@@ -75,12 +78,52 @@ export default function LoginModal({ isOpen, onClose }: Props) {
         </p>
 
         {/* Form */}
-        <form className="space-y-5">
+        <form
+          className="space-y-5"
+          onSubmit={async (e) => {
+            e.preventDefault();
+
+            try {
+              const res = await fetch(
+                `${import.meta.env.VITE_BACKEND_BASE_URL}/api/auth/login`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    identifier: email,
+                    password,
+                  }),
+                },
+              );
+
+              if (!res.ok) {
+                throw new Error("Login failed");
+              }
+
+              const data = await res.json();
+
+              // ✅ Store token
+              localStorage.setItem("token", data.token);
+
+              alert(`Welcome ${data.name}\nToken: ${data.token}`);
+              console.log("Login success:", data);
+
+              onClose(); // close modal
+            } catch (err) {
+              console.error(err);
+              alert("Invalid credentials");
+            }
+          }}
+        >
           {/* Email */}
           <div>
             <label className="block text-sm text-ktsa-accent mb-1">Email</label>
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary"
             />
@@ -93,6 +136,8 @@ export default function LoginModal({ isOpen, onClose }: Props) {
             </label>
             <input
               type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary"
             />

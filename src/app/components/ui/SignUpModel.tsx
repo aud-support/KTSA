@@ -33,9 +33,39 @@ const MONTHS = [
 const DAYS = Array.from({ length: 31 }, (_, i) =>
   String(i + 1).padStart(2, "0"),
 );
-
 const currentYear = new Date().getFullYear();
 const YEARS = Array.from({ length: 100 }, (_, i) => String(currentYear - i));
+
+// ─── Validation helpers ───────────────────────────────────────────────────────
+const validateEmail = (val: string) => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if (!val) return "Email is required";
+  if (!re.test(val)) return "Enter a valid email address";
+  return "";
+};
+
+const validatePhone = (val: string) => {
+  if (!val) return "Phone number is required";
+  if (!/^\d{10}$/.test(val)) return "Phone number must be exactly 10 digits";
+  return "";
+};
+
+const validatePassword = (val: string) => {
+  if (!val) return "Password is required";
+  if (val.length < 8) return "Password must be at least 8 characters";
+  if (!/[A-Z]/.test(val)) return "Must contain at least one uppercase letter";
+  if (!/[a-z]/.test(val)) return "Must contain at least one lowercase letter";
+  if (!/[0-9]/.test(val)) return "Must contain at least one number";
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val))
+    return "Must contain at least one special character";
+  return "";
+};
+
+// ─── Error message component ─────────────────────────────────────────────────
+function FieldError({ msg }: { msg: string }) {
+  if (!msg) return null;
+  return <p className="mt-1 text-xs text-red-400">{msg}</p>;
+}
 
 // ─── Reusable Custom Dropdown ────────────────────────────────────────────────
 interface DropdownProps {
@@ -60,9 +90,8 @@ function CustomDropdown({
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      if (ref.current && !ref.current.contains(e.target as Node))
         setOpen(false);
-      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -129,6 +158,7 @@ export default function SignupModal({
 }: Props) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -143,9 +173,24 @@ export default function SignupModal({
     password: "",
   });
 
+  // Track which fields have been touched (blurred)
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const markTouched = (field: string) =>
+    setTouched((prev) => ({ ...prev, [field]: true }));
+
+  // Compute errors
+  const errors = {
+    email: validateEmail(form.email),
+    number: validatePhone(form.number),
+    password: validatePassword(form.password),
+  };
+
+  const showError = (field: keyof typeof errors) =>
+    touched[field] || submitAttempted ? errors[field] : "";
+
   const cities = form.state ? (stateCityMap[form.state] ?? []) : [];
 
-  // Derived ISO dob for submission: "YYYY-MM-DD"
   const getDob = () => {
     if (form.dobDay && form.dobMonth && form.dobYear) {
       const monthIndex = String(MONTHS.indexOf(form.dobMonth) + 1).padStart(
@@ -160,16 +205,13 @@ export default function SignupModal({
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (e.button === 2) return;
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node))
         onClose();
-      }
     };
-
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       document.body.style.overflow = "auto";
     }
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.body.style.overflow = "auto";
@@ -177,7 +219,13 @@ export default function SignupModal({
   }, [isOpen, onClose]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    // For number field, allow digits only
+    if (name === "number") {
+      setForm({ ...form, [name]: value.replace(/\D/g, "").slice(0, 10) });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
   };
 
   const setField = (field: string, val: string) => {
@@ -189,6 +237,8 @@ export default function SignupModal({
   };
 
   if (!isOpen) return null;
+
+  const hasErrors = Object.values(errors).some(Boolean);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4">
@@ -224,19 +274,33 @@ export default function SignupModal({
           className="space-y-5"
           onSubmit={async (e) => {
             e.preventDefault();
-            const dob = getDob();
+            setSubmitAttempted(true);
+            if (hasErrors) return;
+
+            const payload = {
+              name: form.name,
+              email: form.email,
+              password: form.password,
+              phoneNumber: Number(form.number),
+              dateOfBirth: getDob(),
+              city: form.city,
+              state: form.state,
+              role: "PLAYER",
+              gender: form.gender.toUpperCase(),
+            };
+
             try {
               const res = await fetch(
-                `${import.meta.env.VITE_BACKEND_BASE_URL}/api/auth/signup`,
+                `${import.meta.env.VITE_BACKEND_BASE_URL}/api/users`,
                 {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ ...form, dob }),
+                  body: JSON.stringify(payload),
                 },
               );
-              if (!res.ok) throw new Error("Signup failed");
               const data = await res.json();
-              alert(`Account created! Welcome ${data.name}`);
+              if (!res.ok) throw new Error(data.message || "Signup failed");
+              alert("Signup successful!");
               onClose();
             } catch (err) {
               console.error(err);
@@ -266,21 +330,35 @@ export default function SignupModal({
               name="email"
               value={form.email}
               onChange={handleChange}
+              onBlur={() => markTouched("email")}
               placeholder="Enter your email"
-              className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary"
+              className={`w-full px-4 py-2 rounded-lg bg-transparent border text-white focus:outline-none transition-colors
+                ${showError("email") ? "border-red-500 focus:border-red-400" : "border-gray-600 focus:border-ktsa-primary"}`}
             />
+            <FieldError msg={showError("email")} />
           </div>
 
-          {/* Phone */}
+          {/* Phone — +91 prefix is purely decorative */}
           <div>
             <label className="block text-sm text-ktsa-accent mb-1">Phone</label>
-            <input
-              name="number"
-              value={form.number}
-              onChange={handleChange}
-              placeholder="Enter your phone number"
-              className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary"
-            />
+            <div className="flex items-center">
+              {/* +91 badge */}
+              <span className="flex items-center px-3 py-2 rounded-l-lg border border-r-0 border-gray-600 bg-white/5 text-gray-300 text-sm font-medium select-none whitespace-nowrap">
+                +91
+              </span>
+              <input
+                name="number"
+                value={form.number}
+                onChange={handleChange}
+                onBlur={() => markTouched("number")}
+                placeholder="10-digit number"
+                maxLength={10}
+                inputMode="numeric"
+                className={`flex-1 px-4 py-2 rounded-r-lg bg-transparent border text-white focus:outline-none transition-colors
+                  ${showError("number") ? "border-red-500 focus:border-red-400" : "border-gray-600 focus:border-ktsa-primary"}`}
+              />
+            </div>
+            <FieldError msg={showError("number")} />
           </div>
 
           {/* Gender */}
@@ -291,7 +369,7 @@ export default function SignupModal({
             onChange={(val) => setField("gender", val)}
           />
 
-          {/* Date of Birth — 3 custom dropdowns */}
+          {/* Date of Birth */}
           <div>
             <label className="block text-sm text-ktsa-accent mb-1">
               Date of Birth
@@ -345,8 +423,10 @@ export default function SignupModal({
               name="password"
               value={form.password}
               onChange={handleChange}
+              onBlur={() => markTouched("password")}
               placeholder="Enter your password"
-              className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary"
+              className={`w-full px-4 py-2 pr-10 rounded-lg bg-transparent border text-white focus:outline-none transition-colors
+                ${showError("password") ? "border-red-500 focus:border-red-400" : "border-gray-600 focus:border-ktsa-primary"}`}
             />
             <button
               type="button"
@@ -355,6 +435,40 @@ export default function SignupModal({
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
+            <FieldError msg={showError("password")} />
+            {/* Password strength hints */}
+            {form.password && (
+              <ul className="mt-2 space-y-0.5">
+                {[
+                  {
+                    label: "At least 8 characters",
+                    ok: form.password.length >= 8,
+                  },
+                  {
+                    label: "Uppercase letter",
+                    ok: /[A-Z]/.test(form.password),
+                  },
+                  {
+                    label: "Lowercase letter",
+                    ok: /[a-z]/.test(form.password),
+                  },
+                  { label: "Number", ok: /[0-9]/.test(form.password) },
+                  {
+                    label: "Special character",
+                    ok: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(
+                      form.password,
+                    ),
+                  },
+                ].map(({ label, ok }) => (
+                  <li
+                    key={label}
+                    className={`text-xs flex items-center gap-1.5 ${ok ? "text-green-400" : "text-gray-500"}`}
+                  >
+                    <span>{ok ? "✓" : "○"}</span> {label}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Submit */}

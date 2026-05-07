@@ -8,26 +8,53 @@ interface Props {
   onClose: () => void;
 }
 
+// ─── Validation helpers ───────────────────────────────────────────────────────
+const validateEmail = (val: string) => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if (!val) return "Email is required";
+  if (!re.test(val)) return "Enter a valid email address";
+  return "";
+};
+
+const validatePassword = (val: string) => {
+  if (!val) return "Password is required";
+  return "";
+};
+
+function FieldError({ msg }: { msg: string }) {
+  if (!msg) return null;
+  return <p className="mt-1 text-xs text-red-400">{msg}</p>;
+}
+
 export default function LoginModal({ isOpen, onClose }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const modalRef = useRef<HTMLDivElement>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
 
-  // Close on outside click + disable scroll
+  const errors = {
+    email: validateEmail(email),
+    password: validatePassword(password),
+  };
+
+  const showError = (field: keyof typeof errors) =>
+    touched[field] || submitAttempted ? errors[field] : "";
+
+  const markTouched = (field: string) =>
+    setTouched((prev) => ({ ...prev, [field]: true }));
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (e.button === 2) return; // ← add this line
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      if (e.button === 2) return;
+      if (modalRef.current && !modalRef.current.contains(e.target as Node))
         onClose();
-      }
     };
-
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       document.body.style.overflow = "auto";
     }
-
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.body.style.overflow = "auto";
@@ -35,6 +62,8 @@ export default function LoginModal({ isOpen, onClose }: Props) {
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  const hasErrors = Object.values(errors).some(Boolean);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4">
@@ -45,23 +74,12 @@ export default function LoginModal({ isOpen, onClose }: Props) {
           y: window.innerWidth < 768 ? 100 : 40,
           scale: window.innerWidth < 768 ? 1 : 0.95,
         }}
-        animate={{
-          opacity: 1,
-          y: 0,
-          scale: 1,
-        }}
-        exit={{
-          opacity: 0,
-          y: window.innerWidth < 768 ? 100 : 40,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 120,
-          damping: 18,
-        }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: window.innerWidth < 768 ? 100 : 40 }}
+        transition={{ type: "spring", stiffness: 120, damping: 18 }}
         className="w-full max-w-md max-h-[90vh] overflow-y-auto no-scrollbar bg-black/60 backdrop-blur-lg border border-white/10 rounded-2xl shadow-xl p-8 relative"
       >
-        {/* ❌ Close Button */}
+        {/* Close */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white"
@@ -77,40 +95,28 @@ export default function LoginModal({ isOpen, onClose }: Props) {
           Login to your account
         </p>
 
-        {/* Form */}
         <form
           className="space-y-5"
           onSubmit={async (e) => {
             e.preventDefault();
+            setSubmitAttempted(true);
+            if (hasErrors) return;
 
             try {
               const res = await fetch(
                 `${import.meta.env.VITE_BACKEND_BASE_URL}/api/auth/login`,
                 {
                   method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({
-                    identifier: email,
-                    password,
-                  }),
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ identifier: email, password }),
                 },
               );
 
-              if (!res.ok) {
-                throw new Error("Login failed");
-              }
-
+              if (!res.ok) throw new Error("Login failed");
               const data = await res.json();
-
-              // ✅ Store token
               localStorage.setItem("token", data.token);
-
               alert(`Welcome ${data.name}\nToken: ${data.token}`);
-              console.log("Login success:", data);
-
-              onClose(); // close modal
+              onClose();
             } catch (err) {
               console.error(err);
               alert("Invalid credentials");
@@ -124,9 +130,12 @@ export default function LoginModal({ isOpen, onClose }: Props) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => markTouched("email")}
               placeholder="Enter your email"
-              className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary"
+              className={`w-full px-4 py-2 rounded-lg bg-transparent border text-white focus:outline-none transition-colors
+                ${showError("email") ? "border-red-500 focus:border-red-400" : "border-gray-600 focus:border-ktsa-primary"}`}
             />
+            <FieldError msg={showError("email")} />
           </div>
 
           {/* Password */}
@@ -138,11 +147,11 @@ export default function LoginModal({ isOpen, onClose }: Props) {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onBlur={() => markTouched("password")}
               placeholder="Enter your password"
-              className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary"
+              className={`w-full px-4 py-2 pr-10 rounded-lg bg-transparent border text-white focus:outline-none transition-colors
+                ${showError("password") ? "border-red-500 focus:border-red-400" : "border-gray-600 focus:border-ktsa-primary"}`}
             />
-
-            {/* Toggle */}
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
@@ -150,6 +159,7 @@ export default function LoginModal({ isOpen, onClose }: Props) {
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
+            <FieldError msg={showError("password")} />
           </div>
 
           {/* Login Button */}
@@ -166,7 +176,7 @@ export default function LoginModal({ isOpen, onClose }: Props) {
           <Link
             to="/forgot-password"
             onClick={onClose}
-            className="text-sm text-ktsa-primary hover:underline  hover:text-ktsa-text"
+            className="text-sm text-ktsa-primary hover:underline hover:text-ktsa-text"
           >
             Forgot Password?
           </Link>
@@ -177,11 +187,11 @@ export default function LoginModal({ isOpen, onClose }: Props) {
 
         {/* Register */}
         <p className="text-center text-sm text-gray-400">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <Link
             to="/register"
             onClick={onClose}
-            className="text-ktsa-primary hover:underline  hover:text-ktsa-text"
+            className="text-ktsa-primary hover:underline hover:text-ktsa-text"
           >
             Register
           </Link>

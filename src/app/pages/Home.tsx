@@ -704,7 +704,7 @@ export function Home() {
       </section>
 
       {/* Training & Development */}
-      <section className="py-20 px-8 bg-gradient-to-b from-ktsa-bg to-[#070d0a] relative overflow-hidden">
+      <section className="py-8 px-8 bg-gradient-to-b from-ktsa-bg to-[#070d0a] relative overflow-hidden">
         {/* Subtle glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-[radial-gradient(ellipse_at_top,rgba(0,200,130,0.07),transparent_70%)] pointer-events-none" />
 
@@ -736,7 +736,7 @@ export function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="group relative px-3 sm:mb-24 mb-10"
+                className="group relative px-3 sm:mb-7 mb-10"
               >
                 {/* Floating circular icon */}
                 <div className="relative left-1/2 -translate-x-1/2 w-[74px] h-[74px] rounded-full bg-ktsa-accent shadow-[0_8px_32px_rgba(0,0,0,0.5)] flex items-center justify-center z-10 mb-[-60px] transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:translate-x-[-50%]">
@@ -775,7 +775,7 @@ export function Home() {
                   </p>
 
                   {/* CTA */}
-                  <div className="border-t border-ktsa-accent/10 group-hover:border-ktsa-accent/25 transition-colors pt-4 flex justify-center">
+                  <div className="border-t border-ktsa-accent/50 group-hover:border-ktsa-accent/90 transition-colors pt-4 flex justify-center">
                     <span className="font-['Outfit'] text-[12.5px] font-bold text-ktsa-accent tracking-[0.3px]">
                       {item.ctatext}
                     </span>

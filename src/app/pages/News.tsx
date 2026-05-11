@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import { Calendar, Tag } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
+import trophy from "../../assets/trophy.JPG";
 
 const categories = ["All", "Global", "KTSA", "Events"];
 
@@ -14,8 +15,7 @@ const newsArticles = [
     date: "April 25, 2026",
     category: "KTSA",
     featured: true,
-    image:
-      "https://images.unsplash.com/photo-1764408721535-2dcb912db83e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0cm9waHklMjBjaGFtcGlvbnNoaXAlMjBhd2FyZHxlbnwxfHx8fDE3NzQ5MzgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    image: trophy,
   },
   {
     id: 2,

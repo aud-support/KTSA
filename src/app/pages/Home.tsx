@@ -24,6 +24,7 @@ import march from "../../assets/march-2026.jpg";
 import image1 from "../../assets/ktsa-image10.png";
 import image2 from "../../assets/ktsa-image7.jpg";
 import image3 from "../../assets/ktsa-image11.jpg";
+import trophy from "../../assets/trophy.JPG";
 
 type Tournament = {
   id: number;
@@ -188,8 +189,7 @@ const newsArticles = [
     title: "KTSA Officially Launched",
     date: "April 25, 2026",
     category: "KTSA",
-    image:
-      "https://images.unsplash.com/photo-1764408721535-2dcb912db83e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzcG9ydHMlMjB0cm9waHklMjBjaGFtcGlvbnNoaXAlMjBhd2FyZHxlbnwxfHx8fDE3NzQ5MzgzMDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    image: trophy,
   },
   {
     id: 2,

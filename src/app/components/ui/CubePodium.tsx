@@ -262,9 +262,13 @@ export function CubePodium({
       </div>
 
       {/* ── Face selector tabs ── */}
+      {/* ── Face selector tabs ── */}
       <div className="flex gap-3">
         {[...players]
-          .sort((a, b) => a.rank - b.rank)
+          .sort((a, b) => {
+            const displayOrder: Record<number, number> = { 2: 0, 1: 1, 3: 2 };
+            return displayOrder[a.rank] - displayOrder[b.rank];
+          })
           .map((player) => {
             const face = rankToFace[player.rank as RankKey];
             const meta = rankMeta[player.rank as RankKey];

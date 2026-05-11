@@ -365,7 +365,7 @@ export default function SignupModal({
           <CustomDropdown
             label="Gender"
             value={form.gender}
-            options={["Male", "Female"]}
+            options={["Male", "Female", "Other"]}
             onChange={(val) => setField("gender", val)}
           />
 

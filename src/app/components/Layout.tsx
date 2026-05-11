@@ -8,7 +8,8 @@ import SignupModal from "./ui/SignUpModel";
 
 export function Layout() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isSignupOpen, setIsSignupOpen] = useState(false); // 👈 ADD
+  const [isSignupOpen, setIsSignupOpen] = useState(false);
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   return (
     <div className="min-h-screen bg-ktsa-bg">
       <ScrollToTop />
@@ -26,6 +27,10 @@ export function Layout() {
       <SignupModal
         isOpen={isSignupOpen}
         onClose={() => setIsSignupOpen(false)}
+        onSwitchToLogin={() => {
+          setIsSignupOpen(false);
+          setIsLoginOpen(true);
+        }}
       />
     </div>
   );

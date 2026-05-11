@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, CheckCircle, Calendar, MapPin } from "lucide-react";
+import { X, CheckCircle, Calendar, MapPin, ChevronDown } from "lucide-react";
 
 interface Tournament {
   id: number;
@@ -15,6 +15,90 @@ interface Tournament {
 interface Props {
   tournament: Tournament;
   onClose: () => void;
+}
+
+// ─── Reusable Custom Dropdown ────────────────────────────────────────────────
+interface DropdownProps {
+  label?: string;
+  value: string;
+  options: string[];
+  placeholder?: string;
+  disabled?: boolean;
+  onChange: (val: string) => void;
+}
+
+function CustomDropdown({
+  label,
+  value,
+  options,
+  placeholder = "Select",
+  disabled = false,
+  onChange,
+}: DropdownProps) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      {label && (
+        <label className="block text-sm text-ktsa-accent mb-1">{label}</label>
+      )}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setOpen((o) => !o)}
+        className={`w-full flex items-center justify-between px-4 py-2 rounded-lg border text-sm font-medium transition-colors bg-transparent
+          ${
+            disabled
+              ? "border-gray-700 text-gray-600 cursor-not-allowed opacity-40"
+              : "border-gray-600 text-white hover:border-ktsa-primary focus:outline-none"
+          }`}
+      >
+        <span className={value ? "text-white" : "text-gray-500"}>
+          {value || placeholder}
+        </span>
+        <ChevronDown
+          size={14}
+          className={`transition-transform duration-200 text-gray-400 flex-shrink-0 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div
+          className="absolute top-full mt-1 left-0 z-50 w-full bg-ktsa-bg border border-ktsa-accent/30 rounded-lg overflow-y-auto max-h-48"
+          style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+        >
+          {options.map((opt) => (
+            <button
+              key={opt}
+              type="button"
+              onClick={() => {
+                onChange(opt);
+                setOpen(false);
+              }}
+              className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${
+                value === opt
+                  ? "bg-ktsa-accent/20 text-ktsa-accent"
+                  : "text-ktsa-text hover:bg-ktsa-primary/40"
+              }`}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function RegistrationModal({ tournament, onClose }: Props) {
@@ -55,6 +139,14 @@ export default function RegistrationModal({ tournament, onClose }: Props) {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const setField = (field: string, val: string) => {
+    if (field === "state") {
+      setForm((prev) => ({ ...prev, state: val, city: "" }));
+    } else {
+      setForm((prev) => ({ ...prev, [field]: val }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -120,6 +212,32 @@ export default function RegistrationModal({ tournament, onClose }: Props) {
               </div>
 
               <form className="space-y-5" onSubmit={handleSubmit}>
+                {/* Category + Experience row */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    {/* Category */}
+                    <CustomDropdown
+                      label="Category"
+                      value={form.category}
+                      options={[
+                        "Open Singles",
+                        "Open Doubles",
+                        "Women's Singles",
+                        "Mixed Doubles",
+                      ]}
+                      onChange={(val) => setField("category", val)}
+                    />
+                  </div>
+                  <div>
+                    {/* Experience */}
+                    <CustomDropdown
+                      label="Experience"
+                      value={form.experience}
+                      options={["Beginner", "Intermediate", "Advanced"]}
+                      onChange={(val) => setField("experience", val)}
+                    />
+                  </div>
+                </div>
                 {/* Player Name */}
                 <div>
                   <label className="block text-sm text-ktsa-accent mb-1">
@@ -179,49 +297,6 @@ export default function RegistrationModal({ tournament, onClose }: Props) {
                     placeholder="Enter partner's name (optional)"
                     className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white placeholder-gray-500 focus:outline-none focus:border-ktsa-primary text-sm"
                   />
-                </div>
-
-                {/* Category + Experience row */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm text-ktsa-accent mb-1">
-                      Category
-                    </label>
-                    <select
-                      required
-                      name="category"
-                      value={form.category}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 rounded-lg bg-ktsa-bg border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary text-sm appearance-none cursor-pointer"
-                    >
-                      <option value="" disabled>
-                        Select
-                      </option>
-                      <option value="Open Singles">Open Singles</option>
-                      <option value="Open Doubles">Open Doubles</option>
-                      <option value="Women's Singles">Women's Singles</option>
-                      <option value="Mixed Doubles">Mixed Doubles</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm text-ktsa-accent mb-1">
-                      Experience
-                    </label>
-                    <select
-                      required
-                      name="experience"
-                      value={form.experience}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 rounded-lg bg-ktsa-bg border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary text-sm appearance-none cursor-pointer"
-                    >
-                      <option value="" disabled>
-                        Select
-                      </option>
-                      <option value="Beginner">Beginner</option>
-                      <option value="Intermediate">Intermediate</option>
-                      <option value="Advanced">Advanced</option>
-                    </select>
-                  </div>
                 </div>
 
                 {/* Submit */}

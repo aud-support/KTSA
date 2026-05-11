@@ -114,8 +114,22 @@ export default function LoginModal({ isOpen, onClose }: Props) {
 
               if (!res.ok) throw new Error("Login failed");
               const data = await res.json();
+              console.log("Login response:", data);
+
+              // ✅ Save token AND user profile
               localStorage.setItem("token", data.token);
-              alert(`Welcome ${data.name}\nToken: ${data.token}`);
+              localStorage.setItem(
+                "user",
+                JSON.stringify({
+                  name: data.name,
+                  email: data.email,
+                  avatarUrl: data.avatarUrl ?? null, // include if your API returns it
+                }),
+              );
+
+              // ✅ Notify Navbar (same-tab update)
+              window.dispatchEvent(new Event("auth-change"));
+
               onClose();
             } catch (err) {
               console.error(err);

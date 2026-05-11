@@ -8,6 +8,8 @@ import {
   ChevronRight,
   TrendingUp,
   ChevronDown,
+  Search, // ← add this
+  X, // ← add this too (for the clear button)
 } from "lucide-react";
 import { WinnerCard } from "../components/ui/WinnerCard";
 import { CubePodium } from "../components/ui/CubePodium";
@@ -764,13 +766,18 @@ const podiumOrder = [1, 0, 2]; // indices into topThree array
 export function Rankings() {
   const recordsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [selectedCategory, setSelectedCategory] = useState("Men");
 
   const rankings = rankingsData[selectedCategory as keyof typeof rankingsData];
   const topThree = rankings.slice(0, 3);
-  const restOfRankings = rankings;
-
+  const restOfRankings = rankings.filter((player) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    if ("name" in player) return player.name.toLowerCase().includes(q);
+    return player.names.some((n) => n.toLowerCase().includes(q));
+  });
   const totalPages = Math.ceil(restOfRankings.length / recordsPerPage);
 
   const startIndex = (currentPage - 1) * recordsPerPage;
@@ -910,6 +917,7 @@ export function Rankings() {
                         setSelectedCategory(category);
                         setCurrentPage(1);
                         setCategoryOpen(false);
+                        setSearchQuery("");
                       }}
                       className={`w-full text-left px-4 py-2 text-sm font-bold transition-colors ${
                         selectedCategory === category
@@ -930,6 +938,7 @@ export function Rankings() {
                   onClick={() => {
                     setSelectedCategory(category);
                     setCurrentPage(1);
+                    setSearchQuery("");
                   }}
                   className={`px-5 py-1.5 rounded-full font-bold text-xs transition-all duration-300 ${
                     selectedCategory === category
@@ -1028,15 +1037,7 @@ export function Rankings() {
       </section>
 
       <section className="  bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-0"
-          style={{
-            backgroundImage:
-              'url("https://images.unsplash.com/photo-1749410347670-542874c7da41?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRhYmxlJTIwcGxheWVycyUyMGludGVuc2V8ZW58MXx8fHwxNzc0OTM5MDcxfDA&ixlib=rb-4.1.0&q=80&w=1080")',
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
+        <div className="absolute inset-0 opacity-0" />
         {/* ── podium───────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4  max-w-7xl mx-auto py-8">
           {/* MOBILE — cube view */}
@@ -1158,6 +1159,37 @@ export function Rankings() {
           <div className="relative lg:top-20 top-0 py-3 px-2">
             <WinnerCard player={rankings[0]} category={selectedCategory} />
           </div>
+        </div>
+      </section>
+
+      {/* ── Player Search ─────────────────────────────────── */}
+      <section className="bg-ktsa-bg px-4 pt-2 pb-2 max-w-7xl mx-auto w-full flex justify-end">
+        <div className="relative max-w-md">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+            <Search size={16} className="text-ktsa-text" />{" "}
+            {/* ← Lucide icon */}
+          </div>
+          <input
+            type="text"
+            placeholder="Search player..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-100 pl-9 pr-4 py-2 bg-ktsa-accent/20 text-ktsa-text text-sm font-semibold border border-ktsa-accent/30 rounded-lg focus:outline-none focus:border-ktsa-accent placeholder:text-ktsa-text/40 transition-colors"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => {
+                setSearchQuery("");
+                setCurrentPage(1);
+              }}
+              className="absolute inset-y-0 right-3 flex items-center text-ktsa-text/80 hover:text-ktsa-text transition-colors"
+            >
+              <X size={14} /> {/* ← Lucide icon */}
+            </button>
+          )}
         </div>
       </section>
 

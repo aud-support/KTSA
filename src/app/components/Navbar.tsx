@@ -1,8 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router";
-import { Menu, X, Trophy } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion } from "motion/react";
 import logo from "../../assets/logo.png";
+import ProfileDropdown from "./ui/ProfileDropdown";
+
+interface UserProfile {
+  name: string;
+  email: string;
+  avatarUrl?: string;
+}
 
 export function Navbar({
   onLoginClick,
@@ -13,18 +20,52 @@ export function Navbar({
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const location = useLocation();
 
+  // ─── Check auth on mount & whenever token changes ───────────────────────────
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      const storedUser = localStorage.getItem("user");
+      if (token && storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
     };
+
+    checkAuth();
+
+    // Listen for storage changes (e.g., login in another tab or from LoginModal)
+    window.addEventListener("storage", checkAuth);
+    // Custom event for same-tab login
+    window.addEventListener("auth-change", checkAuth);
+
+    return () => {
+      window.removeEventListener("storage", checkAuth);
+      window.removeEventListener("auth-change", checkAuth);
+    };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    window.dispatchEvent(new Event("auth-change"));
+  };
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const menuRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -40,7 +81,6 @@ export function Navbar({
     { name: "Rankings", path: "/rankings" },
     { name: "About", path: "/about" },
     { name: "News", path: "/news" },
-    // { name: "Gallery", path: "/gallery" },
   ];
 
   return (
@@ -57,7 +97,6 @@ export function Navbar({
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="relative">
-              {/* <Trophy className="w-10 h-10 text-ktsa-accent group-hover:text-ktsa-highlight transition-colors duration-300" /> */}
               <img src={logo} className="w-14 h-14 rounded-4xl" alt="logo" />
             </div>
             <div>
@@ -76,9 +115,6 @@ export function Navbar({
               <Link
                 key={link.path}
                 to={link.path}
-                // className={`relative text-ktsa-text hover:text-ktsa-accent transition-colors duration-300 font-medium ${
-                //   location.pathname === link.path ? "text-ktsa-primary" : ""
-                // }`}
                 className={`relative transition-colors duration-300 font-medium ${
                   location.pathname === link.path
                     ? "text-ktsa-primary"
@@ -96,20 +132,25 @@ export function Navbar({
               </Link>
             ))}
 
-            {/* ✅ Login Button */}
-            <button
-              onClick={onLoginClick}
-              className="px-4 py-2 rounded-lg bg-transparent border border-ktsa-accent text-ktsa-primary/70 font-bold hover:bg-ktsa-accent hover:text-ktsa-text transition-all duration-300"
-            >
-              Log In
-            </button>
-            {/* ✅ Sign up Button */}
-            <button
-              onClick={onSignupClick}
-              className="px-5 py-2 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-bold hover:bg-ktsa-accent transition-all duration-300"
-            >
-              Sign Up
-            </button>
+            {/* ── Auth Section: show profile OR login+signup ── */}
+            {user ? (
+              <ProfileDropdown user={user} onLogout={handleLogout} />
+            ) : (
+              <>
+                <button
+                  onClick={onLoginClick}
+                  className="px-4 py-2 rounded-lg bg-transparent border border-ktsa-accent text-ktsa-primary/70 font-bold hover:bg-ktsa-accent hover:text-ktsa-text transition-all duration-300"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={onSignupClick}
+                  className="px-5 py-2 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-bold hover:bg-ktsa-accent transition-all duration-300"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -142,19 +183,48 @@ export function Navbar({
               </Link>
             ))}
 
-            {/* ✅ Login Button (Mobile) */}
-            <button
-              onClick={() => {
-                setIsMobileMenuOpen(false);
-                onLoginClick();
-              }}
-              className="block mt-3 py-3 text-center bg-ktsa-primary/70 font-bold text-ktsa-text rounded-lg w-full"
-            >
-              Log In
-            </button>
-            <button className="block mt-3 py-3 text-center bg-ktsa-primary/70 font-bold text-ktsa-text rounded-lg w-full">
-              Sign Up
-            </button>
+            {/* Mobile Auth Section */}
+            {user ? (
+              <>
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  My Profile
+                </Link>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="block mt-3 py-3 text-center bg-red-500/20 border border-red-500/40 text-red-400 font-bold rounded-lg w-full"
+                >
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onLoginClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onSignupClick();
+                  }}
+                  className="block mt-3 py-3 text-center bg-ktsa-primary/70 font-bold text-ktsa-text rounded-lg w-full"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
           </motion.div>
         )}
       </div>

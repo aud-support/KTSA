@@ -113,8 +113,9 @@ export default function LoginModal({ isOpen, onClose }: Props) {
               );
 
               if (!res.ok) throw new Error("Login failed");
-              const data = await res.json();
-              console.log("Login response:", data);
+              const response1 = await res.json();
+              console.log("Login response:", response1);
+              const data = response1.data;
 
               // ✅ Save token AND user profile
               localStorage.setItem("token", data.token);
@@ -123,7 +124,7 @@ export default function LoginModal({ isOpen, onClose }: Props) {
                 JSON.stringify({
                   name: data.name,
                   email: data.email,
-                  avatarUrl: data.avatarUrl ?? null, // include if your API returns it
+                  role: data.role,
                 }),
               );
 

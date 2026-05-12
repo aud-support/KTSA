@@ -12,9 +12,14 @@ interface UserProfile {
 interface Props {
   user: UserProfile;
   onLogout: () => void;
+  onProfileClick: () => void;
 }
 
-export default function ProfileDropdown({ user, onLogout }: Props) {
+export default function ProfileDropdown({
+  user,
+  onLogout,
+  onProfileClick,
+}: Props) {
   const name = user?.name ?? "";
   const email = user?.email ?? "";
   const [open, setOpen] = useState(false);
@@ -81,14 +86,16 @@ export default function ProfileDropdown({ user, onLogout }: Props) {
 
             {/* Menu items */}
             <div className="py-1">
-              <Link
-                to="/profile"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors"
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onProfileClick();
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors w-full"
               >
-                <User size={15} className="text-ktsa-primary" />
-                My Profile
-              </Link>
+                {" "}
+                <User size={15} className="text-ktsa-primary" /> My Profile
+              </button>
               <Link
                 to="/my-matches"
                 onClick={() => setOpen(false)}

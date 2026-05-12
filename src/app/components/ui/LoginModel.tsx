@@ -125,8 +125,11 @@ export default function LoginModal({ isOpen, onClose }: Props) {
                   name: data.name,
                   email: data.email,
                   role: data.role,
+                  id: data.id,
                 }),
               );
+
+              localStorage.setItem("userId", String(data.id));
 
               // ✅ Notify Navbar (same-tab update)
               window.dispatchEvent(new Event("auth-change"));

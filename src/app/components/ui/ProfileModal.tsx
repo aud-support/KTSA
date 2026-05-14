@@ -197,8 +197,14 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
       if (modalRef.current && !modalRef.current.contains(e.target as Node))
         onClose();
     };
-    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.body.style.overflow = "hidden"; // 👈 lock scroll
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.body.style.overflow = ""; // 👈 restore (not "auto")
+    };
   }, [isOpen, onClose]);
 
   // ── Save handler ──────────────────────────────────────────────────────────
@@ -279,7 +285,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4 overflow-y-auto">
       <motion.div
         ref={modalRef}
         initial={{

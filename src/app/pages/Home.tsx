@@ -16,6 +16,9 @@ import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useEffect, useState, useRef, useCallback } from "react";
 import RegistrationModal from "../components/ui/RegistrationModal";
 import TournamentDetailsModal from "../components/ui/TournamentDetailsModal";
+import { useModal } from "../contexts/ModalContext";
+import LoginModal from "../components/ui/LoginModel";
+import SignUpModel from "../components/ui/SignUpModel";
 import logo from "../../assets/LOGO gif.gif";
 import april from "../../assets/april-25-2026.jpg";
 import april1 from "../../assets/april-2026.jpg";
@@ -258,6 +261,7 @@ function TournamentCarousel() {
   const lastTsRef = useRef<number | null>(null);
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const SPEED = 0.05;
+  const { openLogin, openSignup } = useModal();
 
   const [modalTournament, setModalTournament] = useState<Tournament | null>(
     null,
@@ -442,6 +446,16 @@ function TournamentCarousel() {
           onClose={() => {
             setModalTournament(null);
             setModalType(null);
+          }}
+          onLoginClick={() => {
+            setModalTournament(null);
+            setModalType(null);
+            openLogin();
+          }}
+          onSignupClick={() => {
+            setModalTournament(null);
+            setModalType(null);
+            openSignup();
           }}
         />
       )}

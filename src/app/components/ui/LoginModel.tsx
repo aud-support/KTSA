@@ -6,6 +6,7 @@ import { Link } from "react-router";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onSwitchToSignup?: () => void;
 }
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
@@ -26,7 +27,11 @@ function FieldError({ msg }: { msg: string }) {
   return <p className="mt-1 text-xs text-red-400">{msg}</p>;
 }
 
-export default function LoginModal({ isOpen, onClose }: Props) {
+export default function LoginModal({
+  isOpen,
+  onClose,
+  onSwitchToSignup,
+}: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -206,13 +211,16 @@ export default function LoginModal({ isOpen, onClose }: Props) {
         {/* Register */}
         <p className="text-center text-sm text-gray-400">
           Don't have an account?{" "}
-          <Link
-            to="/register"
-            onClick={onClose}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onSwitchToSignup?.();
+            }}
             className="text-ktsa-primary hover:underline hover:text-ktsa-text"
           >
             Register
-          </Link>
+          </button>
         </p>
       </motion.div>
     </div>

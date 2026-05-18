@@ -13,12 +13,14 @@ interface Props {
   user: UserProfile;
   onLogout: () => void;
   onProfileClick: () => void;
+  onSettingsClick: () => void;
 }
 
 export default function ProfileDropdown({
   user,
   onLogout,
   onProfileClick,
+  onSettingsClick,
 }: Props) {
   const name = user?.name ?? "";
   const email = user?.email ?? "";
@@ -104,14 +106,16 @@ export default function ProfileDropdown({
                 <Trophy size={15} className="text-ktsa-primary" />
                 My Matches
               </Link>
-              <Link
-                to="/settings"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors"
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onSettingsClick();
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors w-full"
               >
                 <Settings size={15} className="text-ktsa-primary" />
                 Settings
-              </Link>
+              </button>
             </div>
 
             {/* Logout */}

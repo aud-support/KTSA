@@ -15,10 +15,12 @@ export function Navbar({
   onLoginClick,
   onSignupClick,
   onProfileClick,
+  onSettingsClick,
 }: {
   onLoginClick: () => void;
   onSignupClick: () => void;
   onProfileClick: () => void;
+  onSettingsClick: () => void;
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -141,6 +143,7 @@ export function Navbar({
                 user={user}
                 onLogout={handleLogout}
                 onProfileClick={onProfileClick}
+                onSettingsClick={onSettingsClick}
               />
             ) : (
               <>
@@ -193,13 +196,37 @@ export function Navbar({
             {/* Mobile Auth Section */}
             {user ? (
               <>
-                <Link
-                  to="/profile"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onProfileClick();
+                  }}
                   className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
                 >
                   My Profile
-                </Link>
+                </button>
+
+                {/* My Matches */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onSettingsClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  My Matches
+                </button>
+
+                {/* Settings */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onSettingsClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  Settings
+                </button>
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);

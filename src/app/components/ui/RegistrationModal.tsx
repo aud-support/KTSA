@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, CheckCircle, Calendar, MapPin, ChevronDown } from "lucide-react";
+import {
+  X,
+  CheckCircle,
+  Calendar,
+  MapPin,
+  ChevronDown,
+  LogIn,
+  UserPlus,
+  Loader2,
+} from "lucide-react";
 
 interface Tournament {
   id: number;
@@ -15,7 +24,44 @@ interface Tournament {
 interface Props {
   tournament: Tournament;
   onClose: () => void;
+  /** Pass your auth context/hook result here */
+  onLoginClick?: () => void;
+  onSignupClick?: () => void;
 }
+
+// ─── Replace this with your actual auth hook / context ───────────────────────
+// Expected shape of the user object — adapt to match your auth provider
+interface AuthUser {
+  name: string;
+  email: string;
+  phone?: string;
+}
+
+function useCurrentUser(): { user: AuthUser | null; loading: boolean } {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const readUser = () => {
+    try {
+      const raw = localStorage.getItem("user"); // ✅ matches your LoginModal key
+      setUser(raw ? (JSON.parse(raw) as AuthUser) : null);
+    } catch {
+      setUser(null);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    readUser(); // check on mount
+
+    // ✅ Re-read whenever LoginModal fires "auth-change"
+    window.addEventListener("auth-change", readUser);
+    return () => window.removeEventListener("auth-change", readUser);
+  }, []);
+
+  return { user, loading };
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 // ─── Reusable Custom Dropdown ────────────────────────────────────────────────
 interface DropdownProps {
@@ -101,19 +147,110 @@ function CustomDropdown({
   );
 }
 
-export default function RegistrationModal({ tournament, onClose }: Props) {
+// ─── Auth Gate — shown when user is not logged in ────────────────────────────
+function AuthGate({
+  tournament,
+  onLoginClick,
+  onSignupClick,
+}: {
+  tournament: Tournament;
+  onLoginClick?: () => void;
+  onSignupClick?: () => void;
+}) {
+  return (
+    <motion.div
+      key="auth-gate"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.3 }}
+      className="flex flex-col items-center text-center pt-2"
+    >
+      {/* Icon */}
+      <div className="w-16 h-16 rounded-full bg-ktsa-primary/20 border border-ktsa-accent/30 flex items-center justify-center mb-5">
+        <LogIn size={28} className="text-ktsa-accent" />
+      </div>
+
+      <h2 className="text-2xl font-bold text-ktsa-accent mb-2">
+        Sign In to Register
+      </h2>
+      <p className="text-gray-400 text-sm mb-5 max-w-xs">
+        You need to be logged in to register for a tournament. Your details will
+        be auto-filled once you sign in.
+      </p>
+
+      {/* Tournament Info Card */}
+      <div className="w-full mb-7 p-4 rounded-xl border border-ktsa-accent/20 bg-ktsa-primary/10 text-left">
+        <p className="text-ktsa-accent font-bold text-sm mb-2">
+          {tournament.title}
+        </p>
+        <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
+          <Calendar size={12} className="text-ktsa-accent" />
+          <span>{tournament.date}</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-400 text-xs">
+          <MapPin size={12} className="text-ktsa-accent" />
+          <span>{tournament.location}</span>
+        </div>
+      </div>
+
+      {/* CTA Buttons */}
+      <div className="w-full space-y-3">
+        <button
+          onClick={onLoginClick}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-semibold hover:bg-ktsa-primary/60 hover:cursor-pointer transition-all duration-300 text-sm"
+        >
+          <LogIn size={15} />
+          Log In
+        </button>
+        <button
+          onClick={onSignupClick}
+          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-transparent border border-ktsa-accent/40 text-ktsa-accent font-semibold hover:bg-ktsa-accent/10 hover:cursor-pointer transition-all duration-300 text-sm"
+        >
+          <UserPlus size={15} />
+          Create an Account
+        </button>
+      </div>
+
+      <p className="text-gray-600 text-xs mt-5">
+        Your registration spot will be held while you sign in.
+      </p>
+    </motion.div>
+  );
+}
+
+// ─── Main Modal ──────────────────────────────────────────────────────────────
+export default function RegistrationModal({
+  tournament,
+  onClose,
+  onLoginClick,
+  onSignupClick,
+}: Props) {
   const modalRef = useRef<HTMLDivElement>(null);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Auth state
+  const { user, loading: authLoading } = useCurrentUser();
+
   const [form, setForm] = useState({
     playerName: "",
     email: "",
-    phone: "",
-    partnerName: "",
+    partnerEmail: "",
     category: "",
-    experience: "",
   });
+
+  // Auto-fill form once user is resolved
+  useEffect(() => {
+    if (user) {
+      setForm((prev) => ({
+        ...prev,
+        playerName: user.name ?? prev.playerName,
+        email: user.email ?? prev.email,
+        phone: user.phone ?? prev.phone,
+      }));
+    }
+  }, [user]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -142,18 +279,14 @@ export default function RegistrationModal({ tournament, onClose }: Props) {
   };
 
   const setField = (field: string, val: string) => {
-    if (field === "state") {
-      setForm((prev) => ({ ...prev, state: val, city: "" }));
-    } else {
-      setForm((prev) => ({ ...prev, [field]: val }));
-    }
+    setForm((prev) => ({ ...prev, [field]: val }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     // Replace with your actual API call
-    await new Promise((r) => setTimeout(r, 1000)); // simulated delay
+    await new Promise((r) => setTimeout(r, 1000));
     setLoading(false);
     setSubmitted(true);
   };
@@ -181,7 +314,31 @@ export default function RegistrationModal({ tournament, onClose }: Props) {
         </button>
 
         <AnimatePresence mode="wait">
-          {!submitted ? (
+          {/* ── 1. Auth loading spinner ── */}
+          {authLoading && (
+            <motion.div
+              key="auth-loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-20 gap-4"
+            >
+              <Loader2 size={32} className="text-ktsa-accent animate-spin" />
+              <p className="text-gray-400 text-sm">Checking your session…</p>
+            </motion.div>
+          )}
+
+          {/* ── 2. Not logged in ── */}
+          {!authLoading && !user && (
+            <AuthGate
+              tournament={tournament}
+              onLoginClick={onLoginClick}
+              onSignupClick={onSignupClick}
+            />
+          )}
+
+          {/* ── 3. Logged in — registration form ── */}
+          {!authLoading && user && !submitted && (
             <motion.div
               key="form"
               initial={{ opacity: 0 }}
@@ -195,6 +352,17 @@ export default function RegistrationModal({ tournament, onClose }: Props) {
               <p className="text-sm text-gray-400 text-center mb-4">
                 Fill in your details to register
               </p>
+
+              {/* Auto-fill notice */}
+              <div className="mb-4 px-3 py-2 rounded-lg bg-ktsa-accent/10 border border-ktsa-accent/25 flex items-center gap-2">
+                <CheckCircle
+                  size={13}
+                  className="text-ktsa-accent flex-shrink-0"
+                />
+                <p className="text-xs text-ktsa-accent/80">
+                  Details auto-filled from your account
+                </p>
+              </div>
 
               {/* Tournament Info Card */}
               <div className="mb-6 p-4 rounded-xl border border-ktsa-accent/20 bg-ktsa-primary/10">
@@ -213,31 +381,19 @@ export default function RegistrationModal({ tournament, onClose }: Props) {
 
               <form className="space-y-5" onSubmit={handleSubmit}>
                 {/* Category + Experience row */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    {/* Category */}
-                    <CustomDropdown
-                      label="Category"
-                      value={form.category}
-                      options={[
-                        "Open Singles",
-                        "Open Doubles",
-                        "Women's Singles",
-                        "Mixed Doubles",
-                      ]}
-                      onChange={(val) => setField("category", val)}
-                    />
-                  </div>
-                  <div>
-                    {/* Experience */}
-                    <CustomDropdown
-                      label="Experience"
-                      value={form.experience}
-                      options={["Beginner", "Intermediate", "Advanced"]}
-                      onChange={(val) => setField("experience", val)}
-                    />
-                  </div>
-                </div>
+
+                <CustomDropdown
+                  label="Category"
+                  value={form.category}
+                  options={[
+                    "Open Singles",
+                    "Open Doubles",
+                    "Women's Singles",
+                    "Mixed Doubles",
+                  ]}
+                  onChange={(val) => setField("category", val)}
+                />
+
                 {/* Player Name */}
                 <div>
                   <label className="block text-sm text-ktsa-accent mb-1">
@@ -269,33 +425,30 @@ export default function RegistrationModal({ tournament, onClose }: Props) {
                   />
                 </div>
 
-                {/* Phone */}
+                {/* Partner Email */}
                 <div>
                   <label className="block text-sm text-ktsa-accent mb-1">
-                    Phone Number
-                  </label>
-                  <input
-                    required
-                    name="phone"
-                    value={form.phone}
-                    onChange={handleChange}
-                    placeholder="Enter your phone number"
-                    className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white placeholder-gray-500 focus:outline-none focus:border-ktsa-primary text-sm"
-                  />
-                </div>
-
-                {/* Partner Name */}
-                <div>
-                  <label className="block text-sm text-ktsa-accent mb-1">
-                    Partner's Name{" "}
+                    Partner's Email{" "}
                     <span className="text-gray-500 text-xs">(if doubles)</span>
                   </label>
                   <input
-                    name="partnerName"
-                    value={form.partnerName}
+                    name="partnerEmail"
+                    value={form.partnerEmail}
                     onChange={handleChange}
-                    placeholder="Enter partner's name (optional)"
-                    className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white placeholder-gray-500 focus:outline-none focus:border-ktsa-primary text-sm"
+                    placeholder={
+                      ["Open Doubles", "Mixed Doubles"].includes(form.category)
+                        ? "Enter partner's email (optional)"
+                        : "Select a doubles category first"
+                    }
+                    disabled={
+                      !["Open Doubles", "Mixed Doubles"].includes(form.category)
+                    }
+                    className={`w-full px-4 py-2 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-opacity duration-200
+      ${
+        ["Open Doubles", "Mixed Doubles"].includes(form.category)
+          ? "border-gray-600 focus:border-ktsa-primary opacity-100"
+          : "border-gray-700 opacity-40 cursor-not-allowed"
+      }`}
                   />
                 </div>
 
@@ -309,8 +462,10 @@ export default function RegistrationModal({ tournament, onClose }: Props) {
                 </button>
               </form>
             </motion.div>
-          ) : (
-            /* Success State */
+          )}
+
+          {/* ── 4. Success state ── */}
+          {!authLoading && user && submitted && (
             <motion.div
               key="success"
               initial={{ opacity: 0, scale: 0.9 }}

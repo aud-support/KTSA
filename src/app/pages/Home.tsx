@@ -812,7 +812,14 @@ export function Home() {
               Interested in bringing foosball to your institution or
               organisation?
             </p>
-            <button className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex items-center gap-2.5 px-8 py-3.5  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300">
+            <button
+              onClick={() => {
+                document
+                  .getElementById("footer")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex items-center gap-2.5 px-8 py-3.5  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300"
+            >
               Get in Touch with KTSA
               <svg
                 viewBox="0 0 24 24"

@@ -238,6 +238,8 @@ export default function RegistrationModal({
     email: "",
     partnerEmail: "",
     category: "",
+    partnerMode: "have-partner" as "have-partner" | "find-partner",
+    rolePreference: "" as "Defender" | "Attacker" | "All-rounder" | "",
   });
 
   // Auto-fill form once user is resolved
@@ -279,16 +281,59 @@ export default function RegistrationModal({
   };
 
   const setField = (field: string, val: string) => {
-    setForm((prev) => ({ ...prev, [field]: val }));
+    setForm((prev) => ({
+      ...prev,
+      [field]: val,
+      ...(field === "category" &&
+        !["Open Doubles", "Mixed Doubles"].includes(val) && {
+          partnerEmail: "",
+          partnerMode: "have-partner",
+          rolePreference: "",
+        }),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Replace with your actual API call
-    await new Promise((r) => setTimeout(r, 1000));
-    setLoading(false);
-    setSubmitted(true);
+
+    const isDoubles = ["Open Doubles", "Mixed Doubles"].includes(form.category);
+    const isFreeAgent = isDoubles && form.partnerMode === "find-partner";
+
+    const endpoint = isFreeAgent
+      ? `${import.meta.env.VITE_BACKEND_BASE_URL}/api/registrations/free-agent`
+      : `${import.meta.env.VITE_BACKEND_BASE_URL}/api/registrations`;
+
+    const payload = isFreeAgent
+      ? {
+          tournamentId: tournament.id,
+          category: form.category,
+          playerEmail: form.email,
+          rolePreference: form.rolePreference,
+        }
+      : {
+          tournamentId: tournament.id,
+          category: form.category,
+          playerEmail: form.email,
+          partnerEmail: form.partnerEmail || undefined,
+        };
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("Registration failed");
+      setSubmitted(true);
+    } catch (err) {
+      alert("Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -425,32 +470,65 @@ export default function RegistrationModal({
                   />
                 </div>
 
-                {/* Partner Email */}
-                <div>
-                  <label className="block text-sm text-ktsa-accent mb-1">
-                    Partner's Email{" "}
-                    <span className="text-gray-500 text-xs">(if doubles)</span>
-                  </label>
-                  <input
-                    name="partnerEmail"
-                    value={form.partnerEmail}
-                    onChange={handleChange}
-                    placeholder={
-                      ["Open Doubles", "Mixed Doubles"].includes(form.category)
-                        ? "Enter partner's email (optional)"
-                        : "Select a doubles category first"
-                    }
-                    disabled={
-                      !["Open Doubles", "Mixed Doubles"].includes(form.category)
-                    }
-                    className={`w-full px-4 py-2 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-opacity duration-200
-      ${
-        ["Open Doubles", "Mixed Doubles"].includes(form.category)
-          ? "border-gray-600 focus:border-ktsa-primary opacity-100"
-          : "border-gray-700 opacity-40 cursor-not-allowed"
-      }`}
-                  />
-                </div>
+                {/* ── Doubles-only section ── */}
+                {["Open Doubles", "Mixed Doubles"].includes(form.category) && (
+                  <div className="space-y-4">
+                    {/* Toggle */}
+                    <div>
+                      <label className="block text-sm text-ktsa-accent mb-2">
+                        Do you have a partner?
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {(["have-partner", "find-partner"] as const).map(
+                          (mode) => (
+                            <button
+                              key={mode}
+                              type="button"
+                              onClick={() => setField("partnerMode", mode)}
+                              className={`py-2 rounded-lg text-sm font-semibold border transition-all duration-200
+              ${
+                form.partnerMode === mode
+                  ? "bg-ktsa-primary/70 border-ktsa-primary text-ktsa-text"
+                  : "bg-transparent border-gray-600 text-gray-400 hover:border-gray-400"
+              }`}
+                            >
+                              {mode === "have-partner"
+                                ? "I have a partner"
+                                : "Find me a partner"}
+                            </button>
+                          ),
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Partner Email — only if "have-partner" */}
+                    {form.partnerMode === "have-partner" && (
+                      <div>
+                        <label className="block text-sm text-ktsa-accent mb-1">
+                          Partner's Email
+                        </label>
+                        <input
+                          name="partnerEmail"
+                          value={form.partnerEmail}
+                          onChange={handleChange}
+                          placeholder="Enter partner's email"
+                          className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white placeholder-gray-500 focus:outline-none focus:border-ktsa-primary text-sm"
+                        />
+                      </div>
+                    )}
+
+                    {/* Role Preference — only if "find-partner" */}
+                    {form.partnerMode === "find-partner" && (
+                      <CustomDropdown
+                        label="Your Role Preference"
+                        value={form.rolePreference}
+                        options={["Defender", "Attacker", "All-rounder"]}
+                        placeholder="Select your preferred role"
+                        onChange={(val) => setField("rolePreference", val)}
+                      />
+                    )}
+                  </div>
+                )}
 
                 {/* Submit */}
                 <button

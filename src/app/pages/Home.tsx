@@ -6,7 +6,6 @@ import {
   Trophy,
   Users,
   Medal,
-  Award,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -17,8 +16,6 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import RegistrationModal from "../components/ui/RegistrationModal";
 import TournamentDetailsModal from "../components/ui/TournamentDetailsModal";
 import { useModal } from "../contexts/ModalContext";
-import LoginModal from "../components/ui/LoginModel";
-import SignUpModel from "../components/ui/SignUpModel";
 import logo from "../../assets/LOGO gif.gif";
 import april from "../../assets/april-25-2026.jpg";
 import april1 from "../../assets/april-2026.jpg";
@@ -39,52 +36,10 @@ type Tournament = {
   _key?: string;
 };
 
-const tournaments: Tournament[] = [
-  {
-    id: 1,
-    title: "Karnataka Open",
-    date: "25th April, 2026",
-    location: "Bengaluru",
-    status: "Upcoming",
-    image: april,
-  },
-  {
-    id: 2,
-    title: "Women's Foosball",
-    date: "25th April, 2026",
-    location: "Near Silkboard, Bengaluru",
-    status: "Upcoming",
-    image: april1,
-  },
-  {
-    id: 3,
-    title: "Bengaluru Tournament",
-    date: "31 January, 2026",
-    location: "Whitefield, Bengaluru",
-    status: "Completed",
-    image: jan,
-  },
-  {
-    id: 4,
-    title: "Bengaluru Tournament",
-    date: "29th March, 2026",
-    location: "Kormangala, Bengaluru",
-    status: "Completed",
-    image: march,
-  },
-];
-
 const CARD_W = 288;
 const CARD_GAP = 24;
 const CARD_STEP = CARD_W + CARD_GAP;
-const CLONE_COUNT = tournaments.length;
-const LOOP_WIDTH = CLONE_COUNT * CARD_STEP;
 
-const infiniteTournaments = [
-  ...tournaments.map((t) => ({ ...t, _key: "pre-" + t.id })),
-  ...tournaments.map((t) => ({ ...t, _key: "mid-" + t.id })),
-  ...tournaments.map((t) => ({ ...t, _key: "post-" + t.id })),
-];
 const pillars = [
   {
     id: 1,
@@ -254,15 +209,19 @@ function Counter({ end, duration = 2 }: { end: number; duration?: number }) {
 }
 
 function TournamentCarousel() {
+  // ── Refs ──────────────────────────────────────────────────────────────────
   const trackRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef<number>(LOOP_WIDTH);
+  const offsetRef = useRef<number>(0);
+  const loopWidthRef = useRef<number>(0);
   const pausedRef = useRef(false);
   const animFrameRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const SPEED = 0.05;
-  const { openLogin, openSignup } = useModal();
 
+  // ── State ─────────────────────────────────────────────────────────────────
+  const SPEED = 0.05;
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const { openLogin, openSignup } = useModal();
   const [modalTournament, setModalTournament] = useState<Tournament | null>(
     null,
   );
@@ -270,16 +229,19 @@ function TournamentCarousel() {
     null,
   );
 
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleCardButton = (tournament: Tournament) => {
     setModalTournament(tournament);
     setModalType(tournament.status === "Upcoming" ? "register" : "details");
   };
 
+  // ── applyOffset ───────────────────────────────────────────────────────────
   const applyOffset = useCallback((offset: number, withTransition = false) => {
     const el = trackRef.current;
-    if (!el) return;
-    if (offset >= LOOP_WIDTH * 2) offset -= LOOP_WIDTH;
-    if (offset < 0) offset += LOOP_WIDTH;
+    const lw = loopWidthRef.current;
+    if (!el || lw === 0) return;
+    if (offset >= lw * 2) offset -= lw;
+    if (offset < 0) offset += lw;
     offsetRef.current = offset;
     el.style.transition = withTransition
       ? "transform 0.42s cubic-bezier(0.25,0.46,0.45,0.94)"
@@ -287,6 +249,7 @@ function TournamentCarousel() {
     el.style.transform = "translateX(" + -offset + "px)";
   }, []);
 
+  // ── tick ──────────────────────────────────────────────────────────────────
   const tick = useCallback(
     (ts: number) => {
       if (!pausedRef.current) {
@@ -302,15 +265,49 @@ function TournamentCarousel() {
     [applyOffset],
   );
 
+  // ── Fetch tournaments ─────────────────────────────────────────────────────
   useEffect(() => {
-    applyOffset(LOOP_WIDTH);
+    fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/tournament`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          const mapped: Tournament[] = json.data.map((t: any) => ({
+            id: t.id,
+            title: t.tournamentName,
+            date: new Date(t.startDate).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }),
+            location: t.venue,
+            status:
+              t.status === "UPCOMING"
+                ? "Upcoming"
+                : t.status === "LIVE"
+                  ? "Live"
+                  : "Completed",
+            image: [april, april1, jan, march][json.data.indexOf(t) % 4],
+          }));
+          setTournaments(mapped);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  // ── Start carousel once data is loaded ───────────────────────────────────
+  useEffect(() => {
+    if (tournaments.length === 0) return;
+    loopWidthRef.current = tournaments.length * CARD_STEP;
+    offsetRef.current = loopWidthRef.current; // start from middle clone
+    applyOffset(loopWidthRef.current);
     animFrameRef.current = requestAnimationFrame(tick);
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
     };
-  }, [applyOffset, tick]);
+  }, [tournaments, applyOffset, tick]);
 
+  // ── pause / resume / step ─────────────────────────────────────────────────
   const pause = () => {
     pausedRef.current = true;
     if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
@@ -331,6 +328,13 @@ function TournamentCarousel() {
     );
     resume(2500);
   };
+
+  // ── Derived display data ──────────────────────────────────────────────────
+  const infiniteTournaments = [
+    ...tournaments.map((t, i) => ({ ...t, _key: `pre-${i}-${t.id}` })),
+    ...tournaments.map((t, i) => ({ ...t, _key: `mid-${i}-${t.id}` })),
+    ...tournaments.map((t, i) => ({ ...t, _key: `post-${i}-${t.id}` })),
+  ];
 
   return (
     <>
@@ -420,12 +424,9 @@ function TournamentCarousel() {
                     </div>
                     <button
                       onClick={() => handleCardButton(tournament)}
-                      className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex justify-center items-center gap-2.5 px-8 py-1 w-full  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300"
+                      className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex justify-center items-center gap-2.5 px-8 py-1 w-full text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300"
                     >
-                      {" "}
-                      <span
-                        className={"px-3 py-1 rounded-full text-xs font-bold "}
-                      >
+                      <span className="px-3 py-1 rounded-full text-xs font-bold">
                         {tournament.status === "Live"
                           ? "ONGOING"
                           : tournament.status === "Completed"

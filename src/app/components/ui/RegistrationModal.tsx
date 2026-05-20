@@ -299,23 +299,33 @@ export default function RegistrationModal({
     const isDoubles = ["Open Doubles", "Mixed Doubles"].includes(form.category);
     const isFreeAgent = isDoubles && form.partnerMode === "find-partner";
 
-    const endpoint = isFreeAgent
-      ? `${import.meta.env.VITE_BACKEND_BASE_URL}/api/registrations/free-agent`
-      : `${import.meta.env.VITE_BACKEND_BASE_URL}/api/registrations`;
+    let endpoint: string;
+    let payload: object;
 
-    const payload = isFreeAgent
-      ? {
-          tournamentId: tournament.id,
-          category: form.category,
-          playerEmail: form.email,
-          rolePreference: form.rolePreference,
-        }
-      : {
-          tournamentId: tournament.id,
-          category: form.category,
-          playerEmail: form.email,
-          partnerEmail: form.partnerEmail || undefined,
-        };
+    if (isFreeAgent) {
+      // Free-agent: looking for a partner — needs its own API
+      endpoint = `${import.meta.env.VITE_BACKEND_BASE_URL}/api/registration/free-agent/${tournament.id}`;
+      payload = {
+        playerOneEmail: form.email,
+        category: form.category,
+        rolePreference: form.rolePreference,
+      };
+    } else if (isDoubles) {
+      // Doubles: has a partner
+      endpoint = `${import.meta.env.VITE_BACKEND_BASE_URL}/api/registration/double/${tournament.id}`;
+      payload = {
+        playerOneEmail: form.email,
+        playerTwoEmail: form.partnerEmail,
+        category: form.category,
+      };
+    } else {
+      // Single
+      endpoint = `${import.meta.env.VITE_BACKEND_BASE_URL}/api/registration/single/${tournament.id}`;
+      payload = {
+        playerOneEmail: form.email,
+        category: form.category,
+      };
+    }
 
     try {
       const res = await fetch(endpoint, {
@@ -507,6 +517,7 @@ export default function RegistrationModal({
                           Partner's Email
                         </label>
                         <input
+                          required
                           name="partnerEmail"
                           value={form.partnerEmail}
                           onChange={handleChange}

@@ -249,7 +249,6 @@ export default function RegistrationModal({
         ...prev,
         playerName: user.name ?? prev.playerName,
         email: user.email ?? prev.email,
-        phone: user.phone ?? prev.phone,
       }));
     }
   }, [user]);

@@ -8,6 +8,8 @@ import SignupModal from "./ui/SignUpModel";
 import ProfileModal from "./ui/ProfileModal";
 import SettingsModal from "./ui/SettingsModal";
 import { ModalContext } from "../contexts/ModalContext";
+import MyMatchesModal from "./ui/MyMatchesModal";
+import MyTeamsModal from "./ui/MyTeamsModal";
 
 export function Layout() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -16,6 +18,8 @@ export function Layout() {
   const [userId, setUserId] = useState<number | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [isMatchesOpen, setIsMatchesOpen] = useState(false);
+  const [isTeamsOpen, setIsTeamsOpen] = useState(false);
 
   useEffect(() => {
     const id = localStorage.getItem("userId");
@@ -40,6 +44,8 @@ export function Layout() {
           onSignupClick={() => setIsSignupOpen(true)}
           onProfileClick={() => setProfileModalOpen(true)}
           onSettingsClick={() => setIsSettingsOpen(true)}
+          onMatchesClick={() => setIsMatchesOpen(true)}
+          onTeamsClick={() => setIsTeamsOpen(true)}
         />
         <main>
           <Outlet />
@@ -79,6 +85,21 @@ export function Layout() {
             onClose={() => setIsSettingsOpen(false)}
             userId={userId}
             userEmail={userEmail}
+          />
+        )}
+
+        {userId && (
+          <MyMatchesModal
+            isOpen={isMatchesOpen}
+            onClose={() => setIsMatchesOpen(false)}
+            userId={userId}
+          />
+        )}
+        {userId && (
+          <MyTeamsModal
+            isOpen={isTeamsOpen}
+            onClose={() => setIsTeamsOpen(false)}
+            userId={userId}
           />
         )}
       </div>

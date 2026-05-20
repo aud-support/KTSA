@@ -16,11 +16,15 @@ export function Navbar({
   onSignupClick,
   onProfileClick,
   onSettingsClick,
+  onMatchesClick,
+  onTeamsClick,
 }: {
   onLoginClick: () => void;
   onSignupClick: () => void;
   onProfileClick: () => void;
   onSettingsClick: () => void;
+  onMatchesClick: () => void;
+  onTeamsClick: () => void;
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -144,6 +148,8 @@ export function Navbar({
                 onLogout={handleLogout}
                 onProfileClick={onProfileClick}
                 onSettingsClick={onSettingsClick}
+                onMatchesClick={onMatchesClick}
+                onTeamsClick={onTeamsClick}
               />
             ) : (
               <>
@@ -210,11 +216,22 @@ export function Navbar({
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    onSettingsClick();
+                    onMatchesClick();
                   }}
                   className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
                 >
                   My Matches
+                </button>
+
+                {/* My Teams */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onTeamsClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  My Teams
                 </button>
 
                 {/* Settings */}

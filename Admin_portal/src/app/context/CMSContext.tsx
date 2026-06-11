@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from "react";
 
 export interface Tournament {
   id: string;
@@ -6,12 +6,30 @@ export interface Tournament {
   startDate: string;
   endDate: string;
   format: string;
-  status: 'upcoming' | 'ongoing' | 'completed';
+  status: "upcoming" | "ongoing" | "completed";
   venue: string;
   maxParticipants: number;
   prizePool: string;
   challengeBracketUrl: string;
   description: string;
+  categories: {
+    openSingle: {
+      enabled: boolean;
+      fee: string;
+    };
+    openDouble: {
+      enabled: boolean;
+      fee: string;
+    };
+    mixedDouble: {
+      enabled: boolean;
+      fee: string;
+    };
+    womenSingle: {
+      enabled: boolean;
+      fee: string;
+    };
+  };
 }
 
 export interface Rule {
@@ -36,7 +54,7 @@ export interface Sponsor {
   name: string;
   logoUrl: string;
   websiteUrl: string;
-  tier: 'platinum' | 'gold' | 'silver' | 'bronze';
+  tier: "platinum" | "gold" | "silver" | "bronze";
 }
 
 export interface ContactInfo {
@@ -55,8 +73,9 @@ export interface SocialLinks {
 export interface HomePage {
   heroTitle: string;
   heroSubtitle: string;
-  heroImageUrl: string;
+  heroImageUrl: File | null;
   featuredTournaments: string[];
+  videoUrls: string[];
 }
 
 export interface AboutUs {
@@ -81,16 +100,16 @@ interface CMSContextType {
   homePage: HomePage;
   aboutUs: AboutUs;
   footer: Footer;
-  addTournament: (tournament: Omit<Tournament, 'id'>) => void;
+  addTournament: (tournament: Omit<Tournament, "id">) => void;
   updateTournament: (id: string, tournament: Partial<Tournament>) => void;
   deleteTournament: (id: string) => void;
-  addRule: (rule: Omit<Rule, 'id'>) => void;
+  addRule: (rule: Omit<Rule, "id">) => void;
   updateRule: (id: string, rule: Partial<Rule>) => void;
   deleteRule: (id: string) => void;
-  addArticle: (article: Omit<Article, 'id'>) => void;
+  addArticle: (article: Omit<Article, "id">) => void;
   updateArticle: (id: string, article: Partial<Article>) => void;
   deleteArticle: (id: string) => void;
-  addSponsor: (sponsor: Omit<Sponsor, 'id'>) => void;
+  addSponsor: (sponsor: Omit<Sponsor, "id">) => void;
   updateSponsor: (id: string, sponsor: Partial<Sponsor>) => void;
   deleteSponsor: (id: string) => void;
   updateContactInfo: (info: ContactInfo) => void;
@@ -102,207 +121,246 @@ interface CMSContextType {
 
 const CMSContext = createContext<CMSContextType | undefined>(undefined);
 
+export const defaultCategories = {
+  openSingle: {
+    enabled: false,
+    fee: "",
+  },
+  openDouble: {
+    enabled: false,
+    fee: "",
+  },
+  mixedDouble: {
+    enabled: false,
+    fee: "",
+  },
+  womenSingle: {
+    enabled: false,
+    fee: "",
+  },
+};
+
 const initialTournaments: Tournament[] = [
   {
-    id: '1',
-    name: 'KTSA Open 2025',
-    startDate: '2025-03-15',
-    endDate: '2025-03-15',
-    format: 'Single Elimination',
-    status: 'completed',
-    venue: 'Koramangala Indoor Stadium',
+    id: "1",
+    name: "KTSA Open 2025",
+    startDate: "2025-03-15",
+    endDate: "2025-03-15",
+    format: "Single Elimination",
+    status: "completed",
+    venue: "Koramangala Indoor Stadium",
     maxParticipants: 16,
-    prizePool: '50000',
-    challengeBracketUrl: 'https://challonge.com/ktsa-open-2025',
-    description: 'Annual open tournament for all skill levels.',
+    prizePool: "50000",
+    challengeBracketUrl: "https://challonge.com/ktsa-open-2025",
+    description: "Annual open tournament for all skill levels.",
+    categories: structuredClone(defaultCategories),
   },
   {
-    id: '2',
-    name: 'KTSA Summer Cup 2026',
-    startDate: '2026-06-10',
-    endDate: '2026-06-12',
-    format: 'Round Robin',
-    status: 'upcoming',
-    venue: 'Koramangala Indoor Stadium',
+    id: "2",
+    name: "KTSA Summer Cup 2026",
+    startDate: "2026-06-10",
+    endDate: "2026-06-12",
+    format: "Round Robin",
+    status: "upcoming",
+    venue: "Koramangala Indoor Stadium",
     maxParticipants: 16,
-    prizePool: '75000',
-    challengeBracketUrl: 'https://challonge.com/ktsa-summer-cup',
-    description: 'Summer championship with round-robin format.',
+    prizePool: "75000",
+    challengeBracketUrl: "https://challonge.com/ktsa-summer-cup",
+    description: "Summer championship with round-robin format.",
+    categories: structuredClone(defaultCategories),
   },
   {
-    id: '3',
-    name: 'KTSA Club League S1',
-    startDate: '2025-01-20',
-    endDate: '2025-03-20',
-    format: 'League',
-    status: 'completed',
-    venue: 'Various Locations',
+    id: "3",
+    name: "KTSA Club League S1",
+    startDate: "2025-01-20",
+    endDate: "2025-03-20",
+    format: "League",
+    status: "completed",
+    venue: "Various Locations",
     maxParticipants: 20,
-    prizePool: '100000',
-    challengeBracketUrl: 'https://challonge.com/ktsa-club-league-s1',
-    description: 'First season of our club league.',
+    prizePool: "100000",
+    challengeBracketUrl: "https://challonge.com/ktsa-club-league-s1",
+    description: "First season of our club league.",
+    categories: structuredClone(defaultCategories),
   },
   {
-    id: '4',
-    name: 'Bangalore Masters 2026',
-    startDate: '2026-07-22',
-    endDate: '2026-07-24',
-    format: 'Single Elimination',
-    status: 'upcoming',
-    venue: 'Indiranagar Sports Complex',
+    id: "4",
+    name: "Bangalore Masters 2026",
+    startDate: "2026-07-22",
+    endDate: "2026-07-24",
+    format: "Single Elimination",
+    status: "upcoming",
+    venue: "Indiranagar Sports Complex",
     maxParticipants: 32,
-    prizePool: '150000',
-    challengeBracketUrl: 'https://challonge.com/blr-masters-2026',
-    description: 'Premier tournament featuring top players from across India.',
+    prizePool: "150000",
+    challengeBracketUrl: "https://challonge.com/blr-masters-2026",
+    description: "Premier tournament featuring top players from across India.",
+    categories: structuredClone(defaultCategories),
   },
   {
-    id: '5',
-    name: 'KTSA Winter Championship',
-    startDate: '2025-12-15',
-    endDate: '2025-12-17',
-    format: 'Swiss System',
-    status: 'completed',
-    venue: 'HSR Layout Sports Arena',
+    id: "5",
+    name: "KTSA Winter Championship",
+    startDate: "2025-12-15",
+    endDate: "2025-12-17",
+    format: "Swiss System",
+    status: "completed",
+    venue: "HSR Layout Sports Arena",
     maxParticipants: 24,
-    prizePool: '80000',
-    challengeBracketUrl: 'https://challonge.com/ktsa-winter-2025',
-    description: 'Year-end championship using Swiss system format.',
+    prizePool: "80000",
+    challengeBracketUrl: "https://challonge.com/ktsa-winter-2025",
+    description: "Year-end championship using Swiss system format.",
+    categories: structuredClone(defaultCategories),
   },
   {
-    id: '6',
-    name: 'KTSA Youth Cup 2026',
-    startDate: '2026-08-05',
-    endDate: '2026-08-06',
-    format: 'Single Elimination',
-    status: 'upcoming',
-    venue: 'Jayanagar Community Hall',
+    id: "6",
+    name: "KTSA Youth Cup 2026",
+    startDate: "2026-08-05",
+    endDate: "2026-08-06",
+    format: "Single Elimination",
+    status: "upcoming",
+    venue: "Jayanagar Community Hall",
     maxParticipants: 16,
-    prizePool: '40000',
-    challengeBracketUrl: 'https://challonge.com/ktsa-youth-2026',
-    description: 'Tournament for players under 18 years old.',
+    prizePool: "40000",
+    challengeBracketUrl: "https://challonge.com/ktsa-youth-2026",
+    description: "Tournament for players under 18 years old.",
+    categories: structuredClone(defaultCategories),
   },
   {
-    id: '7',
-    name: 'KTSA Doubles Championship',
-    startDate: '2026-05-20',
-    endDate: '2026-05-21',
-    format: 'Round Robin',
-    status: 'ongoing',
-    venue: 'Koramangala Indoor Stadium',
+    id: "7",
+    name: "KTSA Doubles Championship",
+    startDate: "2026-05-20",
+    endDate: "2026-05-21",
+    format: "Round Robin",
+    status: "ongoing",
+    venue: "Koramangala Indoor Stadium",
     maxParticipants: 16,
-    prizePool: '60000',
-    challengeBracketUrl: 'https://challonge.com/ktsa-doubles-2026',
-    description: 'Doubles format tournament with teams of two players.',
+    prizePool: "60000",
+    challengeBracketUrl: "https://challonge.com/ktsa-doubles-2026",
+    description: "Doubles format tournament with teams of two players.",
+    categories: structuredClone(defaultCategories),
   },
 ];
 
 const initialRules: Rule[] = [
   {
-    id: '1',
-    title: 'Player Registration',
-    content: 'All players must register at least 48 hours before the tournament starts. Registration includes submitting valid ID proof and payment of entry fees.',
+    id: "1",
+    title: "Player Registration",
+    content:
+      "All players must register at least 48 hours before the tournament starts. Registration includes submitting valid ID proof and payment of entry fees.",
     order: 1,
   },
   {
-    id: '2',
-    title: 'Equipment Standards',
-    content: 'Players must use ITTF-approved equipment. Rackets will be checked before matches. Custom rackets must meet regulation standards.',
+    id: "2",
+    title: "Equipment Standards",
+    content:
+      "Players must use ITTF-approved equipment. Rackets will be checked before matches. Custom rackets must meet regulation standards.",
     order: 2,
   },
   {
-    id: '3',
-    title: 'Match Format',
-    content: 'All matches are best of 5 games (11 points each). Service alternates every 2 points. Deuce rules apply at 10-10.',
+    id: "3",
+    title: "Match Format",
+    content:
+      "All matches are best of 5 games (11 points each). Service alternates every 2 points. Deuce rules apply at 10-10.",
     order: 3,
   },
 ];
 
 const initialArticles: Article[] = [
   {
-    id: '1',
-    title: 'KTSA Summer Cup Registration Now Open',
-    excerpt: 'Join us for the biggest tournament of the season',
-    content: 'We are excited to announce that registration for the KTSA Summer Cup is now open! This prestigious tournament will feature the best players from across the region competing for a prize pool of ₹30,000.',
-    publishedDate: '2025-05-01',
-    author: 'KTSA Admin',
+    id: "1",
+    title: "KTSA Summer Cup Registration Now Open",
+    excerpt: "Join us for the biggest tournament of the season",
+    content:
+      "We are excited to announce that registration for the KTSA Summer Cup is now open! This prestigious tournament will feature the best players from across the region competing for a prize pool of ₹30,000.",
+    publishedDate: "2025-05-01",
+    author: "KTSA Admin",
   },
   {
-    id: '2',
-    title: 'New Training Facility Opens',
-    excerpt: 'State-of-the-art facility now available for members',
-    content: 'KTSA is proud to announce the opening of our new training facility equipped with 8 professional-grade tables and coaching staff.',
-    publishedDate: '2025-04-15',
-    author: 'KTSA Admin',
+    id: "2",
+    title: "New Training Facility Opens",
+    excerpt: "State-of-the-art facility now available for members",
+    content:
+      "KTSA is proud to announce the opening of our new training facility equipped with 8 professional-grade tables and coaching staff.",
+    publishedDate: "2025-04-15",
+    author: "KTSA Admin",
   },
 ];
 
 const initialSponsors: Sponsor[] = [
   {
-    id: '1',
-    name: 'Butterfly',
-    logoUrl: '',
-    websiteUrl: 'https://www.butterfly-global.com',
-    tier: 'platinum',
+    id: "1",
+    name: "Butterfly",
+    logoUrl: "",
+    websiteUrl: "https://www.butterfly-global.com",
+    tier: "platinum",
   },
   {
-    id: '2',
-    name: 'Stiga',
-    logoUrl: '',
-    websiteUrl: 'https://www.stiga.com',
-    tier: 'gold',
+    id: "2",
+    name: "Stiga",
+    logoUrl: "",
+    websiteUrl: "https://www.stiga.com",
+    tier: "gold",
   },
 ];
 
-export const CMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [tournaments, setTournaments] = useState<Tournament[]>(initialTournaments);
+export const CMSProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [tournaments, setTournaments] =
+    useState<Tournament[]>(initialTournaments);
   const [rules, setRules] = useState<Rule[]>(initialRules);
   const [articles, setArticles] = useState<Article[]>(initialArticles);
   const [sponsors, setSponsors] = useState<Sponsor[]>(initialSponsors);
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
-    email: 'admin@ktsaofficial.in',
-    phone: '+91 98765 43210',
-    address: 'Koramangala, Bangalore, India',
+    email: "admin@ktsaofficial.in",
+    phone: "+91 98765 43210",
+    address: "Koramangala, Bangalore, India",
   });
   const [socialLinks, setSocialLinks] = useState<SocialLinks>({
-    facebook: 'https://facebook.com/ktsa',
-    twitter: 'https://twitter.com/ktsa',
-    instagram: 'https://instagram.com/ktsa',
-    youtube: 'https://youtube.com/ktsa',
+    facebook: "https://facebook.com/ktsa",
+    twitter: "https://twitter.com/ktsa",
+    instagram: "https://instagram.com/ktsa",
+    youtube: "https://youtube.com/ktsa",
   });
   const [homePage, setHomePage] = useState<HomePage>({
-    heroTitle: 'Karnataka Table Soccer Association',
-    heroSubtitle: 'Promoting excellence in table tennis across Karnataka',
-    heroImageUrl: '',
-    featuredTournaments: ['1', '2'],
+    heroTitle: "Karnataka Table Soccer Association",
+    heroSubtitle: "Promoting excellence in table tennis across Karnataka",
+    heroImageUrl: null,
+    featuredTournaments: ["1", "2"],
+    videoUrls: [""],
   });
   const [aboutUs, setAboutUs] = useState<AboutUs>({
-    title: 'About KTSA',
-    content: 'The Karnataka Table Soccer Association (KTSA) is the premier organization dedicated to promoting and developing table tennis in Karnataka.',
-    mission: 'To foster excellence in table tennis and provide opportunities for players of all skill levels.',
-    vision: 'To make Karnataka a leading hub for table tennis in India.',
+    title: "About KTSA",
+    content:
+      "The Karnataka Table Soccer Association (KTSA) is the premier organization dedicated to promoting and developing table tennis in Karnataka.",
+    mission:
+      "To foster excellence in table tennis and provide opportunities for players of all skill levels.",
+    vision: "To make Karnataka a leading hub for table tennis in India.",
   });
   const [footer, setFooter] = useState<Footer>({
-    copyrightText: '© 2025 KTSA. All rights reserved.',
+    copyrightText: "© 2025 KTSA. All rights reserved.",
     quickLinks: [
-      { label: 'Privacy Policy', url: '/privacy' },
-      { label: 'Terms of Service', url: '/terms' },
+      { label: "Privacy Policy", url: "/privacy" },
+      { label: "Terms of Service", url: "/terms" },
     ],
   });
 
-  const addTournament = (tournament: Omit<Tournament, 'id'>) => {
+  const addTournament = (tournament: Omit<Tournament, "id">) => {
     const newTournament = { ...tournament, id: Date.now().toString() };
     setTournaments([...tournaments, newTournament]);
   };
 
   const updateTournament = (id: string, tournament: Partial<Tournament>) => {
-    setTournaments(tournaments.map((t) => (t.id === id ? { ...t, ...tournament } : t)));
+    setTournaments(
+      tournaments.map((t) => (t.id === id ? { ...t, ...tournament } : t)),
+    );
   };
 
   const deleteTournament = (id: string) => {
     setTournaments(tournaments.filter((t) => t.id !== id));
   };
 
-  const addRule = (rule: Omit<Rule, 'id'>) => {
+  const addRule = (rule: Omit<Rule, "id">) => {
     const newRule = { ...rule, id: Date.now().toString() };
     setRules([...rules, newRule]);
   };
@@ -315,7 +373,7 @@ export const CMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setRules(rules.filter((r) => r.id !== id));
   };
 
-  const addArticle = (article: Omit<Article, 'id'>) => {
+  const addArticle = (article: Omit<Article, "id">) => {
     const newArticle = { ...article, id: Date.now().toString() };
     setArticles([...articles, newArticle]);
   };
@@ -328,7 +386,7 @@ export const CMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setArticles(articles.filter((a) => a.id !== id));
   };
 
-  const addSponsor = (sponsor: Omit<Sponsor, 'id'>) => {
+  const addSponsor = (sponsor: Omit<Sponsor, "id">) => {
     const newSponsor = { ...sponsor, id: Date.now().toString() };
     setSponsors([...sponsors, newSponsor]);
   };
@@ -386,7 +444,7 @@ export const CMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 export const useCMS = () => {
   const context = useContext(CMSContext);
   if (!context) {
-    throw new Error('useCMS must be used within a CMSProvider');
+    throw new Error("useCMS must be used within a CMSProvider");
   }
   return context;
 };

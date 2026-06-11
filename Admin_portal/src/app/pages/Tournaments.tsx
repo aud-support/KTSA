@@ -1,20 +1,36 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Plus, Pencil, Trash2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import { useCMS } from "../context/CMSContext";
+import {
+  getAllTournaments,
+  deleteTournament as deleteTournamentAPI,
+} from "../../services/tournamentService"; // ← import API fns
 
 export const Tournaments: React.FC = () => {
   const navigate = useNavigate();
-  const { tournaments, deleteTournament } = useCMS();
+  const [tournaments, setTournaments] = useState<any[]>([]); // ← local state, not from context
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
-  const handleDelete = (id: string) => {
+  // ← fetch on mount
+  useEffect(() => {
+    getAllTournaments()
+      .then((res) => setTournaments(res.data))
+      .catch(() => toast.error("Failed to load tournaments"));
+  }, []);
+
+  const handleDelete = async (id: string) => {
     if (deleteConfirm === id) {
-      deleteTournament(id);
-      toast.success("Tournament deleted successfully!");
+      try {
+        await deleteTournamentAPI(id); // ← call API
+        setTournaments((prev) => prev.filter((t) => t.id !== id)); // ← remove locally
+        toast.success("Tournament deleted successfully!");
+      } catch {
+        toast.error("Failed to delete tournament");
+      }
       setDeleteConfirm(null);
     } else {
       setDeleteConfirm(id);
@@ -94,7 +110,7 @@ export const Tournaments: React.FC = () => {
                       }
                       className="font-medium hover:text-ktsa-primary transition-colors text-left"
                     >
-                      {tournament.name}
+                      {tournament.tournamentName}
                     </button>
                   </td>
                   <td className="px-6 py-2 text-sm text-muted-foreground">
@@ -123,7 +139,7 @@ export const Tournaments: React.FC = () => {
                     {tournament.venue || "—"}
                   </td>
                   <td className="px-6 py-2 text-sm text-muted-foreground">
-                    {tournament.prizePool ? `₹${tournament.prizePool}` : "—"}
+                    {tournament.pricePool ? `₹${tournament.pricePool}` : "—"}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-6">
@@ -173,7 +189,7 @@ export const Tournaments: React.FC = () => {
                     }
                     className="font-medium mb-1 hover:text-ktsa-primary transition-colors text-left"
                   >
-                    {tournament.name}
+                    {tournament.tournamentName}
                   </button>
                   <div className="mt-1">
                     <span

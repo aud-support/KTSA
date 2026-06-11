@@ -5,6 +5,7 @@ import { Rankings } from "./pages/Rankings";
 import { About } from "./pages/About";
 import { News } from "./pages/News";
 import { Gallery } from "./pages/Gallery";
+import { Tournaments } from "./pages/Tournaments";
 
 export const router = createBrowserRouter([
   {
@@ -16,6 +17,7 @@ export const router = createBrowserRouter([
       { path: "about", Component: About },
       { path: "news", Component: News },
       { path: "gallery", Component: Gallery },
+      { path: "tournaments", Component: Tournaments },
     ],
   },
 ]);

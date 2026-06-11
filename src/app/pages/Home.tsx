@@ -26,6 +26,8 @@ import image2 from "../../assets/ktsa-image7.jpg";
 import image3 from "../../assets/ktsa-image11.jpg";
 import trophy from "../../assets/trophy.JPG";
 
+import { TournamentSection } from "../components/Tournamentsections";
+
 type Tournament = {
   id: number;
   title: string;
@@ -872,49 +874,7 @@ export function Home() {
         </div>
       </section>
 
-      {/* Tournaments */}
-      <section className="py-8 px-4 bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative">
-        <div className="absolute inset-0 opacity-5">
-          <ImageWithFallback
-            src="https://www.euroschoolindia.com/blogs/wp-content/uploads/2023/11/foosball-table-techniques-jpg.webp"
-            alt="Background"
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <div className="max-w-6xl mx-auto relative z-10">
-          <div className="text-center mb-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              {/* <span className="text-xs font-bold tracking-widest text-ktsa-accent/60 uppercase mb-2 block">
-                Competition
-              </span> */}
-              <h2 className="text-2xl md:text-4xl font-black text-ktsa-text mb-3">
-                <span className="bg-gradient-to-r text-ktsa-accent">
-                  Upcoming & Past
-                </span>{" "}
-                Tournaments
-              </h2>
-              <p className="text-ktsa-text/70 text-sm">
-                Stay connected to KTSA tournaments, past events, and upcoming
-                competitive opportunities across Karnataka.
-              </p>
-            </motion.div>
-          </div>
-          <TournamentCarousel />
-          {/* <div className="text-center mt-5">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-4 bg-ktsa-primary/80 text-ktsa-text rounded-full font-bold text-base border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-400"
-            >
-              View All Tournaments
-            </motion.button>
-          </div> */}
-        </div>
-      </section>
+      <TournamentSection />
 
       {/* Top Players */}
       <section

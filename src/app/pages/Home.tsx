@@ -494,7 +494,7 @@ export function Home() {
         {/* Background image */}
         <div className="cover mx-auto absolute inset-0 opacity-80">
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1716703370285-d7ff2960abb4?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            src={homepageContent?.heroBannerUrl}
             alt="Foosball Action"
             className="w-full h-full object-cover scale-110 sm:scale-105"
           />

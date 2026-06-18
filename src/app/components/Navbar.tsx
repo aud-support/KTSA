@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { motion } from "motion/react";
 import logo from "../../assets/logo.png";
 import ProfileDropdown from "./ui/ProfileDropdown";
+import ProfileModal from "./ui/ProfileModal";
 
 interface UserProfile {
   name: string;
@@ -22,12 +23,17 @@ export function Navbar({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const location = useLocation();
-
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [userId, setUserId] = useState<number | null>(null);
   // ─── Check auth on mount & whenever token changes ───────────────────────────
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem("token");
       const storedUser = localStorage.getItem("user");
+
+      const storedUserId = localStorage.getItem("userId");
+      const parsed = storedUserId ? parseInt(storedUserId, 10) : null;
+      setUserId(parsed && !isNaN(parsed) ? parsed : null);
       if (token && storedUser) {
         try {
           setUser(JSON.parse(storedUser));
@@ -135,7 +141,11 @@ export function Navbar({
 
             {/* ── Auth Section: show profile OR login+signup ── */}
             {user ? (
-              <ProfileDropdown user={user} onLogout={handleLogout} />
+              <ProfileDropdown
+                user={user}
+                onLogout={handleLogout}
+                onProfileClick={() => setProfileModalOpen(true)}
+              />
             ) : (
               <>
                 <button
@@ -229,6 +239,13 @@ export function Navbar({
           </motion.div>
         )}
       </div>
+      {userId && (
+        <ProfileModal
+          isOpen={profileModalOpen}
+          onClose={() => setProfileModalOpen(false)}
+          userId={userId}
+        />
+      )}
     </nav>
   );
 }

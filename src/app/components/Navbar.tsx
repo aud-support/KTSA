@@ -78,6 +78,7 @@ export function Navbar({
 
   const navLinks = [
     { name: "Home", path: "/" },
+    { name: "Tournaments", path: "/tournaments" },
     { name: "Rankings", path: "/rankings" },
     { name: "About", path: "/about" },
     { name: "News", path: "/news" },

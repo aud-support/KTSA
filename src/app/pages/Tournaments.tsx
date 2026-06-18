@@ -19,15 +19,45 @@ import {
 // ─── Helpers (same as TournamentSections) ────────────────────────────────────
 
 function formatDateRange(start: string, end: string) {
-  const s = new Date(start + "T00:00:00");
-  const e = new Date(end + "T00:00:00");
+  const s = new Date(start.includes("T") ? start : start + "T00:00:00");
+  const e = new Date(end.includes("T") ? end : end + "T00:00:00");
   if (start === end)
     return s.toLocaleDateString("en-IN", {
       day: "numeric",
       month: "long",
       year: "numeric",
     });
-  return `${s.getDate()}–${e.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}`;
+
+  const sStr = s.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const eStr = e.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  return `${sStr} ${formatTime(start)} To ${eStr} ${formatTime(end)}`;
+}
+
+/**
+ * Extract a human-readable time from an ISO date string.
+ * Returns e.g. "9:00 AM" if the string contains a real time component, otherwise null.
+ */
+function formatTime(iso: string): string | null {
+  if (!iso.includes("T")) return null;
+  const d = new Date(iso);
+  const h = d.getHours();
+  const min = d.getMinutes();
+  // 00:00 is just a midnight placeholder, not a real scheduled time
+  if (h === 0 && min === 0) return null;
+  return d.toLocaleTimeString("en-IN", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
 }
 
 function getCategories(t: ApiTournament) {
@@ -42,6 +72,7 @@ function getCategories(t: ApiTournament) {
 function statusMeta(status: ApiTournament["status"]) {
   switch (status) {
     case "LIVE":
+    case "ACTIVE":
       return { label: "LIVE", cls: "bg-red-500 text-white animate-pulse" };
     case "COMPLETED":
       return { label: "COMPLETED", cls: "bg-green-600 text-white" };
@@ -68,6 +99,15 @@ function CardSkeleton() {
 
 // ─── Tournament Card ──────────────────────────────────────────────────────────
 
+/** True if the tournament's start date is still in the future */
+function isRegistrationOpen(t: ApiTournament): boolean {
+  if (t.status !== "UPCOMING") return false;
+  const start = new Date(
+    t.startDate.includes("T") ? t.startDate : t.startDate + "T00:00:00",
+  );
+  return start.getTime() > Date.now();
+}
+
 function TournamentCard({
   tournament,
   index,
@@ -80,6 +120,7 @@ function TournamentCard({
   );
   const { label, cls } = statusMeta(tournament.status);
   const categories = getCategories(tournament);
+  const canRegister = isRegistrationOpen(tournament);
 
   const modalShape = {
     id: tournament.id,
@@ -88,7 +129,7 @@ function TournamentCard({
     location: tournament.venue,
     status: (tournament.status === "UPCOMING"
       ? "Upcoming"
-      : tournament.status === "LIVE"
+      : tournament.status === "LIVE" || tournament.status === "ACTIVE"
         ? "Live"
         : "Completed") as "Upcoming" | "Live" | "Completed",
     image: tournament.bannerUrl,
@@ -138,6 +179,12 @@ function TournamentCard({
               <Calendar size={13} className="text-ktsa-accent flex-shrink-0" />
               <span className="text-xs font-semibold text-ktsa-text">
                 {formatDateRange(tournament.startDate, tournament.endDate)}
+                {/* {formatTime(tournament.startDate) && (
+                  <span className="ml-1.5 text-ktsa-text font-medium">
+                    {" "}
+                    {formatTime(tournament.startDate)}
+                  </span>
+                )} */}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -181,7 +228,7 @@ function TournamentCard({
 
           {/* CTA */}
           <div className="mt-auto pt-3 border-t border-ktsa-accent/10">
-            {tournament.status === "UPCOMING" && (
+            {canRegister && (
               <button
                 onClick={() => setModalType("register")}
                 className="w-full py-2.5 rounded-full font-bold text-sm border-2 border-white text-white hover:border-ktsa-highlight hover:bg-ktsa-highlight transition-all duration-300"
@@ -189,7 +236,16 @@ function TournamentCard({
                 Register
               </button>
             )}
-            {tournament.status === "LIVE" && (
+            {tournament.status === "UPCOMING" && !canRegister && (
+              <button
+                onClick={() => setModalType("details")}
+                className="w-full py-2.5 rounded-full font-bold text-sm border-2 border-white/40 text-white/60 hover:border-white hover:text-white transition-all duration-300"
+              >
+                View Details
+              </button>
+            )}
+            {(tournament.status === "LIVE" ||
+              tournament.status === "ACTIVE") && (
               <button
                 onClick={() => setModalType("details")}
                 className="w-full py-2.5 rounded-full font-bold text-sm bg-red-500 text-white animate-pulse"
@@ -202,7 +258,7 @@ function TournamentCard({
                 onClick={() => setModalType("details")}
                 className="w-full py-2.5 rounded-full font-bold text-sm border-2 border-white/40 text-white/60 hover:border-white hover:text-white transition-all duration-300"
               >
-                View Results
+                View Details
               </button>
             )}
           </div>
@@ -235,7 +291,6 @@ const FILTERS: { label: string; value: Filter }[] = [
   { label: "Live", value: "LIVE" },
   { label: "Completed", value: "COMPLETED" },
 ];
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function Tournaments() {
@@ -245,12 +300,18 @@ export function Tournaments() {
   const filtered =
     filter === "ALL"
       ? tournaments
-      : tournaments.filter((t) => t.status === filter);
+      : filter === "LIVE"
+        ? tournaments.filter(
+            (t) => t.status === "LIVE" || t.status === "ACTIVE",
+          )
+        : tournaments.filter((t) => t.status === filter);
 
   const counts = {
     ALL: tournaments.length,
     UPCOMING: tournaments.filter((t) => t.status === "UPCOMING").length,
-    LIVE: tournaments.filter((t) => t.status === "LIVE").length,
+    LIVE: tournaments.filter(
+      (t) => t.status === "LIVE" || t.status === "ACTIVE",
+    ).length,
     COMPLETED: tournaments.filter((t) => t.status === "COMPLETED").length,
   };
 

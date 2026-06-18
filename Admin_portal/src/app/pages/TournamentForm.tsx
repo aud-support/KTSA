@@ -25,7 +25,9 @@ export const TournamentForm: React.FC = () => {
   const [formData, setFormData] = useState({
     name: "",
     startDate: "",
+    startTime: "",
     endDate: "",
+    endTime: "",
     format: "",
     status: "",
     venue: "",
@@ -53,10 +55,26 @@ export const TournamentForm: React.FC = () => {
 
         const tournament = response.data;
 
+        // Helper to split a datetime string (ISO or "YYYY-MM-DD HH:mm") into date + time parts
+        const splitDateTime = (dt: string) => {
+          if (!dt) return { date: "", time: "" };
+          // ISO: "2026-06-11T09:00:00" → date="2026-06-11", time="09:00"
+          // plain date: "2026-06-11" → date="2026-06-11", time=""
+          const [datePart, timePart] = dt.split("T");
+          const date = datePart || "";
+          const time = timePart ? timePart.slice(0, 5) : "";
+          return { date, time };
+        };
+
+        const start = splitDateTime(tournament.startDate);
+        const end = splitDateTime(tournament.endDate);
+
         setFormData({
           name: tournament.tournamentName,
-          startDate: tournament.startDate,
-          endDate: tournament.endDate,
+          startDate: start.date,
+          startTime: start.time,
+          endDate: end.date,
+          endTime: end.time,
           format: tournament.format,
           status: tournament.status,
           venue: tournament.venue,
@@ -194,8 +212,12 @@ export const TournamentForm: React.FC = () => {
       format: formData.format,
       status: formData.status,
 
-      startDate: formData.startDate,
-      endDate: formData.endDate,
+      startDate: formData.startTime
+        ? `${formData.startDate}T${formData.startTime}:00`
+        : formData.startDate,
+      endDate: formData.endTime
+        ? `${formData.endDate}T${formData.endTime}:00`
+        : formData.endDate,
 
       venue: formData.venue,
 
@@ -315,21 +337,43 @@ export const TournamentForm: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Start Date *"
-                name="startDate"
-                type="date"
-                value={formData.startDate}
-                onChange={handleChange}
-                required
-              />
-              <Input
-                label="End Date"
-                name="endDate"
-                type="date"
-                value={formData.endDate}
-                onChange={handleChange}
-              />
+              <div className="space-y-2">
+                <label className="block text-sm text-foreground">Start Date *</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    name="startDate"
+                    type="date"
+                    value={formData.startDate}
+                    onChange={handleChange}
+                    required
+                  />
+                  <Input
+                    name="startTime"
+                    type="time"
+                    value={formData.startTime}
+                    onChange={handleChange}
+                    placeholder="HH:MM"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm text-foreground">End Date</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    name="endDate"
+                    type="date"
+                    value={formData.endDate}
+                    onChange={handleChange}
+                  />
+                  <Input
+                    name="endTime"
+                    type="time"
+                    value={formData.endTime}
+                    onChange={handleChange}
+                    placeholder="HH:MM"
+                  />
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

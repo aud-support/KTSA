@@ -26,7 +26,7 @@ export const Input: React.FC<InputProps> = ({
           "focus:outline-none focus:ring-2 focus:ring-ktsa-primary/50",
           "transition-all duration-200",
           type === "date" && "color-scheme-dark",
-          type === "date" &&
+          (type === "date" || type === "time") &&
             "[&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:brightness-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer",
           error && "border-destructive",
           className,

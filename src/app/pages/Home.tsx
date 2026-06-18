@@ -27,6 +27,7 @@ import image3 from "../../assets/ktsa-image11.jpg";
 import trophy from "../../assets/trophy.JPG";
 
 import { TournamentSection } from "../components/Tournamentsections";
+import { getHomepageContent } from "../../services/homepageService";
 
 type Tournament = {
   id: number;
@@ -462,6 +463,20 @@ function TournamentCarousel() {
 
 export function Home() {
   const [isMobile, setIsMobile] = useState(false);
+  const [homepageContent, setHomepageContent] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchHomepageContent = async () => {
+      try {
+        const data = await getHomepageContent();
+        setHomepageContent(data);
+      } catch (error) {
+        console.error("Failed to load homepage content", error);
+      }
+    };
+
+    fetchHomepageContent();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -511,22 +526,20 @@ export function Home() {
             transition={{ delay: 0.6 }}
             className="mb-8 sm:mb-10 text-center max-w-2xl"
           >
-            {/* MAIN HEADING */}
+            {/* heroTitle */}
             <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-ktsa-text leading-snug">
-              The home of organized foosball in Karnataka
+              {/* The home of organized foosball in Karnataka */}
+              {homepageContent?.heroTitle}
             </h1>
 
-            {/* SUB TEXT */}
+            {/* SheroSubtitle */}
             <p className="text-xs sm:text-sm md:text-base text-ktsa-text/90 leading-relaxed font-medium">
-              Foosball deserves structure, recognition, and opportunity.{" "}
-              {/* <br className="hidden sm:block" /> */}
-              KTSA delivers all three.
+              {homepageContent?.heroSubtitle}
             </p>
 
-            {/* STATS LINE */}
+            {/* heroDescription */}
             <p className=" text-[11px] sm:text-sm text-ktsa-text/90 leading-relaxed">
-              700+ players • 500+ active • structured tournaments • clear growth
-              pathway
+              {homepageContent?.heroDescription}
             </p>
           </motion.div>
 
@@ -1122,29 +1135,33 @@ export function Home() {
               id="video-track"
               className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 scroll-smooth"
             >
-              {[
-                "https://www.youtube.com/embed/KAzg5Tzkhiw",
-                "https://www.youtube.com/embed/KAzg5Tzkhiw",
-                "https://www.youtube.com/embed/KAzg5Tzkhiw",
-              ].map((src, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="flex-shrink-0 w-[300px] md:w-[400px] rounded-2xl overflow-hidden border border-ktsa-accent/30"
-                  style={{ boxShadow: "0 10px 40px rgba(0,229,255,0.15)" }}
-                >
-                  <div className="relative w-full pb-[56.25%]">
-                    <iframe
-                      src={src}
-                      className="absolute top-0 left-0 w-full h-full"
-                      allowFullScreen
-                    />
-                  </div>
-                </motion.div>
-              ))}
+              {homepageContent?.videoUrls?.map(
+                (videoUrl: string, i: number) => {
+                  const embedUrl = videoUrl.includes("watch?v=")
+                    ? videoUrl.replace("watch?v=", "embed/")
+                    : videoUrl;
+
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1 }}
+                      className="flex-shrink-0 w-[300px] md:w-[400px] rounded-2xl overflow-hidden border border-ktsa-accent/30"
+                      style={{ boxShadow: "0 10px 40px rgba(0,229,255,0.15)" }}
+                    >
+                      <div className="relative w-full pb-[56.25%]">
+                        <iframe
+                          src={embedUrl}
+                          className="absolute top-0 left-0 w-full h-full"
+                          allowFullScreen
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                },
+              )}
             </div>
           </div>
         </div>

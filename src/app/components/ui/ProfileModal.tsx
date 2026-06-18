@@ -161,6 +161,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
     gender: "",
     state: "",
     city: "",
+    dateOfBirth: "",
   });
 
   // ── Fetch user on open ────────────────────────────────────────────────────
@@ -184,6 +185,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
             : "",
           state: u.state ?? "",
           city: u.city ?? "",
+          dateOfBirth: u.dateOfBirth ? u.dateOfBirth.slice(0, 10) : "",
         });
       })
       .catch((err) => setError(err.message))
@@ -197,8 +199,14 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
       if (modalRef.current && !modalRef.current.contains(e.target as Node))
         onClose();
     };
-    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.body.style.overflow = "hidden"; // 👈 lock scroll
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.body.style.overflow = ""; // 👈 restore (not "auto")
+    };
   }, [isOpen, onClose]);
 
   // ── Save handler ──────────────────────────────────────────────────────────
@@ -211,6 +219,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
         gender: form.gender.toUpperCase(),
         state: form.state,
         city: form.city,
+        dateOfBirth: form.dateOfBirth || null,
       };
 
       const res = await fetch(
@@ -222,21 +231,24 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
         },
       );
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Update failed");
+      if (!res.ok || !data.success)
+        throw new Error(data.message || "Update failed");
 
-      // Reflect updated values locally
-      setUser((prev) =>
-        prev
-          ? {
-              ...prev,
-              name: form.name,
-              phoneNumber: Number(form.phoneNumber),
-              gender: form.gender.toUpperCase(),
-              state: form.state,
-              city: form.city,
-            }
-          : prev,
-      );
+      const updated: UserProfile = data.data;
+      setUser((prev) => (prev ? { ...prev, ...updated } : prev));
+      setForm({
+        name: updated.name ?? "",
+        phoneNumber: updated.phoneNumber ? String(updated.phoneNumber) : "",
+        gender: updated.gender
+          ? updated.gender.charAt(0).toUpperCase() +
+            updated.gender.slice(1).toLowerCase()
+          : "",
+        state: updated.state ?? "",
+        city: updated.city ?? "",
+        dateOfBirth: updated.dateOfBirth
+          ? updated.dateOfBirth.slice(0, 10)
+          : "",
+      });
 
       setSaveSuccess(true);
       setTimeout(() => {
@@ -279,7 +291,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4 overflow-y-auto">
       <motion.div
         ref={modalRef}
         initial={{
@@ -428,14 +440,6 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
                   </div>
                 </div>
 
-                {/* Gender */}
-                <CustomDropdown
-                  label="Gender"
-                  value={form.gender}
-                  options={["Male", "Female", "Other"]}
-                  onChange={(val) => setForm((p) => ({ ...p, gender: val }))}
-                />
-
                 {/* State + City */}
                 <div className="grid grid-cols-2 gap-3">
                   <CustomDropdown
@@ -457,7 +461,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
 
                 {/* Read-only reminder */}
                 <p className="text-xs text-gray-500 text-center">
-                  Email and date of birth cannot be changed.
+                  Email , date of birth and gender cannot be changed.
                 </p>
               </div>
             )}

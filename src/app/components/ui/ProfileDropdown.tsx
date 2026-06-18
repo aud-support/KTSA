@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { User, LogOut, Settings, Trophy, ChevronDown } from "lucide-react";
+import {
+  User,
+  LogOut,
+  Settings,
+  Trophy,
+  ChevronDown,
+  Users,
+} from "lucide-react";
 
 interface UserProfile {
   name: string;
@@ -13,12 +20,18 @@ interface Props {
   user: UserProfile;
   onLogout: () => void;
   onProfileClick: () => void;
+  onSettingsClick: () => void;
+  onMatchesClick: () => void;
+  onTeamsClick: () => void;
 }
 
 export default function ProfileDropdown({
   user,
   onLogout,
   onProfileClick,
+  onSettingsClick,
+  onMatchesClick,
+  onTeamsClick,
 }: Props) {
   const name = user?.name ?? "";
   const email = user?.email ?? "";
@@ -96,22 +109,37 @@ export default function ProfileDropdown({
                 {" "}
                 <User size={15} className="text-ktsa-primary" /> My Profile
               </button>
-              <Link
-                to="/my-matches"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors"
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onMatchesClick();
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors w-full"
               >
                 <Trophy size={15} className="text-ktsa-primary" />
                 My Matches
-              </Link>
-              <Link
-                to="/settings"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors"
+              </button>
+
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onTeamsClick();
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors w-full"
+              >
+                <Users size={15} className="text-ktsa-primary" />
+                My Teams
+              </button>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onSettingsClick();
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors w-full"
               >
                 <Settings size={15} className="text-ktsa-primary" />
                 Settings
-              </Link>
+              </button>
             </div>
 
             {/* Logout */}

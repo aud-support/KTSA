@@ -4,7 +4,6 @@ import { Menu, X } from "lucide-react";
 import { motion } from "motion/react";
 import logo from "../../assets/logo.png";
 import ProfileDropdown from "./ui/ProfileDropdown";
-import ProfileModal from "./ui/ProfileModal";
 
 interface UserProfile {
   name: string;
@@ -15,25 +14,29 @@ interface UserProfile {
 export function Navbar({
   onLoginClick,
   onSignupClick,
+  onProfileClick,
+  onSettingsClick,
+  onMatchesClick,
+  onTeamsClick,
 }: {
   onLoginClick: () => void;
   onSignupClick: () => void;
+  onProfileClick: () => void;
+  onSettingsClick: () => void;
+  onMatchesClick: () => void;
+  onTeamsClick: () => void;
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const location = useLocation();
-  const [profileModalOpen, setProfileModalOpen] = useState(false);
-  const [userId, setUserId] = useState<number | null>(null);
+
   // ─── Check auth on mount & whenever token changes ───────────────────────────
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem("token");
       const storedUser = localStorage.getItem("user");
 
-      const storedUserId = localStorage.getItem("userId");
-      const parsed = storedUserId ? parseInt(storedUserId, 10) : null;
-      setUserId(parsed && !isNaN(parsed) ? parsed : null);
       if (token && storedUser) {
         try {
           setUser(JSON.parse(storedUser));
@@ -144,7 +147,10 @@ export function Navbar({
               <ProfileDropdown
                 user={user}
                 onLogout={handleLogout}
-                onProfileClick={() => setProfileModalOpen(true)}
+                onProfileClick={onProfileClick}
+                onSettingsClick={onSettingsClick}
+                onMatchesClick={onMatchesClick}
+                onTeamsClick={onTeamsClick}
               />
             ) : (
               <>
@@ -197,13 +203,48 @@ export function Navbar({
             {/* Mobile Auth Section */}
             {user ? (
               <>
-                <Link
-                  to="/profile"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onProfileClick();
+                  }}
                   className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
                 >
                   My Profile
-                </Link>
+                </button>
+
+                {/* My Matches */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onMatchesClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  My Matches
+                </button>
+
+                {/* My Teams */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onTeamsClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  My Teams
+                </button>
+
+                {/* Settings */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onSettingsClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  Settings
+                </button>
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
@@ -239,13 +280,6 @@ export function Navbar({
           </motion.div>
         )}
       </div>
-      {userId && (
-        <ProfileModal
-          isOpen={profileModalOpen}
-          onClose={() => setProfileModalOpen(false)}
-          userId={userId}
-        />
-      )}
     </nav>
   );
 }

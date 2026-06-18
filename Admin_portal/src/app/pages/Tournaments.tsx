@@ -114,16 +114,24 @@ export const Tournaments: React.FC = () => {
                     </button>
                   </td>
                   <td className="px-6 py-2 text-sm text-muted-foreground">
-                    <div>{new Date(tournament.startDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      })}</div>
+                    <div>
+                      {new Date(tournament.startDate).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground/70">
-                      {new Date(tournament.startDate).toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {new Date(tournament.startDate).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-2">

@@ -338,7 +338,9 @@ export const TournamentForm: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm text-foreground">Start Date *</label>
+                <label className="block text-sm text-foreground">
+                  Start Date *
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   <Input
                     name="startDate"
@@ -357,7 +359,9 @@ export const TournamentForm: React.FC = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="block text-sm text-foreground">End Date</label>
+                <label className="block text-sm text-foreground">
+                  End Date
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   <Input
                     name="endDate"

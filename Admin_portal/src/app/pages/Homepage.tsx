@@ -1,16 +1,40 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import { Input, Textarea } from "../components/Input";
 import { useCMS } from "../context/CMSContext";
-import { saveHomepageContent } from "../../services/homepageService";
+import {
+  saveHomepageContent,
+  getHomepageContent,
+} from "../../services/homepageService";
 
 export const Homepage: React.FC = () => {
   const { homePage, updateHomePage } = useCMS();
   const [formData, setFormData] = useState(homePage);
   const [imageFile, setImageFile] = useState<File | null>(null); // ✅ track image separately
   const [loading, setLoading] = useState(false); // ✅ loading state
+
+  useEffect(() => {
+    const fetchHomepageData = async () => {
+      try {
+        setLoading(true);
+
+        const data = await getHomepageContent();
+
+        setFormData(data); // populate form fields
+
+        // updateHomePage(data); // optional
+      } catch (error) {
+        console.error("Failed to load homepage content", error);
+        toast.error("Failed to load homepage content");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHomepageData();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -93,7 +117,15 @@ export const Homepage: React.FC = () => {
                 name="heroSubtitle"
                 value={formData.heroSubtitle}
                 onChange={handleChange}
-                placeholder="Supporting text"
+                placeholder="Sub heading text"
+                rows={2}
+              />
+              <Textarea
+                label="Hero Description"
+                name="heroDescription"
+                value={formData.heroDescription}
+                onChange={handleChange}
+                placeholder="Description text"
                 rows={2}
               />
               <div>

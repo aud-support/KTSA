@@ -73,6 +73,7 @@ export interface SocialLinks {
 export interface HomePage {
   heroTitle: string;
   heroSubtitle: string;
+  heroDescription: string;
   heroImageUrl: File | null;
   featuredTournaments: string[];
   videoUrls: string[];
@@ -323,8 +324,9 @@ export const CMSProvider: React.FC<{ children: ReactNode }> = ({
     youtube: "https://youtube.com/ktsa",
   });
   const [homePage, setHomePage] = useState<HomePage>({
-    heroTitle: "Karnataka Table Soccer Association",
-    heroSubtitle: "Promoting excellence in table tennis across Karnataka",
+    heroTitle: "",
+    heroSubtitle: "",
+    heroDescription: "",
     heroImageUrl: null,
     featuredTournaments: ["1", "2"],
     videoUrls: [""],

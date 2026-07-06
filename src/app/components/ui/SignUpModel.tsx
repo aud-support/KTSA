@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { X, Eye, EyeOff, ChevronDown } from "lucide-react";
 import { Link } from "react-router";
+import { toast } from "sonner";
 
 interface Props {
   isOpen: boolean;
@@ -300,11 +301,11 @@ export default function SignupModal({
               );
               const data = await res.json();
               if (!res.ok) throw new Error(data.message || "Signup failed");
-              alert("Signup successful!");
+              toast.success("Registration successful. Please log in to continue.");
               onClose();
             } catch (err) {
               console.error(err);
-              alert("Error during signup");
+              toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
             }
           }}
         >
@@ -483,19 +484,19 @@ export default function SignupModal({
         {/* Divider */}
         <div className="my-6 text-center text-gray-400 text-sm">OR</div>
 
-        {/* Switch to Login */}
+        {/* Switch to login */}
         <p className="text-center text-sm text-gray-400">
           Already have an account?{" "}
-          <Link
-            to="/login"
+          <button
+            type="button"
             onClick={() => {
               onClose();
-              onSwitchToLogin();
+              onSwitchToLogin?.();
             }}
             className="text-ktsa-primary hover:underline hover:text-ktsa-text"
           >
             Login
-          </Link>
+          </button>
         </p>
       </motion.div>
     </div>

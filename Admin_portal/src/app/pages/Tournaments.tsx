@@ -78,7 +78,7 @@ export const Tournaments: React.FC = () => {
                   Tournament
                 </th>
                 <th className="px-6 py-2 text-sm text-muted-foreground uppercase tracking-wider">
-                  Dates
+                  Date & Time
                 </th>
                 <th className="px-6 py-2 text-sm text-muted-foreground uppercase tracking-wider">
                   Status
@@ -114,14 +114,25 @@ export const Tournaments: React.FC = () => {
                     </button>
                   </td>
                   <td className="px-6 py-2 text-sm text-muted-foreground">
-                    {new Date(tournament.startDate).toLocaleDateString(
-                      "en-US",
-                      {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      },
-                    )}
+                    <div>
+                      {new Date(tournament.startDate).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        },
+                      )}
+                    </div>
+                    <div className="text-xs text-muted-foreground/70">
+                      {new Date(tournament.startDate).toLocaleTimeString(
+                        "en-US",
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-2">
                     <span
@@ -207,7 +218,13 @@ export const Tournaments: React.FC = () => {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
-                })}
+                })}{" "}
+                <span className="text-xs text-muted-foreground/70">
+                  {new Date(tournament.startDate).toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
               </p>
               <div className="flex items-center gap-2">
                 <Button

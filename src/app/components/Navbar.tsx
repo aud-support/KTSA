@@ -8,27 +8,59 @@ import ProfileDropdown from "./ui/ProfileDropdown";
 interface UserProfile {
   name: string;
   email: string;
-  avatarUrl?: string;
+  profilePictureUrl?: string;
 }
 
 export function Navbar({
   onLoginClick,
   onSignupClick,
+  onProfileClick,
+  onSettingsClick,
+  onMatchesClick,
+  onTeamsClick,
 }: {
   onLoginClick: () => void;
   onSignupClick: () => void;
+  onProfileClick: () => void;
+  onSettingsClick: () => void;
+  onMatchesClick: () => void;
+  onTeamsClick: () => void;
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const location = useLocation();
 
-  // ─── Check auth on mount & whenever token changes ───────────────────────────
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem("token");
+  // ─── Fetch full user profile from API (includes profilePictureUrl) ──────────
+  const fetchUserProfile = async () => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+
+    if (!token || !userId) {
+      setUser(null);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_BASE_URL}/api/users/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (!res.ok) {
+        setUser(null);
+        return;
+      }
+      const json = await res.json();
+      const data = json.data ?? json;
+      setUser({
+        name: data.name,
+        email: data.email,
+        profilePictureUrl: data.profilePictureUrl ?? undefined,
+      });
+    } catch {
+      // API failed — fall back to localStorage basics
       const storedUser = localStorage.getItem("user");
-      if (token && storedUser) {
+      if (storedUser) {
         try {
           setUser(JSON.parse(storedUser));
         } catch {
@@ -37,18 +69,19 @@ export function Navbar({
       } else {
         setUser(null);
       }
-    };
+    }
+  };
 
-    checkAuth();
+  useEffect(() => {
+    fetchUserProfile();
 
-    // Listen for storage changes (e.g., login in another tab or from LoginModal)
-    window.addEventListener("storage", checkAuth);
-    // Custom event for same-tab login
-    window.addEventListener("auth-change", checkAuth);
+    // Re-fetch on login / profile update / logout events
+    window.addEventListener("storage", fetchUserProfile);
+    window.addEventListener("auth-change", fetchUserProfile);
 
     return () => {
-      window.removeEventListener("storage", checkAuth);
-      window.removeEventListener("auth-change", checkAuth);
+      window.removeEventListener("storage", fetchUserProfile);
+      window.removeEventListener("auth-change", fetchUserProfile);
     };
   }, []);
 
@@ -78,6 +111,7 @@ export function Navbar({
 
   const navLinks = [
     { name: "Home", path: "/" },
+    { name: "Tournaments", path: "/tournaments" },
     { name: "Rankings", path: "/rankings" },
     { name: "About", path: "/about" },
     { name: "News", path: "/news" },
@@ -134,7 +168,14 @@ export function Navbar({
 
             {/* ── Auth Section: show profile OR login+signup ── */}
             {user ? (
-              <ProfileDropdown user={user} onLogout={handleLogout} />
+              <ProfileDropdown
+                user={user}
+                onLogout={handleLogout}
+                onProfileClick={onProfileClick}
+                onSettingsClick={onSettingsClick}
+                onMatchesClick={onMatchesClick}
+                onTeamsClick={onTeamsClick}
+              />
             ) : (
               <>
                 <button
@@ -186,13 +227,48 @@ export function Navbar({
             {/* Mobile Auth Section */}
             {user ? (
               <>
-                <Link
-                  to="/profile"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onProfileClick();
+                  }}
                   className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
                 >
                   My Profile
-                </Link>
+                </button>
+
+                {/* My Matches */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onMatchesClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  My Matches
+                </button>
+
+                {/* My Teams */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onTeamsClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  My Teams
+                </button>
+
+                {/* Settings */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onSettingsClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  Settings
+                </button>
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);

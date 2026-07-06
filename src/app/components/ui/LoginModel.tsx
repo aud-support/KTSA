@@ -6,6 +6,7 @@ import { Link } from "react-router";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
+  onSwitchToSignup?: () => void;
 }
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
@@ -26,12 +27,18 @@ function FieldError({ msg }: { msg: string }) {
   return <p className="mt-1 text-xs text-red-400">{msg}</p>;
 }
 
-export default function LoginModal({ isOpen, onClose }: Props) {
+export default function LoginModal({
+  isOpen,
+  onClose,
+  onSwitchToSignup,
+}: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
   const errors = {
@@ -100,8 +107,10 @@ export default function LoginModal({ isOpen, onClose }: Props) {
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitAttempted(true);
+            setLoginError("");
             if (hasErrors) return;
 
+            setIsLoading(true);
             try {
               const res = await fetch(
                 `${import.meta.env.VITE_BACKEND_BASE_URL}/api/auth/login`,
@@ -112,7 +121,10 @@ export default function LoginModal({ isOpen, onClose }: Props) {
                 },
               );
 
-              if (!res.ok) throw new Error("Login failed");
+              if (!res.ok) {
+                setLoginError("Invalid email or password. Please try again.");
+                return;
+              }
               const response1 = await res.json();
               console.log("Login response:", response1);
               const data = response1.data;
@@ -125,8 +137,12 @@ export default function LoginModal({ isOpen, onClose }: Props) {
                   name: data.name,
                   email: data.email,
                   role: data.role,
+                  id: data.id,
+                  profilePictureUrl: data.profilePictureUrl ?? null,
                 }),
               );
+
+              localStorage.setItem("userId", String(data.id));
 
               // ✅ Notify Navbar (same-tab update)
               window.dispatchEvent(new Event("auth-change"));
@@ -134,7 +150,9 @@ export default function LoginModal({ isOpen, onClose }: Props) {
               onClose();
             } catch (err) {
               console.error(err);
-              alert("Invalid credentials");
+              setLoginError("Something went wrong. Please try again.");
+            } finally {
+              setIsLoading(false);
             }
           }}
         >
@@ -144,7 +162,7 @@ export default function LoginModal({ isOpen, onClose }: Props) {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => { setEmail(e.target.value); setLoginError(""); }}
               onBlur={() => markTouched("email")}
               placeholder="Enter your email"
               className={`w-full px-4 py-2 rounded-lg bg-transparent border text-white focus:outline-none transition-colors
@@ -161,7 +179,7 @@ export default function LoginModal({ isOpen, onClose }: Props) {
             <input
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value); setLoginError(""); }}
               onBlur={() => markTouched("password")}
               placeholder="Enter your password"
               className={`w-full px-4 py-2 pr-10 rounded-lg bg-transparent border text-white focus:outline-none transition-colors
@@ -177,12 +195,27 @@ export default function LoginModal({ isOpen, onClose }: Props) {
             <FieldError msg={showError("password")} />
           </div>
 
+          {/* Inline login error (wrong credentials) */}
+          {loginError && (
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/30">
+              <svg className="w-4 h-4 text-red-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              <p className="text-sm text-red-400">{loginError}</p>
+            </div>
+          )}
+
           {/* Login Button */}
           <button
             type="submit"
-            className="w-full py-2 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-semibold hover:bg-ktsa-primary/60 hover:cursor-pointer transition-all duration-300"
+            disabled={isLoading}
+            className="w-full py-2 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-semibold hover:bg-ktsa-primary/60 hover:cursor-pointer transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
-            Login
+            {isLoading ? (
+              <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+            ) : (
+              "Login"
+            )}
           </button>
         </form>
 
@@ -203,13 +236,16 @@ export default function LoginModal({ isOpen, onClose }: Props) {
         {/* Register */}
         <p className="text-center text-sm text-gray-400">
           Don't have an account?{" "}
-          <Link
-            to="/register"
-            onClick={onClose}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onSwitchToSignup?.();
+            }}
             className="text-ktsa-primary hover:underline hover:text-ktsa-text"
           >
             Register
-          </Link>
+          </button>
         </p>
       </motion.div>
     </div>

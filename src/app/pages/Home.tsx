@@ -6,7 +6,6 @@ import {
   Trophy,
   Users,
   Medal,
-  Award,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -16,6 +15,7 @@ import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useEffect, useState, useRef, useCallback } from "react";
 import RegistrationModal from "../components/ui/RegistrationModal";
 import TournamentDetailsModal from "../components/ui/TournamentDetailsModal";
+import { useModal } from "../contexts/ModalContext";
 import logo from "../../assets/LOGO gif.gif";
 import april from "../../assets/april-25-2026.jpg";
 import april1 from "../../assets/april-2026.jpg";
@@ -27,6 +27,7 @@ import image3 from "../../assets/ktsa-image11.jpg";
 import trophy from "../../assets/trophy.JPG";
 
 import { TournamentSection } from "../components/Tournamentsections";
+import { getHomepageContent } from "../../services/homepageService";
 
 type Tournament = {
   id: number;
@@ -38,52 +39,10 @@ type Tournament = {
   _key?: string;
 };
 
-const tournaments: Tournament[] = [
-  {
-    id: 1,
-    title: "Karnataka Open",
-    date: "25th April, 2026",
-    location: "Bengaluru",
-    status: "Upcoming",
-    image: april,
-  },
-  {
-    id: 2,
-    title: "Women's Foosball",
-    date: "25th April, 2026",
-    location: "Near Silkboard, Bengaluru",
-    status: "Upcoming",
-    image: april1,
-  },
-  {
-    id: 3,
-    title: "Bengaluru Tournament",
-    date: "31 January, 2026",
-    location: "Whitefield, Bengaluru",
-    status: "Completed",
-    image: jan,
-  },
-  {
-    id: 4,
-    title: "Bengaluru Tournament",
-    date: "29th March, 2026",
-    location: "Kormangala, Bengaluru",
-    status: "Completed",
-    image: march,
-  },
-];
-
 const CARD_W = 288;
 const CARD_GAP = 24;
 const CARD_STEP = CARD_W + CARD_GAP;
-const CLONE_COUNT = tournaments.length;
-const LOOP_WIDTH = CLONE_COUNT * CARD_STEP;
 
-const infiniteTournaments = [
-  ...tournaments.map((t) => ({ ...t, _key: "pre-" + t.id })),
-  ...tournaments.map((t) => ({ ...t, _key: "mid-" + t.id })),
-  ...tournaments.map((t) => ({ ...t, _key: "post-" + t.id })),
-];
 const pillars = [
   {
     id: 1,
@@ -253,14 +212,19 @@ function Counter({ end, duration = 2 }: { end: number; duration?: number }) {
 }
 
 function TournamentCarousel() {
+  // ── Refs ──────────────────────────────────────────────────────────────────
   const trackRef = useRef<HTMLDivElement>(null);
-  const offsetRef = useRef<number>(LOOP_WIDTH);
+  const offsetRef = useRef<number>(0);
+  const loopWidthRef = useRef<number>(0);
   const pausedRef = useRef(false);
   const animFrameRef = useRef<number | null>(null);
   const lastTsRef = useRef<number | null>(null);
   const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const SPEED = 0.05;
 
+  // ── State ─────────────────────────────────────────────────────────────────
+  const SPEED = 0.05;
+  const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const { openLogin, openSignup } = useModal();
   const [modalTournament, setModalTournament] = useState<Tournament | null>(
     null,
   );
@@ -268,16 +232,19 @@ function TournamentCarousel() {
     null,
   );
 
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleCardButton = (tournament: Tournament) => {
     setModalTournament(tournament);
     setModalType(tournament.status === "Upcoming" ? "register" : "details");
   };
 
+  // ── applyOffset ───────────────────────────────────────────────────────────
   const applyOffset = useCallback((offset: number, withTransition = false) => {
     const el = trackRef.current;
-    if (!el) return;
-    if (offset >= LOOP_WIDTH * 2) offset -= LOOP_WIDTH;
-    if (offset < 0) offset += LOOP_WIDTH;
+    const lw = loopWidthRef.current;
+    if (!el || lw === 0) return;
+    if (offset >= lw * 2) offset -= lw;
+    if (offset < 0) offset += lw;
     offsetRef.current = offset;
     el.style.transition = withTransition
       ? "transform 0.42s cubic-bezier(0.25,0.46,0.45,0.94)"
@@ -285,6 +252,7 @@ function TournamentCarousel() {
     el.style.transform = "translateX(" + -offset + "px)";
   }, []);
 
+  // ── tick ──────────────────────────────────────────────────────────────────
   const tick = useCallback(
     (ts: number) => {
       if (!pausedRef.current) {
@@ -300,15 +268,49 @@ function TournamentCarousel() {
     [applyOffset],
   );
 
+  // ── Fetch tournaments ─────────────────────────────────────────────────────
   useEffect(() => {
-    applyOffset(LOOP_WIDTH);
+    fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/tournament`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          const mapped: Tournament[] = json.data.map((t: any) => ({
+            id: t.id,
+            title: t.tournamentName,
+            date: new Date(t.startDate).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }),
+            location: t.venue,
+            status:
+              t.status === "UPCOMING"
+                ? "Upcoming"
+                : t.status === "LIVE"
+                  ? "Live"
+                  : "Completed",
+            image: [april, april1, jan, march][json.data.indexOf(t) % 4],
+          }));
+          setTournaments(mapped);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  // ── Start carousel once data is loaded ───────────────────────────────────
+  useEffect(() => {
+    if (tournaments.length === 0) return;
+    loopWidthRef.current = tournaments.length * CARD_STEP;
+    offsetRef.current = loopWidthRef.current; // start from middle clone
+    applyOffset(loopWidthRef.current);
     animFrameRef.current = requestAnimationFrame(tick);
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
     };
-  }, [applyOffset, tick]);
+  }, [tournaments, applyOffset, tick]);
 
+  // ── pause / resume / step ─────────────────────────────────────────────────
   const pause = () => {
     pausedRef.current = true;
     if (resumeTimerRef.current) clearTimeout(resumeTimerRef.current);
@@ -329,6 +331,13 @@ function TournamentCarousel() {
     );
     resume(2500);
   };
+
+  // ── Derived display data ──────────────────────────────────────────────────
+  const infiniteTournaments = [
+    ...tournaments.map((t, i) => ({ ...t, _key: `pre-${i}-${t.id}` })),
+    ...tournaments.map((t, i) => ({ ...t, _key: `mid-${i}-${t.id}` })),
+    ...tournaments.map((t, i) => ({ ...t, _key: `post-${i}-${t.id}` })),
+  ];
 
   return (
     <>
@@ -418,12 +427,9 @@ function TournamentCarousel() {
                     </div>
                     <button
                       onClick={() => handleCardButton(tournament)}
-                      className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex justify-center items-center gap-2.5 px-8 py-1 w-full  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300"
+                      className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex justify-center items-center gap-2.5 px-8 py-1 w-full text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300"
                     >
-                      {" "}
-                      <span
-                        className={"px-3 py-1 rounded-full text-xs font-bold "}
-                      >
+                      <span className="px-3 py-1 rounded-full text-xs font-bold">
                         {tournament.status === "Live"
                           ? "ONGOING"
                           : tournament.status === "Completed"
@@ -445,6 +451,16 @@ function TournamentCarousel() {
             setModalTournament(null);
             setModalType(null);
           }}
+          onLoginClick={() => {
+            setModalTournament(null);
+            setModalType(null);
+            openLogin();
+          }}
+          onSignupClick={() => {
+            setModalTournament(null);
+            setModalType(null);
+            openSignup();
+          }}
         />
       )}
       {modalTournament && modalType === "details" && (
@@ -462,6 +478,20 @@ function TournamentCarousel() {
 
 export function Home() {
   const [isMobile, setIsMobile] = useState(false);
+  const [homepageContent, setHomepageContent] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchHomepageContent = async () => {
+      try {
+        const data = await getHomepageContent();
+        setHomepageContent(data);
+      } catch (error) {
+        console.error("Failed to load homepage content", error);
+      }
+    };
+
+    fetchHomepageContent();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -479,7 +509,7 @@ export function Home() {
         {/* Background image */}
         <div className="cover mx-auto absolute inset-0 opacity-80">
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1716703370285-d7ff2960abb4?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            src={homepageContent?.heroBannerUrl}
             alt="Foosball Action"
             className="w-full h-full object-cover scale-110 sm:scale-105"
           />
@@ -511,22 +541,20 @@ export function Home() {
             transition={{ delay: 0.6 }}
             className="mb-8 sm:mb-10 text-center max-w-2xl"
           >
-            {/* MAIN HEADING */}
+            {/* heroTitle */}
             <h1 className="text-xl sm:text-3xl md:text-4xl font-extrabold text-ktsa-text leading-snug">
-              The home of organized foosball in Karnataka
+              {/* The home of organized foosball in Karnataka */}
+              {homepageContent?.heroTitle}
             </h1>
 
-            {/* SUB TEXT */}
+            {/* SheroSubtitle */}
             <p className="text-xs sm:text-sm md:text-base text-ktsa-text/90 leading-relaxed font-medium">
-              Foosball deserves structure, recognition, and opportunity.{" "}
-              {/* <br className="hidden sm:block" /> */}
-              KTSA delivers all three.
+              {homepageContent?.heroSubtitle}
             </p>
 
-            {/* STATS LINE */}
+            {/* heroDescription */}
             <p className=" text-[11px] sm:text-sm text-ktsa-text/90 leading-relaxed">
-              700+ players • 500+ active • structured tournaments • clear growth
-              pathway
+              {homepageContent?.heroDescription}
             </p>
           </motion.div>
 
@@ -800,7 +828,14 @@ export function Home() {
               Interested in bringing foosball to your institution or
               organisation?
             </p>
-            <button className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex items-center gap-2.5 px-8 py-3.5  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300">
+            <button
+              onClick={() => {
+                document
+                  .getElementById("footer")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex items-center gap-2.5 px-8 py-3.5  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300"
+            >
               Get in Touch with KTSA
               <svg
                 viewBox="0 0 24 24"
@@ -1122,29 +1157,33 @@ export function Home() {
               id="video-track"
               className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 scroll-smooth"
             >
-              {[
-                "https://www.youtube.com/embed/KAzg5Tzkhiw",
-                "https://www.youtube.com/embed/KAzg5Tzkhiw",
-                "https://www.youtube.com/embed/KAzg5Tzkhiw",
-              ].map((src, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="flex-shrink-0 w-[300px] md:w-[400px] rounded-2xl overflow-hidden border border-ktsa-accent/30"
-                  style={{ boxShadow: "0 10px 40px rgba(0,229,255,0.15)" }}
-                >
-                  <div className="relative w-full pb-[56.25%]">
-                    <iframe
-                      src={src}
-                      className="absolute top-0 left-0 w-full h-full"
-                      allowFullScreen
-                    />
-                  </div>
-                </motion.div>
-              ))}
+              {homepageContent?.videoUrls?.map(
+                (videoUrl: string, i: number) => {
+                  const embedUrl = videoUrl.includes("watch?v=")
+                    ? videoUrl.replace("watch?v=", "embed/")
+                    : videoUrl;
+
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.1 }}
+                      className="flex-shrink-0 w-[300px] md:w-[400px] rounded-2xl overflow-hidden border border-ktsa-accent/30"
+                      style={{ boxShadow: "0 10px 40px rgba(0,229,255,0.15)" }}
+                    >
+                      <div className="relative w-full pb-[56.25%]">
+                        <iframe
+                          src={embedUrl}
+                          className="absolute top-0 left-0 w-full h-full"
+                          allowFullScreen
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                },
+              )}
             </div>
           </div>
         </div>

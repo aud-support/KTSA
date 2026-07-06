@@ -1,22 +1,45 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { User, LogOut, Settings, Trophy, ChevronDown } from "lucide-react";
+import {
+  User,
+  LogOut,
+  Settings,
+  Trophy,
+  ChevronDown,
+  Users,
+} from "lucide-react";
 
 interface UserProfile {
   name: string;
   email: string;
-  avatarUrl?: string;
+  profilePictureUrl?: string;
+  avatarUrl?: string; // legacy fallback
 }
 
 interface Props {
   user: UserProfile;
   onLogout: () => void;
+  onProfileClick: () => void;
+  onSettingsClick: () => void;
+  onMatchesClick: () => void;
+  onTeamsClick: () => void;
 }
 
-export default function ProfileDropdown({ user, onLogout }: Props) {
+export default function ProfileDropdown({
+  user,
+  onLogout,
+  onProfileClick,
+  onSettingsClick,
+  onMatchesClick,
+  onTeamsClick,
+}: Props) {
   const name = user?.name ?? "";
   const email = user?.email ?? "";
+  // Support both field names for backwards compatibility
+  const avatarSrc = user?.profilePictureUrl || user?.avatarUrl || null;
+  console.log("Navbar User:", user);
+  console.log("Navbar Image:", avatarSrc);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -49,8 +72,16 @@ export default function ProfileDropdown({ user, onLogout }: Props) {
         className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-ktsa-accent/40 hover:border-ktsa-accent bg-ktsa-bg/60 backdrop-blur-sm transition-all duration-300"
       >
         {/* Avatar circle */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ktsa-primary to-ktsa-accent flex items-center justify-center text-ktsa-text font-bold text-sm shadow-md shadow-ktsa-accent/30">
-          {initials}
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ktsa-primary to-ktsa-accent flex items-center justify-center text-ktsa-text font-bold text-sm shadow-md shadow-ktsa-accent/30 overflow-hidden">
+          {avatarSrc ? (
+            <img
+              src={avatarSrc}
+              alt={name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            initials
+          )}
         </div>
         <span className="hidden sm:block text-ktsa-text font-semibold text-sm max-w-[120px] truncate">
           {firstName}
@@ -81,30 +112,47 @@ export default function ProfileDropdown({ user, onLogout }: Props) {
 
             {/* Menu items */}
             <div className="py-1">
-              <Link
-                to="/profile"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors"
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onProfileClick();
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors w-full"
               >
-                <User size={15} className="text-ktsa-primary" />
-                My Profile
-              </Link>
-              <Link
-                to="/my-matches"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors"
+                {" "}
+                <User size={15} className="text-ktsa-primary" /> My Profile
+              </button>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onMatchesClick();
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors w-full"
               >
                 <Trophy size={15} className="text-ktsa-primary" />
                 My Matches
-              </Link>
-              <Link
-                to="/settings"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors"
+              </button>
+
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onTeamsClick();
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors w-full"
+              >
+                <Users size={15} className="text-ktsa-primary" />
+                My Teams
+              </button>
+              <button
+                onClick={() => {
+                  setOpen(false);
+                  onSettingsClick();
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:text-ktsa-text hover:bg-ktsa-accent/10 transition-colors w-full"
               >
                 <Settings size={15} className="text-ktsa-primary" />
                 Settings
-              </Link>
+              </button>
             </div>
 
             {/* Logout */}

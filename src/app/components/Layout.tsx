@@ -10,6 +10,7 @@ import SettingsModal from "./ui/SettingsModal";
 import { ModalContext } from "../contexts/ModalContext";
 import MyMatchesModal from "./ui/MyMatchesModal";
 import MyTeamsModal from "./ui/MyTeamsModal";
+import { Toaster } from "./ui/sonner";
 
 export function Layout() {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -22,12 +23,26 @@ export function Layout() {
   const [isTeamsOpen, setIsTeamsOpen] = useState(false);
 
   useEffect(() => {
-    const id = localStorage.getItem("userId");
-    const parsed = id ? parseInt(id, 10) : null;
-    setUserId(parsed && !isNaN(parsed) ? parsed : null);
+    const syncAuth = () => {
+      const id = localStorage.getItem("userId");
+      const parsed = id ? parseInt(id, 10) : null;
+      setUserId(parsed && !isNaN(parsed) ? parsed : null);
 
-    const raw = localStorage.getItem("user");
-    if (raw) setUserEmail(JSON.parse(raw).email ?? "");
+      const raw = localStorage.getItem("user");
+      if (raw) {
+        try {
+          setUserEmail(JSON.parse(raw).email ?? "");
+        } catch {
+          setUserEmail("");
+        }
+      } else {
+        setUserEmail("");
+      }
+    };
+
+    syncAuth(); // initial read
+    window.addEventListener("auth-change", syncAuth);
+    return () => window.removeEventListener("auth-change", syncAuth);
   }, []);
 
   return (
@@ -51,6 +66,8 @@ export function Layout() {
           <Outlet />
         </main>
         <Footer />
+        {/* Toast notifications */}
+        <Toaster richColors position="top-center" />
         {/* ✅ Modal OUTSIDE navbar */}
         <LoginModal
           isOpen={isLoginOpen}

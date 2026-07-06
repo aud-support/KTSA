@@ -34,6 +34,7 @@ export const router = createBrowserRouter([
       { path: "tournaments/new", Component: TournamentForm },
       { path: "tournaments/:id/edit", Component: TournamentForm },
       { path: "homepage", Component: Homepage },
+      { path: "tournaments/:id/matches", Component: TournamentMatches },
     ],
   },
 ]);

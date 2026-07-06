@@ -13,6 +13,7 @@ import {
   Clock,
   Check,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface Props {
   isOpen: boolean;
@@ -181,13 +182,40 @@ export default function SettingsModal({
     };
   }, [isOpen, onClose, section]);
 
+  // ── Password strength rules (same as signup) ──────────────────────────────
+  const passwordRules = [
+    { label: "At least 8 characters", ok: (v: string) => v.length >= 8 },
+    { label: "Uppercase letter",       ok: (v: string) => /[A-Z]/.test(v) },
+    { label: "Lowercase letter",       ok: (v: string) => /[a-z]/.test(v) },
+    { label: "Number",                 ok: (v: string) => /[0-9]/.test(v) },
+    {
+      label: "Special character",
+      ok: (v: string) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(v),
+    },
+  ];
+
+  const validateNewPassword = (val: string) => {
+    if (!val) return "New password is required";
+    if (val.length < 8) return "Must be at least 8 characters";
+    if (!/[A-Z]/.test(val)) return "Must contain at least one uppercase letter";
+    if (!/[a-z]/.test(val)) return "Must contain at least one lowercase letter";
+    if (!/[0-9]/.test(val)) return "Must contain at least one number";
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(val))
+      return "Must contain at least one special character";
+    return "";
+  };
+
   // ── Password validation ────────────────────────────────────────────────────
   const validatePassword = () => {
     const errs: Record<string, string> = {};
     if (!pwForm.current) errs.current = "Current password is required";
-    if (!pwForm.next) errs.next = "New password is required";
-    else if (pwForm.next.length < 8)
-      errs.next = "Must be at least 8 characters";
+    // Client-side same-password check — avoids a round trip
+    if (pwForm.current && pwForm.next && pwForm.current === pwForm.next)
+      errs.next = "New password cannot be the same as current password";
+    else {
+      const nextErr = validateNewPassword(pwForm.next);
+      if (nextErr) errs.next = nextErr;
+    }
     if (!pwForm.confirm) errs.confirm = "Please confirm your new password";
     else if (pwForm.next !== pwForm.confirm)
       errs.confirm = "Passwords do not match";
@@ -200,7 +228,6 @@ export default function SettingsModal({
     if (Object.keys(errs).length) return;
     setPwLoading(true);
     try {
-      // Replace with your actual endpoint
       const res = await fetch(
         `${import.meta.env.VITE_BACKEND_BASE_URL}/api/users/${userId}/change-password`,
         {
@@ -215,14 +242,43 @@ export default function SettingsModal({
           }),
         },
       );
-      if (!res.ok) throw new Error("Failed");
+
+      if (!res.ok) {
+        // Parse the backend error message and route it to the right field
+        let message = "Something went wrong. Please try again.";
+        try {
+          const body = await res.json();
+          message = body.message ?? body.error ?? message;
+        } catch { /* non-JSON response */ }
+
+        const lower = message.toLowerCase();
+        if (lower.includes("same as current")) {
+          setPwErrors({ next: "New password cannot be the same as current password" });
+        } else if (lower.includes("incorrect") || lower.includes("wrong") || lower.includes("invalid")) {
+          setPwErrors({ current: "Current password is incorrect" });
+        } else {
+          setPwErrors({ current: message });
+        }
+        return;
+      }
+
       setPwSuccess(true);
+      // Show a toast so the user knows what happened before being logged out
+      toast.success("Password changed successfully. Please log in again to continue.", {
+        duration: 3000,
+      });
+      // Token is now invalid on the backend (tokenVersion was incremented).
+      // Clear local session so the user is logged out on all tabs/devices.
       setTimeout(() => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("user");
+        window.dispatchEvent(new Event("auth-change"));
         setPwSuccess(false);
-        setSection("menu");
-      }, 1800);
+        onClose();
+      }, 2500);
     } catch {
-      setPwErrors({ current: "Incorrect current password" });
+      setPwErrors({ current: "Network error. Please check your connection." });
     } finally {
       setPwLoading(false);
     }
@@ -247,7 +303,7 @@ export default function SettingsModal({
       window.dispatchEvent(new Event("auth-change"));
       onClose();
     } catch {
-      alert("Failed to delete account. Please try again.");
+      toast.error("Failed to delete account. Please try again.");
     } finally {
       setDeleteLoading(false);
     }
@@ -277,7 +333,7 @@ export default function SettingsModal({
         setSection("menu");
       }, 1800);
     } catch {
-      alert("Failed to submit request. Please try again.");
+      toast.error("Failed to submit request. Please try again.");
     } finally {
       setRefereeLoading(false);
     }
@@ -381,37 +437,98 @@ export default function SettingsModal({
               transition={{ duration: 0.2 }}
               className="space-y-4"
             >
-              {(
-                [
-                  { key: "current", label: "Current Password" },
-                  { key: "next", label: "New Password" },
-                  { key: "confirm", label: "Confirm New Password" },
-                ] as const
-              ).map(({ key, label }) => (
-                <div key={key} className="relative">
-                  <label className="block text-sm text-ktsa-accent mb-1">
-                    {label}
-                  </label>
-                  <input
-                    type={showPw[key] ? "text" : "password"}
-                    value={pwForm[key]}
-                    onChange={(e) =>
-                      setPwForm((p) => ({ ...p, [key]: e.target.value }))
-                    }
-                    placeholder={`Enter ${label.toLowerCase()}`}
-                    className={`w-full px-4 py-2 pr-10 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
-                      ${pwErrors[key] ? "border-red-500" : "border-gray-600 focus:border-ktsa-primary"}`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPw((p) => ({ ...p, [key]: !p[key] }))}
-                    className="absolute right-3 top-8 text-gray-400 hover:text-white"
-                  >
-                    {showPw[key] ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
-                  <FieldError msg={pwErrors[key] ?? ""} />
-                </div>
-              ))}
+              {/* Current Password */}
+              <div className="relative">
+                <label className="block text-sm text-ktsa-accent mb-1">
+                  Current Password
+                </label>
+                <input
+                  type={showPw.current ? "text" : "password"}
+                  value={pwForm.current}
+                  onChange={(e) =>
+                    setPwForm((p) => ({ ...p, current: e.target.value }))
+                  }
+                  placeholder="Enter current password"
+                  className={`w-full px-4 py-2 pr-10 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
+                    ${pwErrors.current ? "border-red-500" : "border-gray-600 focus:border-ktsa-primary"}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw((p) => ({ ...p, current: !p.current }))}
+                  className="absolute right-3 top-8 text-gray-400 hover:text-white"
+                >
+                  {showPw.current ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+                <FieldError msg={pwErrors.current ?? ""} />
+              </div>
+
+              {/* New Password */}
+              <div className="relative">
+                <label className="block text-sm text-ktsa-accent mb-1">
+                  New Password
+                </label>
+                <input
+                  type={showPw.next ? "text" : "password"}
+                  value={pwForm.next}
+                  onChange={(e) =>
+                    setPwForm((p) => ({ ...p, next: e.target.value }))
+                  }
+                  placeholder="Enter new password"
+                  className={`w-full px-4 py-2 pr-10 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
+                    ${pwErrors.next ? "border-red-500" : "border-gray-600 focus:border-ktsa-primary"}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw((p) => ({ ...p, next: !p.next }))}
+                  className="absolute right-3 top-8 text-gray-400 hover:text-white"
+                >
+                  {showPw.next ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+                <FieldError msg={pwErrors.next ?? ""} />
+                {/* Strength checklist — same as signup */}
+                {pwForm.next && (
+                  <ul className="mt-2 space-y-0.5">
+                    {passwordRules.map(({ label, ok }) => (
+                      <li
+                        key={label}
+                        className={`text-xs flex items-center gap-1.5 ${ok(pwForm.next) ? "text-green-400" : "text-gray-500"}`}
+                      >
+                        <span>{ok(pwForm.next) ? "✓" : "○"}</span> {label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Confirm New Password */}
+              <div className="relative">
+                <label className="block text-sm text-ktsa-accent mb-1">
+                  Confirm New Password
+                </label>
+                <input
+                  type={showPw.confirm ? "text" : "password"}
+                  value={pwForm.confirm}
+                  onChange={(e) =>
+                    setPwForm((p) => ({ ...p, confirm: e.target.value }))
+                  }
+                  placeholder="Confirm new password"
+                  className={`w-full px-4 py-2 pr-10 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
+                    ${pwErrors.confirm ? "border-red-500" : pwForm.confirm && pwForm.next === pwForm.confirm ? "border-green-500" : "border-gray-600 focus:border-ktsa-primary"}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw((p) => ({ ...p, confirm: !p.confirm }))}
+                  className="absolute right-3 top-8 text-gray-400 hover:text-white"
+                >
+                  {showPw.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+                <FieldError msg={pwErrors.confirm ?? ""} />
+                {pwForm.confirm && pwForm.next === pwForm.confirm && (
+                  <p className="mt-1 text-xs text-green-400 flex items-center gap-1">
+                    <span>✓</span> Passwords match
+                  </p>
+                )}
+              </div>
 
               <button
                 onClick={handleChangePassword}

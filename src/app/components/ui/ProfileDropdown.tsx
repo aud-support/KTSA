@@ -13,7 +13,8 @@ import {
 interface UserProfile {
   name: string;
   email: string;
-  avatarUrl?: string;
+  profilePictureUrl?: string;
+  avatarUrl?: string; // legacy fallback
 }
 
 interface Props {
@@ -35,6 +36,10 @@ export default function ProfileDropdown({
 }: Props) {
   const name = user?.name ?? "";
   const email = user?.email ?? "";
+  // Support both field names for backwards compatibility
+  const avatarSrc = user?.profilePictureUrl || user?.avatarUrl || null;
+  console.log("Navbar User:", user);
+  console.log("Navbar Image:", avatarSrc);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -67,8 +72,16 @@ export default function ProfileDropdown({
         className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-ktsa-accent/40 hover:border-ktsa-accent bg-ktsa-bg/60 backdrop-blur-sm transition-all duration-300"
       >
         {/* Avatar circle */}
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ktsa-primary to-ktsa-accent flex items-center justify-center text-ktsa-text font-bold text-sm shadow-md shadow-ktsa-accent/30">
-          {initials}
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-ktsa-primary to-ktsa-accent flex items-center justify-center text-ktsa-text font-bold text-sm shadow-md shadow-ktsa-accent/30 overflow-hidden">
+          {avatarSrc ? (
+            <img
+              src={avatarSrc}
+              alt={name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            initials
+          )}
         </div>
         <span className="hidden sm:block text-ktsa-text font-semibold text-sm max-w-[120px] truncate">
           {firstName}

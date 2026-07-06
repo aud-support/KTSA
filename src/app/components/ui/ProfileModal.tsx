@@ -11,7 +11,13 @@ import {
   Pencil,
   Check,
   ChevronDown,
+  Camera,
 } from "lucide-react";
+import AvatarCropModal from "./AvatarCropModal";
+import { toast } from "sonner";
+
+const MAX_FILE_SIZE_MB = 1;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 interface UserProfile {
   id: number;
@@ -24,6 +30,7 @@ interface UserProfile {
   state: string;
   role: string;
   createdAt: string;
+  profilePictureUrl?: string | null;
 }
 
 interface Props {
@@ -147,12 +154,18 @@ function InfoRow({
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 export default function ProfileModal({ isOpen, onClose, userId }: Props) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // ── Avatar upload state ───────────────────────────────────────────────────
+  const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   // Edit form state — populated once user is fetched
   const [form, setForm] = useState({
@@ -177,6 +190,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
         if (!json.success) throw new Error(json.message || "Failed to load");
         const u: UserProfile = json.data;
         setUser(u);
+        setAvatarPreview(u.profilePictureUrl ?? null);
         setForm({
           name: u.name ?? "",
           phoneNumber: u.phoneNumber ? String(u.phoneNumber) : "",
@@ -196,6 +210,9 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (e.button === 2) return;
+      // Ignore outside clicks while crop modal is open
+      if (cropModalOpen) return;
+
       if (modalRef.current && !modalRef.current.contains(e.target as Node))
         onClose();
     };
@@ -207,7 +224,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
       document.removeEventListener("mousedown", handleClickOutside);
       document.body.style.overflow = ""; // 👈 restore (not "auto")
     };
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, cropModalOpen]);
 
   // ── Save handler ──────────────────────────────────────────────────────────
   const handleSave = async () => {
@@ -251,15 +268,71 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
       });
 
       setSaveSuccess(true);
+      toast.success("Profile updated successfully.");
       setTimeout(() => {
         setSaveSuccess(false);
         setEditMode(false);
       }, 1200);
     } catch (err: any) {
-      alert(err.message || "Error saving changes");
+      toast.error(err.message || "Error saving changes");
     } finally {
       setSaving(false);
     }
+  };
+
+  // ── Avatar: file selection & validation ──────────────────────────────────
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!fileInputRef.current) return;
+    fileInputRef.current.value = ""; // reset so same file can be re-picked
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file (JPEG, PNG, WebP, etc.).");
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      toast.error(
+        `Image is too large (${(file.size / (1024 * 1024)).toFixed(2)} MB). Please choose an image under ${MAX_FILE_SIZE_MB} MB.`,
+      );
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setRawImageSrc(reader.result as string);
+      setCropModalOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ── Avatar: called by AvatarCropModal after a successful upload ──────────
+  const handleAvatarSaved = (localPreview: string, persistedUrl?: string) => {
+    setCropModalOpen(false);
+    setRawImageSrc(null);
+
+    const finalUrl = persistedUrl ?? localPreview;
+    setAvatarPreview(finalUrl);
+    setUser((prev) =>
+      prev ? { ...prev, profilePictureUrl: finalUrl } : prev,
+    );
+
+    // Keep navbar in sync
+    const raw = localStorage.getItem("user");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        parsed.profilePictureUrl = finalUrl;
+        localStorage.setItem("user", JSON.stringify(parsed));
+        window.dispatchEvent(new Event("auth-change"));
+      } catch {
+        // ignore
+      }
+    }
+
+    toast.success("Profile picture updated successfully.");
   };
 
   const cities = form.state ? (stateCityMap[form.state] ?? []) : [];
@@ -291,225 +364,295 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4 overflow-y-auto">
-      <motion.div
-        ref={modalRef}
-        initial={{
-          opacity: 0,
-          y: window.innerWidth < 768 ? 100 : 40,
-          scale: window.innerWidth < 768 ? 1 : 0.95,
-        }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: window.innerWidth < 768 ? 100 : 40 }}
-        transition={{ type: "spring", stiffness: 120, damping: 18 }}
-        className="w-full max-w-md max-h-[90vh] overflow-y-auto no-scrollbar bg-black/60 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 relative"
-      >
-        {/* Close */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-white"
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4 overflow-y-auto">
+        <motion.div
+          ref={modalRef}
+          initial={{
+            opacity: 0,
+            y: window.innerWidth < 768 ? 100 : 40,
+            scale: window.innerWidth < 768 ? 1 : 0.95,
+          }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: window.innerWidth < 768 ? 100 : 40 }}
+          transition={{ type: "spring", stiffness: 120, damping: 18 }}
+          className="w-full max-w-md max-h-[90vh] overflow-y-auto no-scrollbar bg-black/60 backdrop-blur-lg border border-white/20 rounded-2xl shadow-xl p-8 relative"
         >
-          <X size={22} />
-        </button>
+          {/* Close */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-400 hover:text-white"
+          >
+            <X size={22} />
+          </button>
 
-        {/* Title */}
-        <h2 className="text-2xl font-bold text-ktsa-accent text-center mb-2">
-          My Profile
-        </h2>
-        <p className="text-sm text-gray-400 text-center mb-6">
-          {user
-            ? `Member since ${formatJoined(user.createdAt)}`
-            : "Loading your details…"}
-        </p>
+          {/* Title */}
+          <h2 className="text-2xl font-bold text-ktsa-accent text-center mb-2">
+            My Profile
+          </h2>
+          <p className="text-sm text-gray-400 text-center mb-6">
+            {user
+              ? `Member since ${formatJoined(user.createdAt)}`
+              : "Loading your details…"}
+          </p>
 
-        {/* ── Loading ── */}
-        {loading && (
-          <div className="flex flex-col items-center gap-3 py-12">
-            <div className="w-8 h-8 rounded-full border-2 border-ktsa-primary border-t-transparent animate-spin" />
-            <p className="text-sm text-gray-400">Fetching profile…</p>
-          </div>
-        )}
-
-        {/* ── Error ── */}
-        {!loading && error && (
-          <div className="py-10 text-center">
-            <p className="text-red-400 text-sm">{error}</p>
-            <button
-              onClick={() => setUser(null)}
-              className="mt-4 text-xs text-ktsa-primary underline"
-            >
-              Try again
-            </button>
-          </div>
-        )}
-
-        {/* ── Content ── */}
-        {!loading && !error && user && (
-          <div className="space-y-5">
-            {/* Avatar + name */}
-            <div className="flex flex-col items-center gap-3 mb-2">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-ktsa-primary to-ktsa-accent flex items-center justify-center text-ktsa-text font-bold text-xl shadow-md shadow-ktsa-accent/30">
-                {initials}
-              </div>
-              {!editMode ? (
-                <div className="text-center">
-                  <p className="text-white font-bold text-lg">{user.name}</p>
-                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-ktsa-primary/20 border border-ktsa-primary/30 text-ktsa-primary text-xs font-semibold tracking-wide">
-                    {user.role}
-                  </span>
-                </div>
-              ) : (
-                <div className="w-full">
-                  <label className="block text-sm text-ktsa-accent mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    value={form.name}
-                    onChange={(e) =>
-                      setForm((p) => ({ ...p, name: e.target.value }))
-                    }
-                    placeholder="Full name"
-                    className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary"
-                  />
-                </div>
-              )}
+          {/* ── Loading ── */}
+          {loading && (
+            <div className="flex flex-col items-center gap-3 py-12">
+              <div className="w-8 h-8 rounded-full border-2 border-ktsa-primary border-t-transparent animate-spin" />
+              <p className="text-sm text-gray-400">Fetching profile…</p>
             </div>
+          )}
 
-            {/* Read-only fields */}
-            {!editMode ? (
-              <div className="space-y-2.5">
-                <InfoRow icon={Mail} label="Email" value={user.email} />
-                <InfoRow
-                  icon={Phone}
-                  label="Phone"
-                  value={user.phoneNumber ? `+91 ${user.phoneNumber}` : ""}
+          {/* ── Error ── */}
+          {!loading && error && (
+            <div className="py-10 text-center">
+              <p className="text-red-400 text-sm">{error}</p>
+              <button
+                onClick={() => setUser(null)}
+                className="mt-4 text-xs text-ktsa-primary underline"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+
+          {/* ── Content ── */}
+          {!loading && !error && user && (
+            <div className="space-y-5">
+              {/* Avatar + name */}
+              <div className="flex flex-col items-center gap-3 mb-2">
+                {/* ── Clickable avatar with upload overlay ── */}
+                <div className="relative group">
+                  <div
+                    className="w-34 h-34 rounded-full overflow-hidden flex items-center justify-center text-ktsa-text font-bold text-xl shadow-md shadow-ktsa-accent/30 cursor-pointer select-none"
+                    style={{
+                      background: avatarPreview
+                        ? undefined
+                        : "linear-gradient(135deg, var(--ktsa-primary), var(--ktsa-accent))",
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                    role="button"
+                    aria-label="Upload profile picture"
+                    tabIndex={0}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && fileInputRef.current?.click()
+                    }
+                  >
+                    {avatarPreview ? (
+                      <img
+                        src={avatarPreview}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      initials
+                    )}
+
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <Camera size={18} className="text-white" />
+                    </div>
+                  </div>
+
+                  {/* Small camera badge */}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-ktsa-primary flex items-center justify-center shadow-md hover:bg-ktsa-accent transition-colors"
+                    aria-label="Change photo"
+                    tabIndex={-1}
+                  >
+                    <Camera size={12} className="text-white" />
+                  </button>
+                </div>
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleFileChange}
+                  aria-label="Select profile picture"
                 />
-                <InfoRow
-                  icon={User}
-                  label="Gender"
-                  value={
-                    user.gender
-                      ? user.gender.charAt(0) +
-                        user.gender.slice(1).toLowerCase()
-                      : ""
-                  }
-                />
-                <InfoRow
-                  icon={Calendar}
-                  label="Date of Birth"
-                  value={formatDate(user.dateOfBirth)}
-                />
-                <InfoRow
-                  icon={MapPin}
-                  label="Location"
-                  value={
-                    user.city && user.state
-                      ? `${user.city}, ${user.state}`
-                      : user.city || user.state || ""
-                  }
-                />
-                <InfoRow icon={Shield} label="Role" value={user.role} />
-              </div>
-            ) : (
-              /* ── Edit fields ── */
-              <div className="space-y-5">
-                {/* Phone */}
-                <div>
-                  <label className="block text-sm text-ktsa-accent mb-1">
-                    Phone
-                  </label>
-                  <div className="flex items-center">
-                    <span className="flex items-center px-3 py-2 rounded-l-lg border border-r-0 border-gray-600 bg-white/5 text-gray-300 text-sm font-medium select-none whitespace-nowrap">
-                      +91
+
+                {/* Size hint */}
+                <p className="text-[11px] text-gray-500">
+                  Tap the photo to change it · Max {MAX_FILE_SIZE_MB} MB
+                </p>
+                {!editMode ? (
+                  <div className="text-center">
+                    <p className="text-white font-bold text-lg">{user.name}</p>
+                    <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-ktsa-primary/20 border border-ktsa-primary/30 text-ktsa-primary text-xs font-semibold tracking-wide">
+                      {user.role}
                     </span>
+                  </div>
+                ) : (
+                  <div className="w-full">
+                    <label className="block text-sm text-ktsa-accent mb-1">
+                      Full Name
+                    </label>
                     <input
-                      value={form.phoneNumber}
+                      value={form.name}
                       onChange={(e) =>
-                        setForm((p) => ({
-                          ...p,
-                          phoneNumber: e.target.value
-                            .replace(/\D/g, "")
-                            .slice(0, 10),
-                        }))
+                        setForm((p) => ({ ...p, name: e.target.value }))
                       }
-                      placeholder="10-digit number"
-                      maxLength={10}
-                      inputMode="numeric"
-                      className="flex-1 px-4 py-2 rounded-r-lg bg-transparent border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary"
+                      placeholder="Full name"
+                      className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary"
                     />
                   </div>
-                </div>
+                )}
+              </div>
 
-                {/* State + City */}
-                <div className="grid grid-cols-2 gap-3">
-                  <CustomDropdown
-                    label="State"
-                    value={form.state}
-                    options={Object.keys(stateCityMap)}
-                    onChange={(val) =>
-                      setForm((p) => ({ ...p, state: val, city: "" }))
+              {/* Read-only fields */}
+              {!editMode ? (
+                <div className="space-y-2.5">
+                  <InfoRow icon={Mail} label="Email" value={user.email} />
+                  <InfoRow
+                    icon={Phone}
+                    label="Phone"
+                    value={user.phoneNumber ? `+91 ${user.phoneNumber}` : ""}
+                  />
+                  <InfoRow
+                    icon={User}
+                    label="Gender"
+                    value={
+                      user.gender
+                        ? user.gender.charAt(0) +
+                          user.gender.slice(1).toLowerCase()
+                        : ""
                     }
                   />
-                  <CustomDropdown
-                    label="City"
-                    value={form.city}
-                    options={cities}
-                    disabled={!form.state}
-                    onChange={(val) => setForm((p) => ({ ...p, city: val }))}
+                  <InfoRow
+                    icon={Calendar}
+                    label="Date of Birth"
+                    value={formatDate(user.dateOfBirth)}
                   />
+                  <InfoRow
+                    icon={MapPin}
+                    label="Location"
+                    value={
+                      user.city && user.state
+                        ? `${user.city}, ${user.state}`
+                        : user.city || user.state || ""
+                    }
+                  />
+                  <InfoRow icon={Shield} label="Role" value={user.role} />
                 </div>
-
-                {/* Read-only reminder */}
-                <p className="text-xs text-gray-500 text-center">
-                  Email , date of birth and gender cannot be changed.
-                </p>
-              </div>
-            )}
-
-            {/* ── Action buttons ── */}
-            <div className="pt-1 space-y-2">
-              {!editMode ? (
-                <button
-                  onClick={() => setEditMode(true)}
-                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-semibold hover:bg-ktsa-primary/60 hover:cursor-pointer transition-all duration-300"
-                >
-                  <Pencil size={15} />
-                  Edit Profile
-                </button>
               ) : (
-                <div className="flex gap-3">
+                /* ── Edit fields ── */
+                <div className="space-y-5">
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-sm text-ktsa-accent mb-1">
+                      Phone
+                    </label>
+                    <div className="flex items-center">
+                      <span className="flex items-center px-3 py-2 rounded-l-lg border border-r-0 border-gray-600 bg-white/5 text-gray-300 text-sm font-medium select-none whitespace-nowrap">
+                        +91
+                      </span>
+                      <input
+                        value={form.phoneNumber}
+                        onChange={(e) =>
+                          setForm((p) => ({
+                            ...p,
+                            phoneNumber: e.target.value
+                              .replace(/\D/g, "")
+                              .slice(0, 10),
+                          }))
+                        }
+                        placeholder="10-digit number"
+                        maxLength={10}
+                        inputMode="numeric"
+                        className="flex-1 px-4 py-2 rounded-r-lg bg-transparent border border-gray-600 text-white focus:outline-none focus:border-ktsa-primary"
+                      />
+                    </div>
+                  </div>
+
+                  {/* State + City */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <CustomDropdown
+                      label="State"
+                      value={form.state}
+                      options={Object.keys(stateCityMap)}
+                      onChange={(val) =>
+                        setForm((p) => ({ ...p, state: val, city: "" }))
+                      }
+                    />
+                    <CustomDropdown
+                      label="City"
+                      value={form.city}
+                      options={cities}
+                      disabled={!form.state}
+                      onChange={(val) => setForm((p) => ({ ...p, city: val }))}
+                    />
+                  </div>
+
+                  {/* Read-only reminder */}
+                  <p className="text-xs text-gray-500 text-center">
+                    Email , date of birth and gender cannot be changed.
+                  </p>
+                </div>
+              )}
+
+              {/* ── Action buttons ── */}
+              <div className="pt-1 space-y-2">
+                {!editMode ? (
                   <button
-                    onClick={() => setEditMode(false)}
-                    className="flex-1 py-2 rounded-lg border border-gray-600 text-gray-300 font-semibold hover:border-gray-400 hover:text-white transition-all duration-300"
+                    onClick={() => setEditMode(true)}
+                    className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-semibold hover:bg-ktsa-primary/60 hover:cursor-pointer transition-all duration-300"
                   >
-                    Cancel
+                    <Pencil size={15} />
+                    Edit Profile
                   </button>
-                  <button
-                    onClick={handleSave}
-                    disabled={saving || saveSuccess}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg font-semibold transition-all duration-300
+                ) : (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setEditMode(false)}
+                      className="flex-1 py-2 rounded-lg border border-gray-600 text-gray-300 font-semibold hover:border-gray-400 hover:text-white transition-all duration-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving || saveSuccess}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg font-semibold transition-all duration-300
                       ${
                         saveSuccess
                           ? "bg-green-500/70 text-white"
                           : "bg-ktsa-primary/70 text-ktsa-text hover:bg-ktsa-primary/60 hover:cursor-pointer"
                       }`}
-                  >
-                    {saving ? (
-                      <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    ) : saveSuccess ? (
-                      <>
-                        <Check size={15} /> Saved!
-                      </>
-                    ) : (
-                      "Save Changes"
-                    )}
-                  </button>
-                </div>
-              )}
+                    >
+                      {saving ? (
+                        <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      ) : saveSuccess ? (
+                        <>
+                          <Check size={15} /> Saved!
+                        </>
+                      ) : (
+                        "Save Changes"
+                      )}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </motion.div>
-    </div>
+          )}
+        </motion.div>
+      </div>
+
+      {/* ── Avatar crop overlay ── */}
+      {cropModalOpen && rawImageSrc && (
+        <AvatarCropModal
+          imageSrc={rawImageSrc}
+          userId={userId}
+          onCancel={() => {
+            setCropModalOpen(false);
+            setRawImageSrc(null);
+          }}
+          onSaved={handleAvatarSaved}
+        />
+      )}
+    </>
   );
 }

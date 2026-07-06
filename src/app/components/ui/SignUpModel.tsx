@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { X, Eye, EyeOff, ChevronDown } from "lucide-react";
 import { Link } from "react-router";
+import { toast } from "sonner";
 
 interface Props {
   isOpen: boolean;
@@ -300,11 +301,11 @@ export default function SignupModal({
               );
               const data = await res.json();
               if (!res.ok) throw new Error(data.message || "Signup failed");
-              alert("Signup successful!");
+              toast.success("Registration successful. Please log in to continue.");
               onClose();
             } catch (err) {
               console.error(err);
-              alert("Error during signup");
+              toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
             }
           }}
         >

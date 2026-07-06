@@ -8,7 +8,7 @@ import ProfileDropdown from "./ui/ProfileDropdown";
 interface UserProfile {
   name: string;
   email: string;
-  avatarUrl?: string;
+  profilePictureUrl?: string;
 }
 
 export function Navbar({
@@ -31,13 +31,36 @@ export function Navbar({
   const [user, setUser] = useState<UserProfile | null>(null);
   const location = useLocation();
 
-  // ─── Check auth on mount & whenever token changes ───────────────────────────
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem("token");
-      const storedUser = localStorage.getItem("user");
+  // ─── Fetch full user profile from API (includes profilePictureUrl) ──────────
+  const fetchUserProfile = async () => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
 
-      if (token && storedUser) {
+    if (!token || !userId) {
+      setUser(null);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_BASE_URL}/api/users/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (!res.ok) {
+        setUser(null);
+        return;
+      }
+      const json = await res.json();
+      const data = json.data ?? json;
+      setUser({
+        name: data.name,
+        email: data.email,
+        profilePictureUrl: data.profilePictureUrl ?? undefined,
+      });
+    } catch {
+      // API failed — fall back to localStorage basics
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
         try {
           setUser(JSON.parse(storedUser));
         } catch {
@@ -46,18 +69,19 @@ export function Navbar({
       } else {
         setUser(null);
       }
-    };
+    }
+  };
 
-    checkAuth();
+  useEffect(() => {
+    fetchUserProfile();
 
-    // Listen for storage changes (e.g., login in another tab or from LoginModal)
-    window.addEventListener("storage", checkAuth);
-    // Custom event for same-tab login
-    window.addEventListener("auth-change", checkAuth);
+    // Re-fetch on login / profile update / logout events
+    window.addEventListener("storage", fetchUserProfile);
+    window.addEventListener("auth-change", fetchUserProfile);
 
     return () => {
-      window.removeEventListener("storage", checkAuth);
-      window.removeEventListener("auth-change", checkAuth);
+      window.removeEventListener("storage", fetchUserProfile);
+      window.removeEventListener("auth-change", fetchUserProfile);
     };
   }, []);
 

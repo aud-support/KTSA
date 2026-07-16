@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
-import { motion } from "motion/react";
-import { X, Calendar, MapPin, Trophy, Clock } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { X, Calendar, MapPin, Trophy, Clock, ZoomIn } from "lucide-react";
 
 interface Tournament {
   id: number;
@@ -50,16 +50,24 @@ const mockResults: Record<
 export default function TournamentDetailsModal({ tournament, onClose }: Props) {
   const modalRef = useRef<HTMLDivElement>(null);
   const results = mockResults[tournament.id] ?? [];
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (e.button === 2) return;
+      if (lightboxOpen) return; // don't close modal when lightbox is open
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
         onClose();
       }
     };
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        if (lightboxOpen) {
+          setLightboxOpen(false);
+        } else {
+          onClose();
+        }
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEsc);
@@ -69,11 +77,12 @@ export default function TournamentDetailsModal({ tournament, onClose }: Props) {
       document.removeEventListener("keydown", handleEsc);
       document.body.style.overflow = "auto";
     };
-  }, [onClose]);
+  }, [onClose, lightboxOpen]);
 
   const isLive = tournament.status === "Live";
 
   return (
+    <>
     <div className="fixed inset-0 top-20 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs px-4">
       <motion.div
         ref={modalRef}
@@ -113,13 +122,25 @@ export default function TournamentDetailsModal({ tournament, onClose }: Props) {
         </div>
 
         {/* Tournament Banner Image */}
-        <div className="relative h-36 rounded-xl overflow-hidden mb-6 border border-ktsa-accent/20">
+        <div
+          className="relative h-36 rounded-xl overflow-hidden mb-6 border border-ktsa-accent/20 cursor-pointer group"
+          onClick={(e) => {
+            e.stopPropagation();
+            setLightboxOpen(true);
+          }}
+        >
           <img
             src={tournament.image}
             alt={tournament.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+          {/* Zoom hint on hover */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="bg-black/50 rounded-full p-2">
+              <ZoomIn size={22} className="text-white" />
+            </div>
+          </div>
           <div className="absolute bottom-3 left-4">
             <p className="text-white font-bold text-base leading-tight">
               {tournament.title}
@@ -246,5 +267,40 @@ export default function TournamentDetailsModal({ tournament, onClose }: Props) {
         </button>
       </motion.div>
     </div>
+
+    {/* Lightbox */}
+    <AnimatePresence>
+      {lightboxOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm px-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            onClick={() => setLightboxOpen(false)}
+            className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors z-10"
+          >
+            <X size={28} />
+          </button>
+          <motion.img
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.85, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 22 }}
+            src={tournament.image}
+            alt={tournament.title}
+            className="max-w-full max-h-[85vh] rounded-xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <p className="absolute bottom-6 text-white/60 text-sm">
+            {tournament.title}
+          </p>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   );
 }

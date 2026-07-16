@@ -2,6 +2,12 @@ import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_ADMIN_BACKEND_BASE_URL;
 
+/** Returns the Authorization header using the stored admin JWT. */
+function authHeader(): { Authorization: string } | Record<string, never> {
+  const token = localStorage.getItem("adminToken");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export interface MatchResponseDto {
   id: number;
   stage: string;
@@ -54,7 +60,9 @@ export interface TeamDto {
 export const getMatchesByTournament = async (
   tournamentId: number,
 ): Promise<MatchResponseDto[]> => {
-  const response = await axios.get(`${API_BASE}/api/matches/${tournamentId}`);
+  const response = await axios.get(`${API_BASE}/api/matches/${tournamentId}`, {
+    headers: authHeader(),
+  });
   return response.data.data;
 };
 
@@ -64,8 +72,9 @@ export const createMatch = async (
   data: MatchRequestDto,
 ): Promise<MatchResponseDto> => {
   const response = await axios.post(
-    `${API_BASE}/matches/${tournamentId}`,
+    `${API_BASE}/api/matches/${tournamentId}`,
     data,
+    { headers: authHeader() },
   );
   return response.data.data;
 };
@@ -75,7 +84,11 @@ export const updateMatch = async (
   matchId: number,
   data: MatchUpdateDto,
 ): Promise<MatchResponseDto> => {
-  const response = await axios.put(`${API_BASE}/matches/${matchId}`, data);
+  const response = await axios.put(
+    `${API_BASE}/api/matches/${matchId}`,
+    data,
+    { headers: authHeader() },
+  );
   return response.data.data;
 };
 
@@ -86,12 +99,16 @@ export const searchPlayers = async (
 ): Promise<PlayerDto[]> => {
   const response = await axios.get(
     `${API_BASE}/api/tournament/${tournamentId}/players/search?q=${query}`,
+    { headers: authHeader() },
   );
   return response.data.data;
 };
 
 // Search teams
 export const searchTeams = async (query: string): Promise<TeamDto[]> => {
-  const response = await axios.get(`${API_BASE}/teams/search?q=${query}`);
+  const response = await axios.get(
+    `${API_BASE}/api/team/search?q=${query}`,
+    { headers: authHeader() },
+  );
   return response.data.data;
 };

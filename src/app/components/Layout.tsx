@@ -67,7 +67,15 @@ export function Layout() {
         </main>
         <Footer />
         {/* Toast notifications */}
-        <Toaster richColors position="top-center" />
+        <Toaster
+          richColors
+          position="top-center"
+          expand={true}
+          visibleToasts={9}
+          gap={8}
+          duration={10000}
+          toastOptions={{ duration: 10000 }}
+        />
         {/* ✅ Modal OUTSIDE navbar */}
         <LoginModal
           isOpen={isLoginOpen}

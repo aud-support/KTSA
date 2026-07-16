@@ -1,4 +1,4 @@
-import { motion } from "motion/react";
+﻿import { motion } from "motion/react";
 import {
   Calendar,
   MapPin,
@@ -21,8 +21,8 @@ export type ApiTournament = {
   id: number;
   tournamentName: string;
   description: string;
-  startDate: string; // "2026-06-09"
-  endDate: string; // "2026-06-12"
+  startDate: string;
+  endDate: string;
   venue: string;
   status: "UPCOMING" | "ACTIVE" | "LIVE" | "COMPLETED";
   format: string;
@@ -37,57 +37,190 @@ export type ApiTournament = {
   mixedDoubleFee: number;
   womenSingleEnabled: boolean;
   womenSingleFee: number;
-};
-
-type ApiResponse = {
-  data: ApiTournament[];
-  success: boolean;
-  message: string;
-  status: number;
-  errors: null | string;
+  registrationClosed: boolean;
 };
 
 // ─── Fetch Hook ───────────────────────────────────────────────────────────────
 
 const API_BASE = import.meta.env.VITE_BACKEND_BASE_URL ?? "";
 
-export function useTournaments() {
+const PAGE_SIZE = 9;
+
+/** Shape of the paginated envelope returned by the backend */
+type PagedApiResponse = {
+  success: boolean;
+  message: string;
+  status: number;
+  errors: null | string;
+  data: {
+    content: ApiTournament[];
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+    hasNext: boolean;
+    last: boolean;
+  };
+};
+
+/**
+ * Derive an effective display status from the backend status + current date.
+ * - If the backend says ACTIVE or the start date has passed and end hasn't → LIVE
+ * - If end date has passed → COMPLETED
+ * - Otherwise respect the backend status (UPCOMING)
+ */
+// function deriveStatus(t: ApiTournament): ApiTournament["status"] {
+//   const now = Date.now();
+//   const start = new Date(
+//     t.startDate.includes("T") ? t.startDate : t.startDate + "T00:00:00",
+//   ).getTime();
+//   const end = new Date(
+//     t.endDate.includes("T") ? t.endDate : t.endDate + "T23:59:59",
+//   ).getTime();
+
+//   if (t.status === "ACTIVE" || t.status === "LIVE") return "LIVE";
+//   if (t.status === "COMPLETED") return "COMPLETED";
+//   if (now >= start && now <= end) return "LIVE";
+//   if (now > end) return "COMPLETED";
+//   return "UPCOMING";
+// }
+
+/**
+ * Infinite-scroll hook for tournaments.
+ * - Fetches page 0 immediately; resets when month/year filters change.
+ * - Call `loadMore()` to append the next page.
+ * - `loadingMore` is true only during subsequent page fetches (not the first).
+ */
+export function useTournaments(month?: number, year?: number) {
   const [tournaments, setTournaments] = useState<ApiTournament[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // first-page loading
+  const [loadingMore, setLoadingMore] = useState(false); // subsequent pages
+  const [hasNext, setHasNext] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
+  /** Fetch a specific page and either replace or append results */
+  const fetchPage = (page: number, replace: boolean) => {
+    const controller = new AbortController();
+
+    if (page === 0) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
     setError(null);
 
-    fetch(`${API_BASE}/api/tournament`)
+    const params = new URLSearchParams();
+    if (month != null) params.set("month", String(month));
+    if (year != null) params.set("year", String(year));
+    params.set("page", String(page));
+    params.set("size", String(PAGE_SIZE));
+
+    const hasFilter = month != null || year != null;
+    const base = hasFilter
+      ? `${API_BASE}/api/tournament/filter`
+      : `${API_BASE}/api/tournament`;
+    const url = `${base}?${params.toString()}`;
+
+    fetch(url, { signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
-        return res.json() as Promise<ApiResponse>;
+        return res.json() as Promise<PagedApiResponse>;
       })
       .then((body) => {
-        if (!cancelled) {
-          if (body.success) {
-            setTournaments(body.data ?? []);
-          } else {
-            setError(body.message ?? "Failed to load tournaments.");
-          }
+        if (body.success) {
+          const enriched = body.data.content ?? [];
+          setTournaments((prev) =>
+            replace ? enriched : [...prev, ...enriched],
+          );
+          setHasNext(body.data.hasNext);
+          setCurrentPage(body.data.page);
+        } else {
+          setError(body.message ?? "Failed to load tournaments.");
         }
       })
       .catch((err) => {
-        if (!cancelled) setError(err.message ?? "Network error.");
+        if (err.name !== "AbortError") {
+          setError(err.message ?? "Network error.");
+        }
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
+        setLoadingMore(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
+    return controller;
+  };
+
+  // Reset to page 0 whenever filters change
+  useEffect(() => {
+    const controller = fetchPage(0, true);
+    return () => controller.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month, year]);
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     fetchPage(0, true);
+  //   }, 60000); // Refresh every 60 seconds
+
+  //   return () => clearInterval(interval);
+  // }, [month, year]);
+
+  const loadMore = () => {
+    if (!loadingMore && hasNext) {
+      fetchPage(currentPage + 1, false);
+    }
+  };
+
+  return { tournaments, loading, loadingMore, hasNext, error, loadMore };
+}
+
+/** Fetches the distinct years that have at least one tournament — used for dynamic year dropdown. */
+export function useAvailableYears() {
+  const [years, setYears] = useState<number[]>([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/tournament/available-years`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then((body) => {
+        console.log("[useAvailableYears] Response:", body);
+        if (body.success && Array.isArray(body.data)) {
+          console.log("[useAvailableYears] Years from DB:", body.data);
+          if (body.data.length > 0) {
+            setYears(body.data as number[]);
+          } else {
+            // Fallback: if DB is empty, show a reasonable range centered on current year
+            const currentYear = new Date().getFullYear();
+            const fallback = Array.from(
+              { length: 6 },
+              (_, i) => currentYear - 3 + i,
+            );
+            console.warn(
+              "[useAvailableYears] No tournaments found, using fallback:",
+              fallback,
+            );
+            setYears(fallback);
+          }
+        } else {
+          console.warn(
+            "[useAvailableYears] Unexpected response structure:",
+            body,
+          );
+        }
+      })
+      .catch((err) => {
+        console.error("[useAvailableYears] Failed to fetch years:", err);
+        // Fallback on error
+        const currentYear = new Date().getFullYear();
+        setYears(Array.from({ length: 6 }, (_, i) => currentYear - 3 + i));
+      });
   }, []);
 
-  return { tournaments, loading, error };
+  return years;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

@@ -158,7 +158,7 @@ export default function RegistrationModal({
 
   // Multi-select categories
   const [selectedCategories, setSelectedCategories] = useState<Set<CategoryId>>(
-    new Set()
+    new Set(),
   );
 
   // Partner toggle — shown when any doubles category is selected
@@ -167,25 +167,37 @@ export default function RegistrationModal({
   // Partner / team fields
   const [partnerEmail, setPartnerEmail] = useState("");
   const [partnerEmailError, setPartnerEmailError] = useState("");
-  const [partnerEmailValid, setPartnerEmailValid] = useState<boolean | null>(null);
+  const [partnerEmailValid, setPartnerEmailValid] = useState<boolean | null>(
+    null,
+  );
   const [partnerEmailChecking, setPartnerEmailChecking] = useState(false);
-  const [existingTeamForPair, setExistingTeamForPair] = useState<{ teamId: number; teamName: string } | null>(null);
+  const [existingTeamForPair, setExistingTeamForPair] = useState<{
+    teamId: number;
+    teamName: string;
+  } | null>(null);
   const [teamName, setTeamName] = useState("");
   const [teamNameError, setTeamNameError] = useState("");
 
   // Existing team toggle & search
   const [hasExistingTeam, setHasExistingTeam] = useState(false);
   const [teamSearchQuery, setTeamSearchQuery] = useState("");
-  const [teamSearchResults, setTeamSearchResults] = useState<{ teamId: number; teamName: string }[]>([]);
+  const [teamSearchResults, setTeamSearchResults] = useState<
+    { teamId: number; teamName: string }[]
+  >([]);
   const [teamSearchLoading, setTeamSearchLoading] = useState(false);
   const [teamSearchOpen, setTeamSearchOpen] = useState(false);
-  const [selectedTeam, setSelectedTeam] = useState<{ teamId: number; teamName: string } | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<{
+    teamId: number;
+    teamName: string;
+  } | null>(null);
   const teamSearchRef = useRef<HTMLDivElement>(null);
   const teamDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Need a partner toggle & role preference
   const [needPartner, setNeedPartner] = useState(false);
-  const [rolePreference, setRolePreference] = useState<"Defender" | "Attacker" | "All-rounder" | "">("");
+  const [rolePreference, setRolePreference] = useState<
+    "Defender" | "Attacker" | "All-rounder" | ""
+  >("");
 
   // Helper: reset all three doubles sub-states
   const resetDoublesState = () => {
@@ -234,7 +246,7 @@ export default function RegistrationModal({
 
   // ── Derived state ──
   const hasDoublesSelected = ALL_CATEGORIES.some(
-    (c) => c.doubles && selectedCategories.has(c.id)
+    (c) => c.doubles && selectedCategories.has(c.id),
   );
 
   // When all doubles are deselected, reset all doubles sub-state
@@ -242,7 +254,7 @@ export default function RegistrationModal({
     if (!hasDoublesSelected) {
       resetDoublesState();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasDoublesSelected]);
 
   // ── Category checkbox toggle ──
@@ -256,65 +268,71 @@ export default function RegistrationModal({
   };
 
   // ── Partner email validation (on blur / Enter) ──
-  const validatePartnerEmail = useCallback(async (emailVal: string) => {
-    if (!emailVal.trim()) {
-      setPartnerEmailError("Partner email is required");
-      setPartnerEmailValid(false);
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailVal)) {
-      setPartnerEmailError("Enter a valid email address");
-      setPartnerEmailValid(false);
-      return;
-    }
-    if (emailVal.toLowerCase() === email.toLowerCase()) {
-      setPartnerEmailError("You cannot register with yourself as a partner");
-      setPartnerEmailValid(false);
-      return;
-    }
-    setPartnerEmailChecking(true);
-    setPartnerEmailError("");
-    setExistingTeamForPair(null);
-    try {
-      const res = await fetch(
-        `${import.meta.env.VITE_BACKEND_BASE_URL}/api/users/validate-email?email=${encodeURIComponent(emailVal)}`
-      );
-      const data = await res.json();
-      if (data?.data?.valid) {
-        setPartnerEmailValid(true);
-        setPartnerEmailError("");
+  const validatePartnerEmail = useCallback(
+    async (emailVal: string) => {
+      if (!emailVal.trim()) {
+        setPartnerEmailError("Partner email is required");
+        setPartnerEmailValid(false);
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailVal)) {
+        setPartnerEmailError("Enter a valid email address");
+        setPartnerEmailValid(false);
+        return;
+      }
+      if (emailVal.toLowerCase() === email.toLowerCase()) {
+        setPartnerEmailError("You cannot register with yourself as a partner");
+        setPartnerEmailValid(false);
+        return;
+      }
+      setPartnerEmailChecking(true);
+      setPartnerEmailError("");
+      setExistingTeamForPair(null);
+      try {
+        const res = await fetch(
+          `${import.meta.env.VITE_BACKEND_BASE_URL}/api/users/validate-email?email=${encodeURIComponent(emailVal)}`,
+        );
+        const data = await res.json();
+        if (data?.data?.valid) {
+          setPartnerEmailValid(true);
+          setPartnerEmailError("");
 
-        // Check if these two players already have a team together
-        try {
-          const teamRes = await fetch(
-            `${import.meta.env.VITE_BACKEND_BASE_URL}/api/team/by-players?p1=${encodeURIComponent(email)}&p2=${encodeURIComponent(emailVal)}`
-          );
-          const teamData = await teamRes.json();
-          if (teamData?.data) {
-            setExistingTeamForPair(teamData.data); // { teamId, teamName, ... }
-          } else {
+          // Check if these two players already have a team together
+          try {
+            const teamRes = await fetch(
+              `${import.meta.env.VITE_BACKEND_BASE_URL}/api/team/by-players?p1=${encodeURIComponent(email)}&p2=${encodeURIComponent(emailVal)}`,
+            );
+            const teamData = await teamRes.json();
+            if (teamData?.data) {
+              setExistingTeamForPair(teamData.data); // { teamId, teamName, ... }
+            } else {
+              setExistingTeamForPair(null);
+            }
+          } catch {
             setExistingTeamForPair(null);
           }
-        } catch {
-          setExistingTeamForPair(null);
+        } else {
+          setPartnerEmailValid(false);
+          setPartnerEmailError("This email is not a registered player");
         }
-      } else {
+      } catch {
         setPartnerEmailValid(false);
-        setPartnerEmailError("This email is not a registered player");
+        setPartnerEmailError("Could not verify email. Try again.");
+      } finally {
+        setPartnerEmailChecking(false);
       }
-    } catch {
-      setPartnerEmailValid(false);
-      setPartnerEmailError("Could not verify email. Try again.");
-    } finally {
-      setPartnerEmailChecking(false);
-    }
-  }, [email]);
+    },
+    [email],
+  );
 
   // Close team search dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (teamSearchRef.current && !teamSearchRef.current.contains(e.target as Node)) {
+      if (
+        teamSearchRef.current &&
+        !teamSearchRef.current.contains(e.target as Node)
+      ) {
         setTeamSearchOpen(false);
       }
     };
@@ -336,7 +354,7 @@ export default function RegistrationModal({
       setTeamSearchLoading(true);
       try {
         const res = await fetch(
-          `${import.meta.env.VITE_BACKEND_BASE_URL}/api/team/search?q=${encodeURIComponent(val)}`
+          `${import.meta.env.VITE_BACKEND_BASE_URL}/api/team/search?q=${encodeURIComponent(val)}`,
         );
         const data = await res.json();
         setTeamSearchResults(data?.data ?? []);
@@ -359,7 +377,7 @@ export default function RegistrationModal({
     }
 
     const doubleCategories = ALL_CATEGORIES.filter(
-      (c) => c.doubles && selectedCategories.has(c.id)
+      (c) => c.doubles && selectedCategories.has(c.id),
     );
 
     // Validate partner fields if doubles selected with partner
@@ -370,7 +388,7 @@ export default function RegistrationModal({
       }
       if (doubleCategories.length > 1) {
         toast.error(
-          "A team can only enter one doubles category per tournament. Please select a single doubles category."
+          "A team can only enter one doubles category per tournament. Please select a single doubles category.",
         );
         return;
       }
@@ -384,7 +402,7 @@ export default function RegistrationModal({
       }
       if (doubleCategories.length > 1) {
         toast.error(
-          "A team can only enter one doubles category per tournament. Please select a single doubles category."
+          "A team can only enter one doubles category per tournament. Please select a single doubles category.",
         );
         return;
       }
@@ -406,104 +424,57 @@ export default function RegistrationModal({
     };
 
     try {
-      const requests: Promise<Response>[] = [];
-
-      for (const cat of selectedCategories) {
+      // ── Build category entries for the batch endpoint ──
+      const categoryEntries = Array.from(selectedCategories).map((cat) => {
         const catConfig = ALL_CATEGORIES.find((c) => c.id === cat)!;
 
-        if (catConfig.doubles && hasExistingTeam && selectedTeam) {
-          // Register with an existing team
-          requests.push(
-            fetch(`${BASE}/api/registration/double/existing-team/${tournament.id}`, {
-              method: "POST",
-              headers,
-              body: JSON.stringify({
-                existingTeamId: selectedTeam.teamId,
-                category: cat,
-              }),
-            })
-          );
-        } else if (catConfig.doubles && hasPartner) {
-          // Register with a new partner
-          requests.push(
-            fetch(`${BASE}/api/registration/double/${tournament.id}`, {
-              method: "POST",
-              headers,
-              body: JSON.stringify({
-                playerOneEmail: email,
-                playerTwoEmail: partnerEmail,
-                category: cat,
-                teamName: teamName.trim(),
-              }),
-            })
-          );
-        } else if (catConfig.doubles && needPartner) {
-          // Free-agent: looking for a partner
-          requests.push(
-            fetch(`${BASE}/api/registration/double/need-partner/${tournament.id}`, {
-              method: "POST",
-              headers,
-              body: JSON.stringify({
-                playerOneEmail: email,
-                category: cat,
-                partnerPreference: rolePreference,
-              }),
-            })
-          );
-        } else {
-          // Single registration
-          requests.push(
-            fetch(`${BASE}/api/registration/single/${tournament.id}`, {
-              method: "POST",
-              headers,
-              body: JSON.stringify({
-                playerOneEmail: email,
-                category: cat,
-              }),
-            })
-          );
+        if (!catConfig.doubles) {
+          return { category: cat, doublesMode: "SINGLE" };
         }
-      }
+        if (hasExistingTeam && selectedTeam) {
+          return { category: cat, doublesMode: "EXISTING_TEAM" };
+        }
+        if (hasPartner) {
+          return { category: cat, doublesMode: "WITH_PARTNER" };
+        }
+        if (needPartner) {
+          return { category: cat, doublesMode: "NEED_PARTNER" };
+        }
+        return { category: cat, doublesMode: "SINGLE" };
+      });
 
-      const responses = await Promise.all(requests);
+      const payload = {
+        playerOneEmail: email,
+        playerTwoEmail: hasPartner ? partnerEmail : undefined,
+        partnerPreference: needPartner ? rolePreference : undefined,
+        teamName: hasPartner ? teamName.trim() : undefined,
+        existingTeamId: hasExistingTeam && selectedTeam ? selectedTeam.teamId : undefined,
+        categories: categoryEntries,
+      };
 
-      // Pair each response with its category for meaningful error messages
-      const categories = Array.from(selectedCategories);
-      const results = await Promise.all(
-        responses.map(async (res, i) => ({
-          category: categories[i],
-          ok: res.ok,
-          data: await res.json().catch(() => ({})),
-        }))
+      // ── Single request — backend validates ALL, saves ALL or NONE ──
+      const res = await fetch(
+        `${BASE}/api/registration/batch/${tournament.id}`,
+        { method: "POST", headers, body: JSON.stringify(payload) }
       );
 
-      const failed = results.filter((r) => !r.ok);
+      const data = await res.json().catch(() => ({}));
 
-      if (failed.length > 0) {
-        if (failed.length === 1) {
-          // Single failure — show the exact backend message
-          const msg = failed[0].data?.message || "Registration failed. Please try again.";
-          toast.error(msg);
-        } else {
-          // Multiple failures — show each category's error separately
-          failed.forEach((f) => {
-            const msg = f.data?.message || "Registration failed";
-            toast.error(`${f.category}: ${msg}`);
-          });
+      if (!res.ok) {
+        // Backend returns a combined error message separated by " | "
+        const fullMessage: string = data?.message || data?.errors || "Registration failed. Please fix the errors and try again.";
+        // Split on " | " and show each error as a separate toast
+        const parts = fullMessage.split(" | ").filter(Boolean);
+        parts.forEach((msg) => toast.error(msg));
+        if (parts.length > 1) {
+          toast.error("Registration failed. Please fix the errors and try again.");
         }
-
-        // If some succeeded, still show partial success
-        const succeeded = results.filter((r) => r.ok);
-        if (succeeded.length > 0) {
-          toast.success(
-            `Registered for: ${succeeded.map((s) => s.category).join(", ")}`
-          );
-          setSubmitted(true);
-        }
-        return;
+        return; // stay on form
       }
 
+      // All categories registered successfully
       setSubmitted(true);
+
     } catch (err: any) {
       toast.error(err?.message || "Something went wrong. Please try again.");
     } finally {
@@ -575,7 +546,10 @@ export default function RegistrationModal({
 
               {/* Auto-fill notice */}
               <div className="mb-4 px-3 py-2 rounded-lg bg-ktsa-accent/10 border border-ktsa-accent/25 flex items-center gap-2">
-                <CheckCircle size={13} className="text-ktsa-accent flex-shrink-0" />
+                <CheckCircle
+                  size={13}
+                  className="text-ktsa-accent flex-shrink-0"
+                />
                 <p className="text-xs text-ktsa-accent/80">
                   Details auto-filled from your account
                 </p>
@@ -621,9 +595,15 @@ export default function RegistrationModal({
                             }`}
                         >
                           {checked ? (
-                            <CheckSquare size={16} className="text-ktsa-accent flex-shrink-0" />
+                            <CheckSquare
+                              size={16}
+                              className="text-ktsa-accent flex-shrink-0"
+                            />
                           ) : (
-                            <Square size={16} className="text-gray-600 flex-shrink-0" />
+                            <Square
+                              size={16}
+                              className="text-gray-600 flex-shrink-0"
+                            />
                           )}
                           <span>{cat.label}</span>
                           {cat.doubles && (
@@ -646,6 +626,7 @@ export default function RegistrationModal({
                     required
                     value={playerName}
                     onChange={(e) => setPlayerName(e.target.value)}
+                    readOnly
                     placeholder="Enter your full name"
                     className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white placeholder-gray-500 focus:outline-none focus:border-ktsa-primary text-sm"
                   />
@@ -661,6 +642,7 @@ export default function RegistrationModal({
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    readOnly
                     placeholder="Enter your email"
                     className="w-full px-4 py-2 rounded-lg bg-transparent border border-gray-600 text-white placeholder-gray-500 focus:outline-none focus:border-ktsa-primary text-sm"
                   />
@@ -676,11 +658,15 @@ export default function RegistrationModal({
                     className="space-y-3"
                   >
                     {/* ── Toggle row: Have a Partner? ── */}
-                    <div className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
-                      ${hasPartner ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}>
+                    <div
+                      className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
+                      ${hasPartner ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}
+                    >
                       <div className="flex items-center gap-2">
                         <Users size={16} className="text-ktsa-accent" />
-                        <span className="text-sm font-medium text-white">Have a Partner?</span>
+                        <span className="text-sm font-medium text-white">
+                          Have a Partner?
+                        </span>
                       </div>
                       <button
                         type="button"
@@ -694,9 +680,11 @@ export default function RegistrationModal({
                           }
                         }}
                       >
-                        {hasPartner
-                          ? <ToggleRight size={28} className="text-ktsa-accent" />
-                          : <ToggleLeft size={28} className="text-gray-500" />}
+                        {hasPartner ? (
+                          <ToggleRight size={28} className="text-ktsa-accent" />
+                        ) : (
+                          <ToggleLeft size={28} className="text-gray-500" />
+                        )}
                       </button>
                     </div>
 
@@ -736,15 +724,39 @@ export default function RegistrationModal({
                                 ${partnerEmailValid === true ? "border-green-500" : partnerEmailValid === false ? "border-red-500" : "border-gray-600 focus:border-ktsa-primary"}`}
                             />
                             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              {partnerEmailChecking && <Loader2 size={14} className="text-gray-400 animate-spin" />}
-                              {!partnerEmailChecking && partnerEmailValid === true && <CheckCircle size={14} className="text-green-500" />}
-                              {!partnerEmailChecking && partnerEmailValid === false && <AlertCircle size={14} className="text-red-500" />}
+                              {partnerEmailChecking && (
+                                <Loader2
+                                  size={14}
+                                  className="text-gray-400 animate-spin"
+                                />
+                              )}
+                              {!partnerEmailChecking &&
+                                partnerEmailValid === true && (
+                                  <CheckCircle
+                                    size={14}
+                                    className="text-green-500"
+                                  />
+                                )}
+                              {!partnerEmailChecking &&
+                                partnerEmailValid === false && (
+                                  <AlertCircle
+                                    size={14}
+                                    className="text-red-500"
+                                  />
+                                )}
                             </div>
                           </div>
-                          {partnerEmailError && <p className="text-xs text-red-400 mt-1">{partnerEmailError}</p>}
-                          {partnerEmailValid === true && !existingTeamForPair && (
-                            <p className="text-xs text-green-400 mt-1">Valid registered player ✓</p>
+                          {partnerEmailError && (
+                            <p className="text-xs text-red-400 mt-1">
+                              {partnerEmailError}
+                            </p>
                           )}
+                          {partnerEmailValid === true &&
+                            !existingTeamForPair && (
+                              <p className="text-xs text-green-400 mt-1">
+                                Valid registered player ✓
+                              </p>
+                            )}
                         </div>
 
                         {/* Existing team banner — shown when pair already has a team */}
@@ -754,13 +766,18 @@ export default function RegistrationModal({
                             animate={{ opacity: 1, y: 0 }}
                             className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-500/10 border border-green-500/30"
                           >
-                            <CheckCircle size={14} className="text-green-400 flex-shrink-0" />
+                            <CheckCircle
+                              size={14}
+                              className="text-green-400 flex-shrink-0"
+                            />
                             <div>
                               <p className="text-xs text-green-400 font-medium">
-                                Existing team found: "{existingTeamForPair.teamName}"
+                                Existing team found: "
+                                {existingTeamForPair.teamName}"
                               </p>
                               <p className="text-xs text-gray-500 mt-0.5">
-                                Your team will be used automatically — no need to enter a name.
+                                Your team will be used automatically — no need
+                                to enter a name.
                               </p>
                             </div>
                           </motion.div>
@@ -771,28 +788,41 @@ export default function RegistrationModal({
                           <div>
                             <label className="block text-sm text-ktsa-accent mb-1">
                               Team Name{" "}
-                              <span className="text-gray-500 text-xs font-normal">(optional)</span>
+                              <span className="text-gray-500 text-xs font-normal">
+                                (optional)
+                              </span>
                             </label>
                             <input
                               type="text"
                               value={teamName}
-                              onChange={(e) => { setTeamName(e.target.value); setTeamNameError(""); }}
+                              onChange={(e) => {
+                                setTeamName(e.target.value);
+                                setTeamNameError("");
+                              }}
                               placeholder="Leave blank to auto-generate from player names"
                               className={`w-full px-4 py-2 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
                                 ${teamNameError ? "border-red-500" : "border-gray-600 focus:border-ktsa-primary"}`}
                             />
-                            {teamNameError && <p className="text-xs text-red-400 mt-1">{teamNameError}</p>}
+                            {teamNameError && (
+                              <p className="text-xs text-red-400 mt-1">
+                                {teamNameError}
+                              </p>
+                            )}
                           </div>
                         )}
                       </motion.div>
                     )}
 
                     {/* ── Toggle row: Have a Team? ── */}
-                    <div className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
-                      ${hasExistingTeam ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}>
+                    <div
+                      className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
+                      ${hasExistingTeam ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}
+                    >
                       <div className="flex items-center gap-2">
                         <Shield size={16} className="text-ktsa-accent" />
-                        <span className="text-sm font-medium text-white">Have a Team?</span>
+                        <span className="text-sm font-medium text-white">
+                          Have a Team?
+                        </span>
                       </div>
                       <button
                         type="button"
@@ -806,9 +836,11 @@ export default function RegistrationModal({
                           }
                         }}
                       >
-                        {hasExistingTeam
-                          ? <ToggleRight size={28} className="text-ktsa-accent" />
-                          : <ToggleLeft size={28} className="text-gray-500" />}
+                        {hasExistingTeam ? (
+                          <ToggleRight size={28} className="text-ktsa-accent" />
+                        ) : (
+                          <ToggleLeft size={28} className="text-gray-500" />
+                        )}
                       </button>
                     </div>
 
@@ -820,29 +852,47 @@ export default function RegistrationModal({
                         transition={{ duration: 0.2 }}
                         className="pl-1"
                       >
-                        <label className="block text-sm text-ktsa-accent mb-1">Search Team</label>
+                        <label className="block text-sm text-ktsa-accent mb-1">
+                          Search Team
+                        </label>
                         <div ref={teamSearchRef} className="relative">
                           <div className="relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                            <Search
+                              size={14}
+                              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                            />
                             <input
                               type="text"
-                              value={selectedTeam ? selectedTeam.teamName : teamSearchQuery}
+                              value={
+                                selectedTeam
+                                  ? selectedTeam.teamName
+                                  : teamSearchQuery
+                              }
                               onChange={(e) => {
                                 if (selectedTeam) setSelectedTeam(null);
                                 handleTeamSearchChange(e.target.value);
                               }}
-                              onFocus={() => { if (teamSearchResults.length > 0) setTeamSearchOpen(true); }}
+                              onFocus={() => {
+                                if (teamSearchResults.length > 0)
+                                  setTeamSearchOpen(true);
+                              }}
                               placeholder="Enter team name to search..."
                               className={`w-full pl-9 pr-8 py-2 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
                                 ${selectedTeam ? "border-green-500" : "border-gray-600 focus:border-ktsa-primary"}`}
                             />
                             {teamSearchLoading && (
-                              <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 animate-spin" />
+                              <Loader2
+                                size={14}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 animate-spin"
+                              />
                             )}
                             {selectedTeam && (
                               <button
                                 type="button"
-                                onClick={() => { setSelectedTeam(null); setTeamSearchQuery(""); }}
+                                onClick={() => {
+                                  setSelectedTeam(null);
+                                  setTeamSearchQuery("");
+                                }}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
                               >
                                 <X size={14} />
@@ -858,15 +908,23 @@ export default function RegistrationModal({
                                   <button
                                     key={team.teamId}
                                     type="button"
-                                    onClick={() => { setSelectedTeam(team); setTeamSearchOpen(false); }}
+                                    onClick={() => {
+                                      setSelectedTeam(team);
+                                      setTeamSearchOpen(false);
+                                    }}
                                     className="w-full text-left px-4 py-2.5 text-sm text-white hover:bg-ktsa-primary/30 transition-colors flex items-center gap-2"
                                   >
-                                    <Shield size={13} className="text-ktsa-accent flex-shrink-0" />
+                                    <Shield
+                                      size={13}
+                                      className="text-ktsa-accent flex-shrink-0"
+                                    />
                                     {team.teamName}
                                   </button>
                                 ))
                               ) : (
-                                <p className="px-4 py-3 text-sm text-gray-500">No teams found</p>
+                                <p className="px-4 py-3 text-sm text-gray-500">
+                                  No teams found
+                                </p>
                               )}
                             </div>
                           )}
@@ -874,22 +932,31 @@ export default function RegistrationModal({
 
                         {selectedTeam ? (
                           <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
-                            <CheckCircle size={12} /> Team "{selectedTeam.teamName}" selected
+                            <CheckCircle size={12} /> Team "
+                            {selectedTeam.teamName}" selected
                           </p>
                         ) : (
-                          <p className="text-xs text-gray-600 mt-1">Type to search existing teams by name</p>
+                          <p className="text-xs text-gray-600 mt-1">
+                            Type to search existing teams by name
+                          </p>
                         )}
                       </motion.div>
                     )}
 
                     {/* ── Toggle row: Need a Partner? ── */}
-                    <div className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
-                      ${needPartner ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}>
+                    <div
+                      className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
+                      ${needPartner ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}
+                    >
                       <div className="flex items-center gap-2">
                         <UserPlus size={16} className="text-ktsa-accent" />
                         <div>
-                          <span className="text-sm font-medium text-white">Need a Partner?</span>
-                          <p className="text-xs text-gray-500">We'll find someone for you</p>
+                          <span className="text-sm font-medium text-white">
+                            Need a Partner?
+                          </span>
+                          <p className="text-xs text-gray-500">
+                            We'll find someone for you
+                          </p>
                         </div>
                       </div>
                       <button
@@ -904,9 +971,11 @@ export default function RegistrationModal({
                           }
                         }}
                       >
-                        {needPartner
-                          ? <ToggleRight size={28} className="text-ktsa-accent" />
-                          : <ToggleLeft size={28} className="text-gray-500" />}
+                        {needPartner ? (
+                          <ToggleRight size={28} className="text-ktsa-accent" />
+                        ) : (
+                          <ToggleLeft size={28} className="text-gray-500" />
+                        )}
                       </button>
                     </div>
 
@@ -919,18 +988,23 @@ export default function RegistrationModal({
                         className="pl-1"
                       >
                         <label className="block text-sm text-ktsa-accent mb-2">
-                          Your Role Preference <span className="text-red-400">*</span>
+                          Your Role Preference{" "}
+                          <span className="text-red-400">*</span>
                         </label>
                         <div className="grid grid-cols-3 gap-2">
-                          {(["Defender", "Attacker", "All-rounder"] as const).map((role) => (
+                          {(
+                            ["Defender", "Attacker", "All-rounder"] as const
+                          ).map((role) => (
                             <button
                               key={role}
                               type="button"
                               onClick={() => setRolePreference(role)}
                               className={`py-2 rounded-lg text-xs font-semibold border transition-all duration-200
-                                ${rolePreference === role
-                                  ? "bg-ktsa-primary/70 border-ktsa-primary text-white"
-                                  : "bg-transparent border-gray-600 text-gray-400 hover:border-gray-400 hover:text-white"}`}
+                                ${
+                                  rolePreference === role
+                                    ? "bg-ktsa-primary/70 border-ktsa-primary text-white"
+                                    : "bg-transparent border-gray-600 text-gray-400 hover:border-gray-400 hover:text-white"
+                                }`}
                             >
                               {role}
                             </button>

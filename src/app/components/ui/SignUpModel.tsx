@@ -300,7 +300,22 @@ export default function SignupModal({
                 },
               );
               const data = await res.json();
-              if (!res.ok) throw new Error(data.message || "Signup failed");
+              if (!res.ok) {
+                // Surface a friendly message for duplicate email
+                const msg: string = data.message ?? "";
+                if (
+                  res.status === 409 ||
+                  msg.toLowerCase().includes("duplicate") ||
+                  msg.toLowerCase().includes("already exists") ||
+                  msg.toLowerCase().includes("unique") ||
+                  msg.toLowerCase().includes("email")
+                ) {
+                  toast.error("A player already exists with this email address. Please log in or use a different email.");
+                } else {
+                  toast.error(msg || "Signup failed. Please try again.");
+                }
+                return;
+              }
               toast.success("Registration successful. Please log in to continue.");
               onClose();
             } catch (err) {

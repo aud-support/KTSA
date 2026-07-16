@@ -22,6 +22,7 @@ const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 interface UserProfile {
   id: number;
   name: string;
+  userName?: string;
   email: string;
   phoneNumber: number;
   gender: string;
@@ -387,9 +388,6 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
           </button>
 
           {/* Title */}
-          <h2 className="text-2xl font-bold text-ktsa-accent text-center mb-2">
-            My Profile
-          </h2>
           <p className="text-sm text-gray-400 text-center mb-6">
             {user
               ? `Member since ${formatJoined(user.createdAt)}`
@@ -483,6 +481,11 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
                 {!editMode ? (
                   <div className="text-center">
                     <p className="text-white font-bold text-lg">{user.name}</p>
+                    {user.userName && (
+                      <p className="text-ktsa-accent/70 text-xs font-medium mt-0.5 tracking-wide">
+                        @{user.userName}
+                      </p>
+                    )}
                     <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-ktsa-primary/20 border border-ktsa-primary/30 text-ktsa-primary text-xs font-semibold tracking-wide">
                       {user.role}
                     </span>

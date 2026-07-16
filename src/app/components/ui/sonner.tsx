@@ -1,11 +1,16 @@
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
-const Toaster = (props: ToasterProps) => {
+const Toaster = ({ duration = 10000, ...props }: ToasterProps) => {
   return (
     <Sonner
       theme="dark"
       className="toaster group"
+      expand={true}
+      visibleToasts={9}
+      gap={8}
+      duration={duration}
       toastOptions={{
+        duration,
         classNames: {
           toast:
             "group toast bg-black/80 backdrop-blur-lg border border-white/20 text-white shadow-xl rounded-xl",

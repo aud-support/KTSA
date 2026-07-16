@@ -2,14 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Lock, User } from 'lucide-react';
 import { toast } from 'sonner';
+import axios from 'axios';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 
-// Dummy credentials
-const ADMIN_CREDENTIALS = {
-  username: 'admin',
-  password: 'admin123'
-};
+const API_BASE = import.meta.env.VITE_ADMIN_BACKEND_BASE_URL;
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -17,22 +14,35 @@ export const Login: React.FC = () => {
     username: '',
     password: ''
   });
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (formData.username === ADMIN_CREDENTIALS.username &&
-        formData.password === ADMIN_CREDENTIALS.password) {
-      localStorage.setItem('isAuthenticated', 'true');
-      toast.success('Login successful!');
-      navigate('/');
-    } else {
-      toast.error('Invalid credentials. Use admin/admin123');
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_BASE}/api/auth/login`, {
+        identifier: formData.username === 'admin' ? 'admin@gmail.com' : formData.username,
+        password: formData.password,
+      });
+      const data = response.data?.data;
+      if (data?.role === 'ADMIN' && data?.token) {
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('adminToken', data.token);
+        toast.success('Login successful!');
+        navigate('/');
+      } else {
+        toast.error('Access denied. Admin credentials required.');
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Invalid credentials';
+      toast.error(msg);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -84,8 +94,8 @@ export const Login: React.FC = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full">
-              Sign In
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Signing in…' : 'Sign In'}
             </Button>
           </form>
 

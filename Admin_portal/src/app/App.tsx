@@ -7,7 +7,15 @@ export default function App() {
   return (
     <CMSProvider>
       <RouterProvider router={router} />
-      <Toaster position="top-right" theme="dark" />
+      <Toaster
+        position="top-right"
+        theme="dark"
+        expand={true}
+        visibleToasts={9}
+        gap={8}
+        duration={10000}
+        toastOptions={{ duration: 10000 }}
+      />
     </CMSProvider>
   );
 }

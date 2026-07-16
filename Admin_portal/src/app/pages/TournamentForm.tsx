@@ -35,7 +35,7 @@ export const TournamentForm: React.FC = () => {
     pricePool: "",
     challengeBracketUrl: "",
     description: "",
-
+    registrationClosed: false,
     categories: structuredClone(defaultCategories),
   });
 
@@ -86,6 +86,8 @@ export const TournamentForm: React.FC = () => {
           challengeBracketUrl: "",
 
           description: tournament.description,
+
+          registrationClosed: tournament.registrationClosed ?? false,
 
           categories: {
             openSingle: {
@@ -248,6 +250,8 @@ export const TournamentForm: React.FC = () => {
       womenSingleFee: formData.categories.womenSingle.enabled
         ? Number(formData.categories.womenSingle.fee)
         : null,
+
+      registrationClosed: formData.registrationClosed,
     };
 
     // Build multipart payload
@@ -339,7 +343,7 @@ export const TournamentForm: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="block text-sm text-foreground">
-                  Start Date *
+                  Start Date & Time *
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <Input
@@ -355,12 +359,13 @@ export const TournamentForm: React.FC = () => {
                     value={formData.startTime}
                     onChange={handleChange}
                     placeholder="HH:MM"
+                    required
                   />
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="block text-sm text-foreground">
-                  End Date
+                  End Date & Time
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   <Input
@@ -418,6 +423,7 @@ export const TournamentForm: React.FC = () => {
                 value={formData.maxParticipants}
                 onChange={handleChange}
                 placeholder="e.g. 16"
+                min={1}
               />
               <Input
                 label="Prize Pool (₹)"
@@ -479,6 +485,7 @@ export const TournamentForm: React.FC = () => {
                       <Input
                         // label="Entry Fee (₹)"
                         type="number"
+                        min={1}
                         placeholder="Enter fee"
                         disabled={
                           !formData.categories[

@@ -233,7 +233,11 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
       toast.success("Match created successfully");
       onCreated(created);
     } catch (err: any) {
-      toast.error(err?.response?.data?.errors || "Failed to create match");
+      toast.error(
+        err?.response?.data?.message ||
+        err?.response?.data?.errors ||
+        "Failed to create match"
+      );
     } finally {
       setSubmitting(false);
     }
@@ -493,7 +497,11 @@ const EditMatchModal: React.FC<EditMatchModalProps> = ({
       toast.success("Match updated successfully");
       onUpdated(updated);
     } catch (err: any) {
-      toast.error(err?.response?.data?.errors || "Failed to update match");
+      toast.error(
+        err?.response?.data?.message ||
+        err?.response?.data?.errors ||
+        "Failed to update match"
+      );
     } finally {
       setSubmitting(false);
     }

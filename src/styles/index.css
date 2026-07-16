@@ -42,3 +42,11 @@
 .thin-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #00ffea;
 }
+
+button:not(:disabled) {
+  cursor: pointer;
+}
+ 
+button:disabled {
+  cursor: not-allowed;
+}

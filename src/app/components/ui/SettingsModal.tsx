@@ -249,6 +249,7 @@ export default function SettingsModal({
         try {
           const body = await res.json();
           message = body.message ?? body.error ?? message;
+          var errors = body?.errors;
         } catch { /* non-JSON response */ }
 
         const lower = message.toLowerCase();
@@ -257,7 +258,7 @@ export default function SettingsModal({
         } else if (lower.includes("incorrect") || lower.includes("wrong") || lower.includes("invalid")) {
           setPwErrors({ current: "Current password is incorrect" });
         } else {
-          setPwErrors({ current: message });
+          setPwErrors({ current: errors || message });
         }
         return;
       }
@@ -282,6 +283,24 @@ export default function SettingsModal({
     } finally {
       setPwLoading(false);
     }
+  };
+
+  const resetPasswordState = () => {
+    setPwForm({
+      current: "",
+      next: "",
+      confirm: "",
+    });
+
+    setPwErrors({});
+    setPwSuccess(false);
+    setPwLoading(false);
+
+    setShowPw({
+      current: false,
+      next: false,
+      confirm: false,
+    });
   };
 
   // ── Delete account ─────────────────────────────────────────────────────────
@@ -374,7 +393,10 @@ export default function SettingsModal({
         <div className="mb-6">
           {section !== "menu" && (
             <button
-              onClick={() => setSection("menu")}
+              onClick={() => {
+                resetPasswordState();
+                setSection("menu");
+              }}
               className="flex items-center gap-1 text-xs text-ktsa-accent/70 hover:text-ktsa-accent mb-3 transition-colors"
             >
               <ChevronRight size={13} className="rotate-180" />
@@ -445,16 +467,24 @@ export default function SettingsModal({
                 <input
                   type={showPw.current ? "text" : "password"}
                   value={pwForm.current}
-                  onChange={(e) =>
-                    setPwForm((p) => ({ ...p, current: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setPwForm((p) => ({ ...p, current: value }));
+                    // validatePassword()
+                    setPwErrors((prev) => ({
+                      ...prev,
+                      current: "",
+                    }));
+                  }}
                   placeholder="Enter current password"
                   className={`w-full px-4 py-2 pr-10 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
                     ${pwErrors.current ? "border-red-500" : "border-gray-600 focus:border-ktsa-primary"}`}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPw((p) => ({ ...p, current: !p.current }))}
+                  onClick={() =>
+                    setShowPw((p) => ({ ...p, current: !p.current }))
+                  }
                   className="absolute right-3 top-8 text-gray-400 hover:text-white"
                 >
                   {showPw.current ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -470,9 +500,23 @@ export default function SettingsModal({
                 <input
                   type={showPw.next ? "text" : "password"}
                   value={pwForm.next}
-                  onChange={(e) =>
-                    setPwForm((p) => ({ ...p, next: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    setPwForm((prev) => ({
+                      ...prev,
+                      next: value,
+                    }));
+
+                    setPwErrors((prev) => ({
+                      ...prev,
+                      next: validateNewPassword(value),
+                      confirm:
+                        pwForm.confirm && pwForm.confirm !== value
+                          ? "Passwords do not match"
+                          : "",
+                    }));
+                  }}
                   placeholder="Enter new password"
                   className={`w-full px-4 py-2 pr-10 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
                     ${pwErrors.next ? "border-red-500" : "border-gray-600 focus:border-ktsa-primary"}`}
@@ -508,16 +552,31 @@ export default function SettingsModal({
                 <input
                   type={showPw.confirm ? "text" : "password"}
                   value={pwForm.confirm}
-                  onChange={(e) =>
-                    setPwForm((p) => ({ ...p, confirm: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+
+                    setPwForm((prev) => ({
+                      ...prev,
+                      confirm: value,
+                    }));
+
+                    setPwErrors((prev) => ({
+                      ...prev,
+                      confirm:
+                        value && value !== pwForm.next
+                          ? "Passwords do not match"
+                          : "",
+                    }));
+                  }}
                   placeholder="Confirm new password"
                   className={`w-full px-4 py-2 pr-10 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
                     ${pwErrors.confirm ? "border-red-500" : pwForm.confirm && pwForm.next === pwForm.confirm ? "border-green-500" : "border-gray-600 focus:border-ktsa-primary"}`}
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPw((p) => ({ ...p, confirm: !p.confirm }))}
+                  onClick={() =>
+                    setShowPw((p) => ({ ...p, confirm: !p.confirm }))
+                  }
                   className="absolute right-3 top-8 text-gray-400 hover:text-white"
                 >
                   {showPw.confirm ? <EyeOff size={16} /> : <Eye size={16} />}

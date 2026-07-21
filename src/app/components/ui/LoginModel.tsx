@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { X, Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router";
-
+import {toast} from "sonner";
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -52,6 +52,16 @@ export default function LoginModal({
   const markTouched = (field: string) =>
     setTouched((prev) => ({ ...prev, [field]: true }));
 
+  const resetForm = () => {
+  setEmail("");
+  setPassword("");
+  setTouched({});
+  setSubmitAttempted(false);
+  setLoginError("");
+  setShowPassword(false);
+  setIsLoading(false);
+};
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (e.button === 2) return;
@@ -61,6 +71,8 @@ export default function LoginModal({
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
       document.body.style.overflow = "auto";
+    }else{
+      resetForm();
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
@@ -146,7 +158,9 @@ export default function LoginModal({
 
               // ✅ Notify Navbar (same-tab update)
               window.dispatchEvent(new Event("auth-change"));
-
+              toast.success("Login successful!", {
+                duration: 1000
+              })
               onClose();
             } catch (err) {
               console.error(err);

@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { motion } from "motion/react";
 import logo from "../../assets/logo.png";
 import ProfileDropdown from "./ui/ProfileDropdown";
+import { toast } from "sonner";
 
 interface UserProfile {
   name: string;
@@ -88,8 +89,10 @@ export function Navbar({
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("userId");
     setUser(null);
     window.dispatchEvent(new Event("auth-change"));
+    // toast.success("You've been logged out successfully.")
   };
 
   useEffect(() => {
@@ -181,7 +184,7 @@ export function Navbar({
                 <button
                   onClick={onLoginClick}
                   className="px-4 py-2 rounded-lg bg-transparent border border-ktsa-accent text-ktsa-primary/70 font-bold hover:bg-ktsa-accent hover:text-ktsa-text transition-all duration-300"
-                >
+                > 
                   Log In
                 </button>
                 <button
@@ -209,7 +212,7 @@ export function Navbar({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="md:hidden py-4 border-t border-ktsa-accent/20 bg-ktsa-bg backdrop-blur-lg"
+            className="md:hidden py-4 border-t border-ktsa-accent/20 bg-ktsa-bg backdrop-blur-lg "
           >
             {navLinks.map((link) => (
               <Link

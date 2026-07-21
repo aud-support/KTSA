@@ -940,10 +940,10 @@ export function Rankings() {
                     setCurrentPage(1);
                     setSearchQuery("");
                   }}
-                  className={`px-5 py-1.5 rounded-full font-bold text-xs transition-all duration-300 ${
+                  className={`px-5 py-1.5 rounded-full font-bold text-xs transition-all hover:-translate-y-0.5 duration-300 ${
                     selectedCategory === category
                       ? "bg-ktsa-highlight text-ktsa-text shadow-lg scale-105"
-                      : "bg-ktsa-accent/20 text-ktsa-text border border-ktsa-accent/80 hover:border-ktsa-accent"
+                      : "bg-ktsa-accent/20 text-ktsa-text border border-ktsa-accent/80 hover:border-ktsa-accent hover:bg-ktsa-accent/10 hover:text-ktsa-highlight hover:shadow-md"
                   }`}
                 >
                   {category}
@@ -1208,7 +1208,7 @@ export function Rankings() {
             <div className="text-right">Wins</div>
           </div>
 
-          {paginatedRankings.map((player, index) => (
+          {paginatedRankings.length > 0 ? (paginatedRankings.map((player, index) => (
             <motion.div
               key={player.rank}
               initial={{ opacity: 0, x: -16 }}
@@ -1240,7 +1240,11 @@ export function Rankings() {
                 {player.wins}
               </div>
             </motion.div>
-          ))}
+          ))) : (
+  <div className="col-span-6 flex items-center justify-center py-10 text-ktsa-text/70 text-sm">
+    No users found
+  </div>
+)}
         </div>
       </section>
 
@@ -1258,7 +1262,7 @@ export function Rankings() {
           <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage((prev) => prev - 1)}
-            className="w-9 h-9 flex items-center justify-center text-ktsa-text font-extrabold rounded border border-ktsa-accent/20 disabled:opacity-40 hover:bg-ktsa-primary"
+            className="w-9 h-9 flex items-center justify-center text-ktsa-text font-extrabold rounded border border-ktsa-accent/20 disabled:opacity-40 enabled:hover:bg-ktsa-primary"
           >
             <ChevronLeft size={16} />
           </button>
@@ -1288,7 +1292,7 @@ export function Rankings() {
           <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage((prev) => prev + 1)}
-            className="w-9 h-9 flex items-center justify-center text-ktsa-text font-extrabold rounded border border-ktsa-accent/20 disabled:opacity-40 hover:bg-ktsa-primary"
+            className="w-9 h-9 flex items-center justify-center text-ktsa-text font-extrabold rounded border border-ktsa-accent/20 disabled:opacity-40 enabled:hover:bg-ktsa-primary"
           >
             <ChevronRight size={16} />
           </button>

@@ -219,8 +219,8 @@ export function Navbar({
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`block py-3 text-ktsa-accent hover:text-ktsa-text font-bold transition-colors ${
-                  location.pathname === link.path ? "text-ktsa-text" : ""
+                className={`block py-3 text-ktsa-accent font-bold transition-colors ${
+                  location.pathname === link.path ? "text-ktsa-primary" : "r" 
                 }`}
               >
                 {link.name}

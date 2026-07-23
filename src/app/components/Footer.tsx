@@ -120,14 +120,23 @@ export function Footer() {
           <div>
             <h3 className="text-ktsa-text font-semibold mb-4">Contact</h3>
             <ul className="space-y-2 text-sm">
-              <li className="flex items-center gap-2 text-ktsa-text/70">
-                <Mail size={16} className="text-ktsa-accent" />
-                info@ktsa.in
+              <li className="flex items-center gap-2">
+                <Mail size={16} className="text-ktsa-accent flex-shrink-0" />
+                <a
+                  href="mailto:info@ktsa.in"
+                  className="text-ktsa-text/70 hover:text-ktsa-accent transition-colors cursor-pointer"
+                >
+                  info@ktsa.in
+                </a>
               </li>
-              <li className="flex items-center gap-2 text-ktsa-text/70">
-                {" "}
-                <Phone className="text-ktsa-accent" size={16} />
-                +91-9901147147
+              <li className="flex items-center gap-2">
+                <Phone className="text-ktsa-accent flex-shrink-0" size={16} />
+                <a
+                  href="tel:+919901147147"
+                  className="text-ktsa-text/70 hover:text-ktsa-accent transition-colors cursor-pointer"
+                >
+                  +91-9901147147
+                </a>
               </li>
               <li className="flex items-center gap-2 text-ktsa-text/70">
                 <MapPin className="text-ktsa-accent" size={16} />

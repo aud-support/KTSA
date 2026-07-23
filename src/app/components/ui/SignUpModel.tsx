@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { X, Eye, EyeOff, ChevronDown } from "lucide-react";
 import { Link } from "react-router";
 import { toast } from "sonner";
+import { stateCityMap } from "./stateCityData";
 
 interface Props {
   isOpen: boolean;
@@ -10,11 +11,7 @@ interface Props {
   onSwitchToLogin: () => void;
 }
 
-const stateCityMap: Record<string, string[]> = {
-  Karnataka: ["Bangalore", "Mysore", "Mangalore"],
-  Maharashtra: ["Mumbai", "Pune", "Nagpur"],
-  TamilNadu: ["Chennai", "Coimbatore", "Madurai"],
-};
+
 
 const MONTHS = [
   "January",
@@ -35,13 +32,35 @@ const DAYS = Array.from({ length: 31 }, (_, i) =>
   String(i + 1).padStart(2, "0"),
 );
 const currentYear = new Date().getFullYear();
+// Only allow up to the current year for DOB
 const YEARS = Array.from({ length: 100 }, (_, i) => String(currentYear - i));
 
 // ─── Validation helpers ───────────────────────────────────────────────────────
 const validateEmail = (val: string) => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   if (!val) return "Email is required";
+
+  const parts = val.split("@");
+  if (parts.length !== 2) return "Enter a valid email address";
+
+  const [local, domain] = parts;
+
+  if (!local) return "Enter a valid email address";
+  if (local.startsWith(".")) return "Enter a valid email address";
+  if (local.endsWith(".")) return "Enter a valid email address";
+  if (/\.{2,}/.test(local)) return "Enter a valid email address";
+
+  if (!domain) return "Enter a valid email address";
+  if (domain.startsWith(".")) return "Enter a valid email address";
+  if (domain.endsWith(".")) return "Enter a valid email address";
+  if (/\.{2,}/.test(domain)) return "Enter a valid email address";
+  if (!domain.includes(".")) return "Enter a valid email address";
+
+  const tld = domain.split(".").pop();
+  if (!tld || tld.length < 2) return "Enter a valid email address";
+
+  const re = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
   if (!re.test(val)) return "Enter a valid email address";
+
   return "";
 };
 
@@ -87,69 +106,135 @@ function CustomDropdown({
   onChange,
 }: DropdownProps) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  // Split options: matches first, rest after
+  const lower = search.toLowerCase();
+  const matched = search
+    ? options.filter((o) => o.toLowerCase().includes(lower))
+    : [];
+  const unmatched = search
+    ? options.filter((o) => !o.toLowerCase().includes(lower))
+    : options;
+  const sorted = [...matched, ...unmatched];
+
+  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node))
+      if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
+        setSearch("");
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const handleOpen = () => {
+    if (disabled) return;
+    setOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 30);
+  };
+
+  const handleSelect = (opt: string) => {
+    onChange(opt);
+    setOpen(false);
+    setSearch("");
+  };
+
   return (
     <div ref={ref} className="relative">
       {label && (
-        <label className="block text-sm text-ktsa-accent mb-1">{label}</label>
+        <label className="block text-sm text-ktsa-accent mb-1">
+          {label.endsWith(" *") ? (
+            <>
+              {label.slice(0, -2)} <span className="text-red-400">*</span>
+            </>
+          ) : (
+            label
+          )}
+        </label>
       )}
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => !disabled && setOpen((o) => !o)}
+
+      {/* Trigger — shows selected value or typed search */}
+      <div
+        onClick={handleOpen}
         className={`w-full flex items-center justify-between px-4 py-2 rounded-lg border text-sm font-medium transition-colors bg-transparent
           ${
             disabled
               ? "border-gray-700 text-gray-600 cursor-not-allowed opacity-40"
-              : "border-gray-600 text-white hover:border-ktsa-primary focus:outline-none"
+              : "border-gray-600 hover:border-ktsa-primary cursor-pointer"
           }`}
       >
-        <span className={value ? "text-white" : "text-gray-500"}>
-          {value || placeholder}
-        </span>
+        {open ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={value || placeholder}
+            className="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm"
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <span className={value ? "text-white" : "text-gray-500"}>
+            {value || placeholder}
+          </span>
+        )}
         <ChevronDown
           size={14}
-          className={`transition-transform duration-200 text-gray-400 flex-shrink-0 ${open ? "rotate-180" : ""}`}
+          className={`transition-transform duration-200 text-gray-400 flex-shrink-0 ml-2 ${open ? "rotate-180" : ""}`}
         />
-      </button>
+      </div>
 
       {open && (
         <div
           className="absolute top-full mt-1 left-0 z-50 w-full bg-ktsa-bg border border-ktsa-accent/30 rounded-lg overflow-y-auto max-h-48"
           style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
         >
-          {options.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => {
-                onChange(opt);
-                setOpen(false);
-              }}
-              className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${
-                value === opt
-                  ? "bg-ktsa-accent/20 text-ktsa-accent"
-                  : "text-ktsa-text hover:bg-ktsa-primary/40"
-              }`}
-            >
-              {opt}
-            </button>
-          ))}
+          {sorted.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-gray-500 text-center">
+              No results
+            </p>
+          ) : (
+            sorted.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => handleSelect(opt)}
+                className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${
+                  value === opt
+                    ? "bg-ktsa-accent/20 text-ktsa-accent"
+                    : matched.includes(opt)
+                      ? "bg-ktsa-primary/20 text-white"
+                      : "text-ktsa-text hover:bg-ktsa-primary/40"
+                }`}
+              >
+                {opt}
+              </button>
+            ))
+          )}
         </div>
       )}
     </div>
   );
 }
+
+// ─── Empty form constant (outside component to keep stable reference) ────────
+const EMPTY_FORM = {
+  name: "",
+  email: "",
+  number: "",
+  gender: "",
+  dobDay: "",
+  dobMonth: "",
+  dobYear: "",
+  state: "",
+  city: "",
+  password: "",
+};
 
 // ─── Main Modal ──────────────────────────────────────────────────────────────
 export default function SignupModal({
@@ -160,22 +245,20 @@ export default function SignupModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
-
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    number: "",
-    gender: "",
-    dobDay: "",
-    dobMonth: "",
-    dobYear: "",
-    state: "",
-    city: "",
-    password: "",
-  });
-
-  // Track which fields have been touched (blurred)
+  const [form, setForm] = useState({ ...EMPTY_FORM });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const resetForm = () => {
+    setForm({ ...EMPTY_FORM });
+    setTouched({});
+    setSubmitAttempted(false);
+    setShowPassword(false);
+  };
+
+  // Reset every time modal opens fresh
+  useEffect(() => {
+    if (isOpen) resetForm();
+  }, [isOpen]);
 
   const markTouched = (field: string) =>
     setTouched((prev) => ({ ...prev, [field]: true }));
@@ -273,10 +356,18 @@ export default function SignupModal({
 
         <form
           className="space-y-5"
+          autoComplete="off"
           onSubmit={async (e) => {
             e.preventDefault();
             setSubmitAttempted(true);
             if (hasErrors) return;
+
+            // Validate DOB is not in the future
+            const dob = getDob();
+            if (dob && new Date(dob) > new Date()) {
+              toast.error("Date of birth cannot be a future date.");
+              return;
+            }
 
             const payload = {
               name: form.name,
@@ -317,6 +408,7 @@ export default function SignupModal({
                 return;
               }
               toast.success("Registration successful. Please log in to continue.");
+              resetForm();
               onClose();
             } catch (err) {
               console.error(err);
@@ -327,7 +419,7 @@ export default function SignupModal({
           {/* Full Name */}
           <div>
             <label className="block text-sm text-ktsa-accent mb-1">
-              Full Name
+              Full Name <span className="text-red-400">*</span>
             </label>
             <input
               name="name"
@@ -340,7 +432,9 @@ export default function SignupModal({
 
           {/* Email */}
           <div>
-            <label className="block text-sm text-ktsa-accent mb-1">Email</label>
+            <label className="block text-sm text-ktsa-accent mb-1">
+              Email <span className="text-red-400">*</span>
+            </label>
             <input
               type="email"
               name="email"
@@ -348,6 +442,7 @@ export default function SignupModal({
               onChange={handleChange}
               onBlur={() => markTouched("email")}
               placeholder="Enter your email"
+              autoComplete="new-password"
               className={`w-full px-4 py-2 rounded-lg bg-transparent border text-white focus:outline-none transition-colors
                 ${showError("email") ? "border-red-500 focus:border-red-400" : "border-gray-600 focus:border-ktsa-primary"}`}
             />
@@ -356,7 +451,9 @@ export default function SignupModal({
 
           {/* Phone — +91 prefix is purely decorative */}
           <div>
-            <label className="block text-sm text-ktsa-accent mb-1">Phone</label>
+            <label className="block text-sm text-ktsa-accent mb-1">
+              Phone <span className="text-red-400">*</span>
+            </label>
             <div className="flex items-center">
               {/* +91 badge */}
               <span className="flex items-center px-3 py-2 rounded-l-lg border border-r-0 border-gray-600 bg-white/5 text-gray-300 text-sm font-medium select-none whitespace-nowrap">
@@ -379,7 +476,7 @@ export default function SignupModal({
 
           {/* Gender */}
           <CustomDropdown
-            label="Gender"
+            label="Gender *"
             value={form.gender}
             options={["Male", "Female", "Other"]}
             onChange={(val) => setField("gender", val)}
@@ -388,7 +485,7 @@ export default function SignupModal({
           {/* Date of Birth */}
           <div>
             <label className="block text-sm text-ktsa-accent mb-1">
-              Date of Birth
+              Date of Birth <span className="text-red-400">*</span>
             </label>
             <div className="grid grid-cols-3 gap-2">
               <CustomDropdown
@@ -415,13 +512,13 @@ export default function SignupModal({
           {/* State + City */}
           <div className="grid grid-cols-2 gap-3">
             <CustomDropdown
-              label="State"
+              label="State *"
               value={form.state}
               options={Object.keys(stateCityMap)}
               onChange={(val) => setField("state", val)}
             />
             <CustomDropdown
-              label="City"
+              label="City *"
               value={form.city}
               options={cities}
               disabled={!form.state}
@@ -432,7 +529,7 @@ export default function SignupModal({
           {/* Password */}
           <div className="relative">
             <label className="block text-sm text-ktsa-accent mb-1">
-              Password
+              Password <span className="text-red-400">*</span>
             </label>
             <input
               type={showPassword ? "text" : "password"}
@@ -441,6 +538,7 @@ export default function SignupModal({
               onChange={handleChange}
               onBlur={() => markTouched("password")}
               placeholder="Enter your password"
+              autoComplete="new-password"
               className={`w-full px-4 py-2 pr-10 rounded-lg bg-transparent border text-white focus:outline-none transition-colors
                 ${showError("password") ? "border-red-500 focus:border-red-400" : "border-gray-600 focus:border-ktsa-primary"}`}
             />

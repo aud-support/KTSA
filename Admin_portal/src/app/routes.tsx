@@ -13,6 +13,7 @@ import { Contact } from "./pages/Contact";
 import { Articles } from "./pages/Articles";
 import { Sponsors } from "./pages/Sponsors";
 import { FooterSocial } from "./pages/FooterSocial";
+import { NotFound } from "./pages/NotFound";
 
 const ProtectedLayout = () => (
   <ProtectedRoute>
@@ -35,6 +36,8 @@ export const router = createBrowserRouter([
       { path: "tournaments/:id/edit", Component: TournamentForm },
       { path: "homepage", Component: Homepage },
       { path: "tournaments/:id/matches", Component: TournamentMatches },
+      { path: "articles", Component: Articles },
+      { path: "*", Component: NotFound },
     ],
   },
 ]);

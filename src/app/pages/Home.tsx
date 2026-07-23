@@ -476,6 +476,114 @@ function TournamentCarousel() {
   );
 }
 
+// ── Infinite Video Carousel ───────────────────────────────────────────────────
+function InfiniteVideoCarousel({ urls }: { urls: string[] }) {
+  const CARD_W = 400; // matches md:w-[400px]
+  const GAP = 24;     // gap-6 = 24px
+  const STEP = CARD_W + GAP;
+
+  const trackRef = useRef<HTMLDivElement>(null);
+  const offsetRef = useRef(0);
+  const loopWidthRef = useRef(0);
+  const isJumpingRef = useRef(false);
+
+  const toEmbed = (url: string) =>
+    url.includes("watch?v=") ? url.replace("watch?v=", "embed/") : url;
+
+  // Triple the list: pre | original | post
+  const tripled = [...urls, ...urls, ...urls];
+
+  // Initialise scroll to the middle copy so both directions have room
+  useEffect(() => {
+    const lw = urls.length * STEP;
+    loopWidthRef.current = lw;
+    offsetRef.current = lw; // start at middle copy
+    if (trackRef.current) {
+      trackRef.current.style.transition = "none";
+      trackRef.current.style.transform = `translateX(-${lw}px)`;
+    }
+  }, [urls.length]);
+
+  const applyOffset = useCallback(
+    (newOffset: number, animated = true) => {
+      const lw = loopWidthRef.current;
+      if (!trackRef.current || lw === 0) return;
+
+      // Silently jump when going out of the middle copy bounds
+      let adjusted = newOffset;
+      if (newOffset >= lw * 2) adjusted = newOffset - lw;
+      if (newOffset < 0) adjusted = newOffset + lw;
+
+      if (adjusted !== newOffset) {
+        // Silent instant jump first, then animate the remainder = 0
+        isJumpingRef.current = true;
+        offsetRef.current = adjusted;
+        trackRef.current.style.transition = "none";
+        trackRef.current.style.transform = `translateX(-${adjusted}px)`;
+        // Force reflow so the next transition takes effect
+        void trackRef.current.offsetWidth;
+        isJumpingRef.current = false;
+      }
+
+      offsetRef.current = adjusted;
+      trackRef.current.style.transition = animated
+        ? "transform 0.42s cubic-bezier(0.25,0.46,0.45,0.94)"
+        : "none";
+      trackRef.current.style.transform = `translateX(-${adjusted}px)`;
+    },
+    [],
+  );
+
+  const scrollBy = (dir: "left" | "right") => {
+    applyOffset(offsetRef.current + (dir === "right" ? STEP : -STEP));
+  };
+
+  return (
+    <div className="relative">
+      {/* Left arrow */}
+      <button
+        onClick={() => scrollBy("left")}
+        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-10 h-10 rounded-full flex items-center justify-center border border-ktsa-accent/40 bg-ktsa-bg/80 backdrop-blur-sm text-ktsa-accent hover:bg-ktsa-accent hover:text-ktsa-bg transition-all duration-200 cursor-pointer"
+      >
+        <ChevronLeft size={20} />
+      </button>
+
+      {/* Right arrow */}
+      <button
+        onClick={() => scrollBy("right")}
+        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-10 h-10 rounded-full flex items-center justify-center border border-ktsa-accent/40 bg-ktsa-bg/80 backdrop-blur-sm text-ktsa-accent hover:bg-ktsa-accent hover:text-ktsa-bg transition-all duration-200 cursor-pointer"
+      >
+        <ChevronRight size={20} />
+      </button>
+
+      {/* Track wrapper — clips overflow */}
+      <div className="overflow-hidden">
+        <div
+          ref={trackRef}
+          className="flex pb-4"
+          style={{ gap: GAP + "px", willChange: "transform" }}
+        >
+          {tripled.map((url, i) => (
+            <div
+              key={i}
+              className="flex-shrink-0 w-[300px] md:w-[400px] rounded-2xl overflow-hidden border border-ktsa-accent/30"
+              style={{ boxShadow: "0 10px 40px rgba(0,229,255,0.15)" }}
+            >
+              <div className="relative w-full pb-[56.25%]">
+                <iframe
+                  src={toEmbed(url)}
+                  className="absolute top-0 left-0 w-full h-full"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Home() {
   const [isMobile, setIsMobile] = useState(false);
   const [homepageContent, setHomepageContent] = useState<any>(null);
@@ -573,7 +681,7 @@ export function Home() {
               }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="w-full sm:w-auto px-7 py-3.5 sm:px-8 sm:py-4 bg-ktsa-primary/50 text-ktsa-text rounded-full font-bold text-sm sm:text-base shadow-lg transition-all duration-300 flex items-center gap-2 justify-center group relative overflow-hidden"
+              className="w-full sm:w-auto px-7 py-3.5 sm:px-8 sm:py-4 bg-ktsa-primary/50 text-ktsa-text rounded-full font-bold text-sm sm:text-base shadow-lg transition-all duration-300 flex items-center gap-2 justify-center group relative overflow-hidden cursor-pointer"
             >
               <span className="relative z-10">Get Involved</span>
               <ArrowRight
@@ -586,7 +694,7 @@ export function Home() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-full sm:w-auto px-7 py-3.5 sm:px-8 sm:py-4 bg-transparent border-2 border-white text-white rounded-full font-bold text-sm sm:text-base hover:border-ktsa-primary/90 hover:bg-ktsa-primary/80 hover:text-white transition-all duration-300"
+                className="w-full sm:w-auto px-7 py-3.5 sm:px-8 sm:py-4 bg-transparent border-2 border-white text-white rounded-full font-bold text-sm sm:text-base hover:border-ktsa-primary/90 hover:bg-ktsa-primary/80 hover:text-white transition-all duration-300 cursor-pointer"
               >
                 Explore KTSA
               </motion.button>
@@ -623,7 +731,7 @@ export function Home() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-full sm:w-auto px-7 py-3.5 sm:px-8 sm:py-4 bg-transparent border-2 border-white text-white rounded-full font-bold text-sm sm:text-base hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white transition-all duration-300"
+                className="w-full sm:w-auto px-7 py-3.5 sm:px-8 sm:py-4 bg-transparent border-2 border-white text-white rounded-full font-bold text-sm sm:text-base hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white transition-all duration-300 cursor-pointer"
               >
                 Learn More About KTSA
               </motion.button>
@@ -834,7 +942,7 @@ export function Home() {
                   .getElementById("footer")
                   ?.scrollIntoView({ behavior: "smooth" });
               }}
-              className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex items-center gap-2.5 px-8 py-3.5  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300"
+              className="hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white bg-transparent border-2 border-white text-white rounded-full font-bold inline-flex items-center gap-2.5 px-8 py-3.5  text-[13.5px] tracking-[0.3px] hover:-translate-y-0.5 transition-all duration-300 cursor-pointer"
             >
               Get in Touch with KTSA
               <svg
@@ -889,7 +997,7 @@ export function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 whileHover={{ scale: 1.02 }}
-                className={`relative bg-gradient-to-br from-ktsa-primary/35 to-ktsa-secondary/25 rounded-2xl p-5 backdrop-blur-sm border-2 ${borderClass} transition-all duration-300`}
+                className={`group relative bg-gradient-to-br from-ktsa-primary/35 to-ktsa-secondary/25 rounded-2xl p-5 backdrop-blur-sm border-2 ${borderClass} transition-all duration-300`}
                 style={{ boxShadow: `0 8px 30px ${glow}` }}
               >
                 <div className="flex items-center gap-3 mb-3">
@@ -898,7 +1006,7 @@ export function Home() {
                   >
                     {Icon}
                   </div>
-                  <h3 className="text-xl font-black text-ktsa-highlight hover:text-ktsa-text">
+                  <h3 className="text-xl font-black text-ktsa-highlight group-hover:text-ktsa-text transition-colors duration-300">
                     {label}
                   </h3>
                 </div>
@@ -948,7 +1056,7 @@ export function Home() {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-6 py-3 bg-ktsa-primary/80 text-ktsa-text rounded-full font-bold text-sm shadow-lg hover:bg-ktsa-highlight transition-colors duration-300"
+                  className="px-6 py-3 bg-ktsa-primary/80 text-ktsa-text rounded-full font-bold text-sm shadow-lg hover:bg-ktsa-highlight transition-colors duration-300 cursor-pointer"
                 >
                   View Full Rankings →
                 </motion.button>
@@ -1019,7 +1127,7 @@ export function Home() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-ktsa-primary/80 text-ktsa-text rounded-full font-bold text-base border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-400"
+                className="px-8 py-4 bg-ktsa-primary/80 text-ktsa-text rounded-full font-bold text-base border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-400 cursor-pointer"
               >
                 View Full Gallery
               </motion.button>
@@ -1128,64 +1236,12 @@ export function Home() {
             </motion.div>
           </div>
 
-          {/* Scrollable video track */}
-          <div className="relative">
-            {/* Left arrow */}
-            <button
-              onClick={() => {
-                const el = document.getElementById("video-track");
-                if (el) el.scrollBy({ left: -400, behavior: "smooth" });
-              }}
-              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-20 w-10 h-10 rounded-full flex items-center justify-center border border-ktsa-accent/40 bg-ktsa-bg/80 backdrop-blur-sm text-ktsa-accent hover:bg-ktsa-accent hover:text-ktsa-bg transition-all duration-200"
-            >
-              <ChevronLeft size={20} />
-            </button>
-
-            {/* Right arrow */}
-            <button
-              onClick={() => {
-                const el = document.getElementById("video-track");
-                if (el) el.scrollBy({ left: 400, behavior: "smooth" });
-              }}
-              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-20 w-10 h-10 rounded-full flex items-center justify-center border border-ktsa-accent/40 bg-ktsa-bg/80 backdrop-blur-sm text-ktsa-accent hover:bg-ktsa-accent hover:text-ktsa-bg transition-all duration-200"
-            >
-              <ChevronRight size={20} />
-            </button>
-
-            {/* Scrollable container */}
-            <div
-              id="video-track"
-              className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 scroll-smooth"
-            >
-              {homepageContent?.videoUrls?.map(
-                (videoUrl: string, i: number) => {
-                  const embedUrl = videoUrl.includes("watch?v=")
-                    ? videoUrl.replace("watch?v=", "embed/")
-                    : videoUrl;
-
-                  return (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.1 }}
-                      className="flex-shrink-0 w-[300px] md:w-[400px] rounded-2xl overflow-hidden border border-ktsa-accent/30"
-                      style={{ boxShadow: "0 10px 40px rgba(0,229,255,0.15)" }}
-                    >
-                      <div className="relative w-full pb-[56.25%]">
-                        <iframe
-                          src={embedUrl}
-                          className="absolute top-0 left-0 w-full h-full"
-                          allowFullScreen
-                        />
-                      </div>
-                    </motion.div>
-                  );
-                },
-              )}
-            </div>
-          </div>
+          {/* Infinite scrolling video track */}
+          {(() => {
+            const urls: string[] = homepageContent?.videoUrls ?? [];
+            if (urls.length === 0) return null;
+            return <InfiniteVideoCarousel urls={urls} />;
+          })()}
         </div>
         <div className="text-center">
           <motion.a
@@ -1262,7 +1318,7 @@ export function Home() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-ktsa-primary/80 text-ktsa-text rounded-full font-bold text-base  border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-300"
+                className="px-8 py-4 bg-ktsa-primary/80 text-ktsa-text rounded-full font-bold text-base  border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-300 cursor-pointer"
               >
                 Read More News
               </motion.button>

@@ -47,6 +47,8 @@ export interface Article {
   publishedDate: string;
   author: string;
   imageUrl?: string;
+  category?: string;
+  featured?: boolean;
 }
 
 export interface Sponsor {
@@ -275,6 +277,8 @@ const initialArticles: Article[] = [
       "We are excited to announce that registration for the KTSA Summer Cup is now open! This prestigious tournament will feature the best players from across the region competing for a prize pool of ₹30,000.",
     publishedDate: "2025-05-01",
     author: "KTSA Admin",
+    category: "KTSA",
+    featured: true,
   },
   {
     id: "2",
@@ -284,6 +288,8 @@ const initialArticles: Article[] = [
       "KTSA is proud to announce the opening of our new training facility equipped with 8 professional-grade tables and coaching staff.",
     publishedDate: "2025-04-15",
     author: "KTSA Admin",
+    category: "KTSA",
+    featured: false,
   },
 ];
 

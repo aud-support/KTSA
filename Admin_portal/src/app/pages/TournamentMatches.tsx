@@ -9,11 +9,11 @@ import {
   X,
   Search,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
-// Add this:
-import { getTournamentById } from "../../services/tournamentService"; // adjust path if needed
+import { getTournamentById } from "../../services/tournamentService";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import {
@@ -49,6 +49,93 @@ const STATUS_EDIT_OPTIONS = [
   { value: "completed", label: "Completed" },
   { value: "cancelled", label: "Cancelled" },
 ];
+
+// ─── ModalDropdown ─────────────────────────────────────────────────────────────
+// Fully custom dropdown — matches the FilterDropdown style from Tournaments page
+
+interface ModalDropdownProps {
+  label: string;
+  value: string;
+  placeholder?: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+  required?: boolean;
+}
+
+const ModalDropdown: React.FC<ModalDropdownProps> = ({
+  label,
+  value,
+  placeholder = "Select…",
+  options,
+  onChange,
+  required,
+}) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node))
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selected = options.find((o) => o.value === value);
+
+  return (
+    <div ref={ref} className="relative w-full">
+      <label className="block text-sm font-medium text-foreground mb-1.5">
+        {label}
+      </label>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className={`w-full flex items-center justify-between px-3 py-2 text-sm rounded-lg border transition-all duration-200
+          bg-input-background border-border text-foreground
+          focus:outline-none focus:ring-2 focus:ring-ktsa-primary/50
+          ${open ? "border-ktsa-accent ring-2 ring-ktsa-primary/50" : "hover:border-foreground/40"}`}
+      >
+        <span
+          className={selected ? "text-foreground" : "text-muted-foreground"}
+        >
+          {selected ? selected.label : placeholder}
+        </span>
+        <ChevronDown
+          size={15}
+          className={`text-ktsa-accent transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div
+          className="absolute z-50 top-full mt-1 left-0 right-0 bg-background border border-border rounded-lg overflow-hidden max-h-56 overflow-y-auto"
+          style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+        >
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => {
+                onChange(opt.value);
+                setOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2 text-sm font-medium transition-colors
+                ${
+                  value === opt.value
+                    ? "bg-ktsa-accent/15 text-ktsa-accent"
+                    : "text-foreground hover:bg-ktsa-accent/20"
+                }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // ─── Reusable SearchInput ──────────────────────────────────────────────────────
 
@@ -200,7 +287,7 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
 }) => {
   const [form, setForm] = useState<MatchRequestDto>({
     stage: "",
-    scheduledAt: "",
+    scheduledAt: null,
     status: "scheduled",
     playerOne: null,
     playerTwo: null,
@@ -235,8 +322,8 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message ||
-        err?.response?.data?.errors ||
-        "Failed to create match"
+          err?.response?.data?.errors ||
+          "Failed to create match",
       );
     } finally {
       setSubmitting(false);
@@ -296,45 +383,23 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
           </div>
 
           {/* Stage */}
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
-              Stage
-            </label>
-            <select
-              required
-              value={form.stage}
-              onChange={(e) => setForm({ ...form, stage: e.target.value })}
-              className="w-full py-2 px-3 text-sm bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ktsa-accent focus:border-ktsa-accent transition-colors"
-            >
-              <option value="" disabled>
-                Select stage
-              </option>
-              {STAGE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <ModalDropdown
+            label="Stage"
+            value={form.stage}
+            placeholder="Select stage"
+            options={STAGE_OPTIONS}
+            onChange={(v) => setForm({ ...form, stage: v })}
+            required
+          />
 
           {/* Status */}
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
-              Status
-            </label>
-            <select
-              required
-              value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className="w-full py-2 px-3 text-sm bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ktsa-accent focus:border-ktsa-accent transition-colors"
-            >
-              {STATUS_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <ModalDropdown
+            label="Status"
+            value={form.status}
+            options={STATUS_OPTIONS}
+            onChange={(v) => setForm({ ...form, status: v })}
+            required
+          />
 
           {/* Round Number */}
           <div>
@@ -359,13 +424,12 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
               Scheduled At
             </label>
             <input
-              type="text"
-              placeholder="e.g. 2026-07-01 15:00"
-              value={form.scheduledAt}
+              type="datetime-local"
+              value={form.scheduledAt ?? ""}
               onChange={(e) =>
-                setForm({ ...form, scheduledAt: e.target.value })
+                setForm({ ...form, scheduledAt: e.target.value || null })
               }
-              className="w-full py-2 px-3 text-sm bg-background border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ktsa-accent focus:border-ktsa-accent transition-colors"
+              className="w-full py-2 px-3 text-sm bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ktsa-accent focus:border-ktsa-accent transition-colors [color-scheme:dark]"
             />
           </div>
 
@@ -499,8 +563,8 @@ const EditMatchModal: React.FC<EditMatchModalProps> = ({
     } catch (err: any) {
       toast.error(
         err?.response?.data?.message ||
-        err?.response?.data?.errors ||
-        "Failed to update match"
+          err?.response?.data?.errors ||
+          "Failed to update match",
       );
     } finally {
       setSubmitting(false);
@@ -542,22 +606,12 @@ const EditMatchModal: React.FC<EditMatchModalProps> = ({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Status */}
-          <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-1.5">
-              Status
-            </label>
-            <select
-              value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className="w-full py-2 px-3 text-sm bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-1 focus:ring-ktsa-accent focus:border-ktsa-accent transition-colors"
-            >
-              {STATUS_EDIT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <ModalDropdown
+            label="Status"
+            value={form.status ?? ""}
+            options={STATUS_EDIT_OPTIONS}
+            onChange={(v) => setForm({ ...form, status: v })}
+          />
 
           {/* Scores */}
           <div className="grid grid-cols-2 gap-4">
@@ -880,7 +934,11 @@ export const TournamentMatches: React.FC = () => {
 
                     {match.scheduledAt && (
                       <p className="text-xs text-muted-foreground mt-3">
-                        Scheduled: {match.scheduledAt}
+                        Scheduled:{" "}
+                        {new Date(match.scheduledAt).toLocaleString("en-US", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
                       </p>
                     )}
                   </div>

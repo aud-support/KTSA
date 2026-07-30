@@ -66,3 +66,16 @@ export const setRegistrationClosed = async (id: string | number, closed: boolean
   );
   return response.data;
 };
+
+/**
+ * Download registrations for a tournament as an Excel file.
+ * Returns a Blob — caller is responsible for triggering the browser download.
+ * Throws if registration is not yet closed (backend returns 400).
+ */
+export const exportRegistrations = async (id: string | number): Promise<Blob> => {
+  const response = await axios.get(
+    `${API_BASE_URL}/api/tournament/${id}/registrations/export`,
+    { responseType: "blob" },
+  );
+  return response.data;
+};

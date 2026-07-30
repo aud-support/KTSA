@@ -28,7 +28,7 @@ export interface MatchResponseDto {
 
 export interface MatchRequestDto {
   stage: string;
-  scheduledAt: string;
+  scheduledAt: string | null;
   status: string;
   playerOne?: number | null;
   playerTwo?: number | null;

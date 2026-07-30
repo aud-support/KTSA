@@ -1071,7 +1071,7 @@ export function TournamentSection({ featuredId }: TournamentSectionProps) {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="px-8 py-3.5 bg-transparent border-2 border-white text-white rounded-full font-bold text-sm hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white transition-all duration-300 inline-flex items-center gap-2"
+                  className="px-8 py-3.5 bg-transparent border-2 border-white text-white rounded-full font-bold text-sm hover:border-ktsa-highlight hover:bg-ktsa-highlight hover:text-white transition-all duration-300 inline-flex items-center gap-2 cursor-pointer"
                 >
                   View all tournaments — past & upcoming
                   <ArrowRight size={16} />

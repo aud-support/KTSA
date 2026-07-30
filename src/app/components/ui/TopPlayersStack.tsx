@@ -120,7 +120,7 @@ export function TopPlayersStack() {
           const zIndex = getZIndex(displayIdx);
 
           const medalEmoji =
-            player.rank === 1 ? "🥇" : player.rank === 2 ? "🥇" : "🥇";
+            player.rank === 1 ? "🥇" : player.rank === 2 ? "🥈" : "🥉";
 
           const borderColor =
             isHovered || isFocused

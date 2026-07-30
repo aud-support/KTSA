@@ -60,7 +60,7 @@ export const Dashboard: React.FC = () => {
       label: "Write Article",
       description: "Publish news or announcements",
       icon: <Pencil size={20} />,
-      action: () => navigate("/articles/new"),
+      action: () => navigate("/articles"),
     },
     {
       label: "Edit Homepage",

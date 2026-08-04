@@ -13,7 +13,8 @@ import {
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import team from "../../assets/ktsa.jpg";
 import rulebook from "../../assets/Rulebook.pdf";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getAboutUsContent } from "../../services/aboutUsService";
 
 const achievements = [
   {
@@ -144,6 +145,56 @@ export function About() {
   const [expanded, setExpanded] = useState(false);
   const [expandedfounder, setExpandedfounder] = useState(false);
 
+  // ── Dynamic CMS content (falls back to hardcoded values if API not available) ──
+  const [cms, setCms] = useState<any>(null);
+
+  useEffect(() => {
+    getAboutUsContent()
+      .then((data) => { if (data) setCms(data); })
+      .catch((err) => console.error("Failed to load About Us content", err));
+  }, []);
+
+  // Helpers to resolve CMS value or fall back to default
+  const t = (key: string, fallback: string) =>
+    cms?.[key] ?? fallback;
+
+  // Dynamic arrays — use CMS data when available, else the hardcoded arrays
+  const dynamicTimeline: typeof timeline = cms?.timeline ?? timeline;
+  const dynamicAchievements: { icon: any; title: string; description: string }[] =
+    cms?.achievements
+      ? cms.achievements.map((a: any, i: number) => ({
+          icon: [Trophy, Users, Award, Star][i % 4],
+          title: a.title,
+          description: a.description,
+        }))
+      : achievements;
+  const dynamicProvides: typeof ktsakProvides = cms?.provides
+    ? cms.provides.map((p: any, i: number) => ({
+        icon: [Trophy, Users, Globe, MapPin, Award, Star][i % 6],
+        title: p.title,
+        desc: p.desc,
+      }))
+    : ktsakProvides;
+
+  // Story paragraphs: split on blank lines if coming from CMS
+  const storyParagraphs: string[] = cms?.storyContent
+    ? cms.storyContent.split(/\n\s*\n/).map((s: string) => s.trim()).filter(Boolean)
+    : [
+        "The Karnataka Table Soccer Association (KTSA) was founded on a simple belief — that foosball deserves the same structure, recognition, and competitive opportunity as any mainstream sport.",
+        "Established in 2018 by Sayeed Ahmed Shariff and a committed group of players in Bengaluru, KTSA was created to build a more organized future for foosball in Karnataka. From participation and community-building in its early years to structured tournaments, rankings, and competitive pathways, KTSA has steadily worked to give the sport the foundation it needed to grow with purpose.",
+        "KTSA is a registered non-profit organization dedicated to building a credible and organized platform for foosball in Karnataka. KTSA is affiliated with the Federation of Table Soccer India (FTSI), the national federation for the sport in India. Through FTSI, KTSA is connected to the International Table Soccer Federation (ITSF).",
+        "Today, KTSA continues to create opportunities for players to learn, compete, and progress, with 500+ active players and a wider community of 700+ players across platforms.",
+      ];
+
+  // Who We Are paragraphs
+  const whoWeAreParagraphs: string[] = cms?.whoWeAreContent
+    ? cms.whoWeAreContent.split(/\n\s*\n/).map((s: string) => s.trim()).filter(Boolean)
+    : [
+        "The Karnataka Table Soccer Association (KTSA) is the leading organisation dedicated to promoting and developing table soccer (foosball) in Karnataka, India.",
+        "Founded in 2018, we have grown into a vibrant community of passionate players, coaches, and enthusiasts who share a love for this dynamic sport.",
+        "We organise tournaments, training programmes, and community events to foster competitive excellence and bring together players of all skill levels.",
+      ];
+
   return (
     <div className="min-h-screen pt-20">
       {/* ── Hero Banner ──────────────────────────────────────── */}
@@ -200,12 +251,9 @@ export function About() {
                 </span>
               </h2>
 
-              {/* Always visible */}
+              {/* Always visible — first paragraph */}
               <p className="text-sm text-ktsa-text/75 mb-3 leading-relaxed">
-                The Karnataka Table Soccer Association (KTSA) was founded on a
-                simple belief — that foosball deserves the same structure,
-                recognition, and competitive opportunity as any mainstream
-                sport.
+                {storyParagraphs[0]}
               </p>
 
               {/* Collapsible on mobile, always visible on md+ */}
@@ -216,28 +264,11 @@ export function About() {
                     : "max-h-0 opacity-0 md:max-h-none md:opacity-100"
                 }`}
               >
-                <p className="text-sm text-ktsa-text/75 mb-3 leading-relaxed">
-                  Established in 2018 by Sayeed Ahmed Shariff and a committed
-                  group of players in Bengaluru, KTSA was created to build a
-                  more organized future for foosball in Karnataka. From
-                  participation and community-building in its early years to
-                  structured tournaments, rankings, and competitive pathways,
-                  KTSA has steadily worked to give the sport the foundation it
-                  needed to grow with purpose.
-                </p>
-                <p className="text-sm text-ktsa-text/75 mb-3 leading-relaxed">
-                  KTSA is a registered non-profit organization dedicated to
-                  building a credible and organized platform for foosball in
-                  Karnataka. KTSA is affiliated with the Federation of Table
-                  Soccer India (FTSI), the national federation for the sport in
-                  India. Through FTSI, KTSA is connected to the International
-                  Table Soccer Federation (ITSF).
-                </p>
-                <p className="text-sm text-ktsa-text/75 mb-6 leading-relaxed">
-                  Today, KTSA continues to create opportunities for players to
-                  learn, compete, and progress, with 500+ active players and a
-                  wider community of 700+ players across platforms.
-                </p>
+                {storyParagraphs.slice(1).map((para, i) => (
+                  <p key={i} className="text-sm text-ktsa-text/75 mb-3 leading-relaxed">
+                    {para}
+                  </p>
+                ))}
               </div>
 
               {/* Read More button — only on mobile */}
@@ -256,7 +287,8 @@ export function About() {
                 <button
                   onClick={() => {
                     const link = document.createElement("a");
-                    link.href = rulebook;
+                    const rulebookHref = t("rulebookUrl", rulebook);
+                    link.href = rulebookHref;
                     link.download = "Rulebook.pdf";
                     link.click();
                   }}
@@ -284,19 +316,22 @@ export function About() {
                 }}
               >
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400/30 to-yellow-600/20 border border-yellow-400/40 flex items-center justify-center text-yellow-400 font-black text-sm flex-shrink-0">
-                  SAS
+                  {t("founderName", "Sayeed Ahmed Shariff")
+                    .split(" ")
+                    .map((w: string) => w[0])
+                    .join("")
+                    .slice(0, 3)
+                    .toUpperCase()}
                 </div>
                 <div>
                   <p className="text-sm font-black text-ktsa-accent">
-                    Sayeed Ahmed Shariff
+                    {t("founderName", "Sayeed Ahmed Shariff")}
                   </p>
                   <p className="text-xs text-ktsa-text/50">
-                    Founder & President · KTSA
+                    {t("founderRole", "Founder & President · KTSA")}
                   </p>
                   <p className="text-xs text-white mt-1 leading-relaxed">
-                    "Our goal has always been to give Karnataka's foosball
-                    players the platform they deserve — structured, recognised,
-                    and connected to the world."
+                    "{t("founderQuote", "Our goal has always been to give Karnataka's foosball players the platform they deserve — structured, recognised, and connected to the world.")}"
                   </p>
 
                   {/* Expanded founder story */}
@@ -308,26 +343,7 @@ export function About() {
                     }`}
                   >
                     <p className="text-xs text-white/80 leading-relaxed">
-                      "My journey into foosball started casually — like most
-                      players, it began as a recreational activity. But over
-                      time, it became more than just a game. As I played more
-                      and interacted with other players, I realized there was
-                      real potential in the sport — talent, competitiveness, and
-                      passion — but no system to support it. That realization
-                      stayed with me. I started taking small steps — organizing
-                      local matches, connecting players, and eventually hosting
-                      tournaments. Each step came with its own challenges.
-                      Finding venues, managing logistics, ensuring participation
-                      — everything had to be figured out from scratch. There
-                      were moments of uncertainty. Some events had lower turnout
-                      than expected, resources were always limited. But what
-                      kept things going was consistency and belief. That
-                      experience on the world stage not only pushed me
-                      personally but reinforced the potential of Indian players
-                      in global competition. Today, what started as a personal
-                      interest has become a larger mission — building a
-                      structured ecosystem where players can compete, improve,
-                      and be recognized."
+                      "{t("founderStory", "My journey into foosball started casually — like most players, it began as a recreational activity. But over time, it became more than just a game.")}"
                     </p>
                   </div>
 
@@ -388,19 +404,10 @@ export function About() {
                 }`}
               >
                 {[
-                  {
-                    value: "700+",
-                    label: "Total players",
-                  },
-                  { value: "50+", label: "Tournaments" },
-                  {
-                    value: "500+",
-                    label: "Active Players",
-                  },
-                  {
-                    value: "15+",
-                    label: "clubs",
-                  },
+                  { value: t("totalPlayers", "700+"), label: "Total players" },
+                  { value: t("tournaments", "50+"), label: "Tournaments" },
+                  { value: t("activePlayers", "500+"), label: "Active Players" },
+                  { value: t("clubs", "15+"), label: "Clubs" },
                 ].map((s) => (
                   <div
                     key={s.label}
@@ -409,7 +416,7 @@ export function About() {
                     <p className="text-xl font-black text-ktsa-accent">
                       {s.value}
                     </p>
-                    <p className="text-xs  text-ktsa-text">{s.label}</p>
+                    <p className="text-xs text-ktsa-text">{s.label}</p>
                   </div>
                 ))}
               </div>
@@ -430,7 +437,7 @@ export function About() {
             >
               <div className="relative h-[240px] md:h-[320px] rounded-2xl overflow-hidden group">
                 <ImageWithFallback
-                  src={team}
+                  src={cms?.whoWeAreImageUrl || team}
                   alt="KTSA Team"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -450,21 +457,11 @@ export function About() {
                   We Are
                 </span>
               </h2>
-              <p className="text-sm text-ktsa-text/75 mb-3 leading-relaxed">
-                The Karnataka Table Soccer Association (KTSA) is the leading
-                organisation dedicated to promoting and developing table soccer
-                (foosball) in Karnataka, India.
-              </p>
-              <p className="text-sm text-ktsa-text/75 mb-3 leading-relaxed">
-                Founded in 2018, we have grown into a vibrant community of
-                passionate players, coaches, and enthusiasts who share a love
-                for this dynamic sport.
-              </p>
-              <p className="text-sm text-ktsa-text/75 leading-relaxed">
-                We organise tournaments, training programmes, and community
-                events to foster competitive excellence and bring together
-                players of all skill levels.
-              </p>
+              {whoWeAreParagraphs.map((para, i) => (
+                <p key={i} className="text-sm text-ktsa-text/75 mb-3 leading-relaxed">
+                  {para}
+                </p>
+              ))}
             </motion.div>
           </div>
         </div>
@@ -605,16 +602,15 @@ export function About() {
                 borderClass: "border-ktsa-accent/30 hover:border-ktsa-accent",
                 glow: "rgba(0,229,255,0.12)",
                 label: "Our Vision",
-                text: "To establish Karnataka as a leading hub for organized foosball, where every player has the opportunity to learn, compete, and grow. ",
+                text: t("visionText", "To establish Karnataka as a leading hub for organized foosball, where every player has the opportunity to learn, compete, and grow."),
               },
               {
                 icon: Target,
                 color: "ktsa-text",
-                borderClass:
-                  "border-ktsa-highlight/30 hover:border-ktsa-highlight",
+                borderClass: "border-ktsa-highlight/30 hover:border-ktsa-highlight",
                 glow: "rgba(255,111,0,0.12)",
                 label: "Our Mission",
-                text: "To bring structure, recognition, opportunity, and community to foosball in Karnataka through organized events, player development, inclusive participation, and competitive pathways for all ages. ",
+                text: t("missionText", "To bring structure, recognition, opportunity, and community to foosball in Karnataka through organized events, player development, inclusive participation, and competitive pathways for all ages."),
               },
             ].map(({ icon: Icon, color, borderClass, glow, label, text }) => (
               <motion.div
@@ -665,9 +661,9 @@ export function About() {
             {/* Centre line */}
             {/* Centre line */}
             <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-4 bottom-0 w-[2px] bg-gradient-to-b from-ktsa-accent via-ktsa-accent to-transparent" />{" "}
-            {timeline.map((item, index) => (
+            {dynamicTimeline.map((item, index) => (
               <motion.div
-                key={item.year}
+                key={item.year || index}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
@@ -727,7 +723,7 @@ export function About() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {ktsakProvides.map((item, index) => (
+            {dynamicProvides.map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -768,7 +764,7 @@ export function About() {
             </p>
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {achievements.map((achievement, index) => (
+            {dynamicAchievements.map((achievement, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}

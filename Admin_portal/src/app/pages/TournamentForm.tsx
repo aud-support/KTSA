@@ -33,7 +33,7 @@ export const TournamentForm: React.FC = () => {
     venue: "",
     maxParticipants: "",
     pricePool: "",
-    challengeBracketUrl: "",
+    challongeUrl: "",
     description: "",
     registrationClosed: false,
     categories: structuredClone(defaultCategories),
@@ -83,7 +83,7 @@ export const TournamentForm: React.FC = () => {
 
           pricePool: tournament.pricePool?.toString() || "",
 
-          challengeBracketUrl: "",
+          challongeUrl: tournament.challongeUrl || "",
 
           description: tournament.description,
 
@@ -252,6 +252,8 @@ export const TournamentForm: React.FC = () => {
         : null,
 
       registrationClosed: formData.registrationClosed,
+
+      challongeUrl: formData.challongeUrl.trim() || null,
     };
 
     // Build multipart payload
@@ -510,13 +512,20 @@ export const TournamentForm: React.FC = () => {
               </div>
             </div>
 
-            {/* <Input
-              label="Challonge Bracket URL"
-              name="challengeBracketUrl"
-              value={formData.challengeBracketUrl}
-              onChange={handleChange}
-              placeholder="https://challonge.com/..."
-            /> */}
+            <div className="space-y-1.5">
+              <Input
+                label="Challonge Tournament ID"
+                name="challongeUrl"
+                value={formData.challongeUrl}
+                onChange={handleChange}
+                placeholder="e.g. akash12345"
+              />
+              <p className="text-xs text-muted-foreground">
+                The Challonge tournament URL slug (the part after{" "}
+                <span className="font-mono text-muted-foreground/80">challonge.com/</span>
+                ). Used to sync bracket results automatically.
+              </p>
+            </div>
 
             <Textarea
               label="Description"

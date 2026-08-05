@@ -10,6 +10,8 @@ import {
   Search,
   Loader2,
   ChevronDown,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -22,9 +24,11 @@ import {
   updateMatch,
   searchPlayers,
   searchTeams,
+  syncFromChallonge,
   MatchResponseDto,
   MatchRequestDto,
   MatchUpdateDto,
+  ChallongeSyncResult,
 } from "../../services/matchService";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -144,7 +148,7 @@ interface SearchInputProps {
   placeholder: string;
   value: string;
   selectedId: number | null;
-  onSearch: (query: string) => Promise<{ id: number; label: string }[]>;
+  onSearch: (query: string) => Promise<{ id: number; label: string; subtitle?: string }[]>;
   onSelect: (id: number, label: string) => void;
   onClear: () => void;
 }
@@ -159,7 +163,7 @@ const SearchInput: React.FC<SearchInputProps> = ({
   onClear,
 }) => {
   const [query, setQuery] = useState(value);
-  const [results, setResults] = useState<{ id: number; label: string }[]>([]);
+  const [results, setResults] = useState<{ id: number; label: string; subtitle?: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -258,7 +262,12 @@ const SearchInput: React.FC<SearchInputProps> = ({
               }}
               className="w-full text-left px-3 py-2 text-sm hover:bg-muted transition-colors text-foreground"
             >
-              {r.label}
+              <span>{r.label}</span>
+              {r.subtitle && (
+                <span className="block text-xs text-muted-foreground font-mono mt-0.5">
+                  Challonge: {r.subtitle}
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -339,7 +348,11 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
 
   const handleTeamSearch = async (q: string) => {
     const results = await searchTeams(q);
-    return results.map((t) => ({ id: t.teamId, label: t.teamName }));
+    return results.map((t) => ({
+      id: t.teamId,
+      label: t.teamName,
+      subtitle: t.challongeTeamName ?? undefined,
+    }));
   };
 
   return (
@@ -578,7 +591,11 @@ const EditMatchModal: React.FC<EditMatchModalProps> = ({
 
   const handleTeamSearch = async (q: string) => {
     const results = await searchTeams(q);
-    return results.map((t) => ({ id: t.teamId, label: t.teamName }));
+    return results.map((t) => ({
+      id: t.teamId,
+      label: t.teamName,
+      subtitle: t.challongeTeamName ?? undefined,
+    }));
   };
 
   return (
@@ -741,9 +758,9 @@ export const TournamentMatches: React.FC = () => {
   const [matches, setMatches] = useState<MatchResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingMatch, setEditingMatch] = useState<MatchResponseDto | null>(
-    null,
-  );
+  const [editingMatch, setEditingMatch] = useState<MatchResponseDto | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<ChallongeSyncResult | null>(null);
 
   useEffect(() => {
     if (!tournamentId) return;
@@ -763,8 +780,28 @@ export const TournamentMatches: React.FC = () => {
       .finally(() => setLoading(false));
   }, [tournamentId]);
 
-  if (tournamentLoading) {
-    return (
+  const handleSyncChallonge = async () => {
+    if (!tournament?.challongeUrl) {
+      toast.error("No Challonge URL set for this tournament. Edit the tournament to add one.");
+      return;
+    }
+    setSyncing(true);
+    try {
+      const result = await syncFromChallonge(tournamentId);
+      setSyncResult(result);
+      // Refresh the match list
+      const refreshed = await getMatchesByTournament(tournamentId);
+      setMatches(refreshed);
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to sync from Challonge",
+      );
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  if (tournamentLoading) {    return (
       <div className="flex items-center justify-center py-20">
         <Loader2 size={32} className="animate-spin text-ktsa-accent" />
       </div>
@@ -830,14 +867,36 @@ export const TournamentMatches: React.FC = () => {
               </span>
             </div>
           </div>
-          <Button onClick={() => setShowCreateModal(true)}>
-            <Plus size={20} className="mr-2" />
-            Add Match
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Challonge sync button */}
+            <button
+              onClick={handleSyncChallonge}
+              disabled={syncing}
+              title={
+                tournament?.challongeUrl
+                  ? `Sync from Challonge (${tournament.challongeUrl})`
+                  : "No Challonge URL set — edit the tournament to add one"
+              }
+              className={`flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg border transition-colors
+                ${
+                  tournament?.challongeUrl
+                    ? "border-ktsa-accent/50 text-ktsa-accent hover:bg-ktsa-accent/10 hover:border-ktsa-accent"
+                    : "border-border text-muted-foreground/40 cursor-not-allowed"
+                }
+                ${syncing ? "opacity-60 cursor-wait" : ""}
+              `}
+            >
+              <RefreshCw size={15} className={syncing ? "animate-spin" : ""} />
+              {syncing ? "Syncing…" : "Sync Challonge"}
+            </button>
+
+            <Button onClick={() => setShowCreateModal(true)}>
+              <Plus size={20} className="mr-2" />
+              Add Match
+            </Button>
+          </div>
         </div>
       </div>
-
-      {/* Matches List */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 size={32} className="animate-spin text-ktsa-accent" />
@@ -894,17 +953,24 @@ export const TournamentMatches: React.FC = () => {
                     {/* Players / Teams vs Scores */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between gap-4">
-                        <span
-                          className={`font-medium ${oneWins ? "text-ktsa-primary" : "text-foreground"}`}
-                        >
-                          {nameOne}
-                          {(match.winnerPlayer === nameOne ||
-                            match.winnerTeam === nameOne) && (
-                            <span className="ml-2 text-xs text-ktsa-accent">
-                              🏆 Winner
-                            </span>
+                        <div>
+                          <span
+                            className={`font-medium ${oneWins ? "text-ktsa-primary" : "text-foreground"}`}
+                          >
+                            {nameOne}
+                            {(match.winnerPlayer === nameOne ||
+                              match.winnerTeam === nameOne) && (
+                              <span className="ml-2 text-xs text-ktsa-accent">
+                                🏆 Winner
+                              </span>
+                            )}
+                          </span>
+                          {isTeamMatch && match.teamOneChallongeName && (
+                            <p className="text-xs font-mono text-muted-foreground/70 mt-0.5">
+                              {match.teamOneChallongeName}
+                            </p>
                           )}
-                        </span>
+                        </div>
                         <span
                           className={`text-2xl font-bold tabular-nums ${oneWins ? "text-ktsa-primary" : "text-muted-foreground"}`}
                         >
@@ -913,17 +979,24 @@ export const TournamentMatches: React.FC = () => {
                       </div>
                       <div className="h-px bg-border" />
                       <div className="flex items-center justify-between gap-4">
-                        <span
-                          className={`font-medium ${twoWins ? "text-ktsa-primary" : "text-foreground"}`}
-                        >
-                          {nameTwo}
-                          {(match.winnerPlayer === nameTwo ||
-                            match.winnerTeam === nameTwo) && (
-                            <span className="ml-2 text-xs text-ktsa-accent">
-                              🏆 Winner
-                            </span>
+                        <div>
+                          <span
+                            className={`font-medium ${twoWins ? "text-ktsa-primary" : "text-foreground"}`}
+                          >
+                            {nameTwo}
+                            {(match.winnerPlayer === nameTwo ||
+                              match.winnerTeam === nameTwo) && (
+                              <span className="ml-2 text-xs text-ktsa-accent">
+                                🏆 Winner
+                              </span>
+                            )}
+                          </span>
+                          {isTeamMatch && match.teamTwoChallongeName && (
+                            <p className="text-xs font-mono text-muted-foreground/70 mt-0.5">
+                              {match.teamTwoChallongeName}
+                            </p>
                           )}
-                        </span>
+                        </div>
                         <span
                           className={`text-2xl font-bold tabular-nums ${twoWins ? "text-ktsa-primary" : "text-muted-foreground"}`}
                         >
@@ -984,6 +1057,94 @@ export const TournamentMatches: React.FC = () => {
             setEditingMatch(null);
           }}
         />
+      )}
+
+      {/* Challonge Sync Result Dialog */}
+      {syncResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-md">
+            <div className="flex items-center justify-between p-6 border-b border-border">
+              <h2 className="text-lg font-semibold text-foreground">
+                Challonge Sync Complete
+              </h2>
+              <button
+                onClick={() => setSyncResult(null)}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Stats grid */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-lg bg-muted/30 border border-border p-3 text-center">
+                  <p className="text-2xl font-bold text-foreground">
+                    {syncResult.totalFromChallonge}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    From Challonge
+                  </p>
+                </div>
+                <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-3 text-center">
+                  <p className="text-2xl font-bold text-green-400">
+                    {syncResult.created}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Created</p>
+                </div>
+                <div className="rounded-lg bg-ktsa-accent/10 border border-ktsa-accent/20 p-3 text-center">
+                  <p className="text-2xl font-bold text-ktsa-accent">
+                    {syncResult.updated}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Updated</p>
+                </div>
+              </div>
+
+              {/* Unmatched participants warning */}
+              {syncResult.unmatchedParticipants.length > 0 && (
+                <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-4">
+                  <div className="flex items-start gap-2 mb-2">
+                    <AlertCircle
+                      size={16}
+                      className="text-amber-400 mt-0.5 flex-shrink-0"
+                    />
+                    <p className="text-sm font-medium text-amber-400">
+                      {syncResult.unmatchedParticipants.length} participant
+                      {syncResult.unmatchedParticipants.length !== 1 ? "s" : ""}{" "}
+                      couldn't be matched to local users
+                    </p>
+                  </div>
+                  <ul className="space-y-1 ml-6">
+                    {syncResult.unmatchedParticipants.map((name) => (
+                      <li
+                        key={name}
+                        className="text-xs text-amber-300/80 font-mono"
+                      >
+                        "{name}"
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-xs text-muted-foreground mt-2 ml-6">
+                    Make sure each Challonge participant name exactly matches a
+                    local user's <span className="font-mono">userName</span>.
+                  </p>
+                </div>
+              )}
+
+              {syncResult.unmatchedParticipants.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center">
+                  All participants matched successfully.
+                </p>
+              )}
+            </div>
+
+            <div className="px-6 pb-6">
+              <Button className="w-full" onClick={() => setSyncResult(null)}>
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

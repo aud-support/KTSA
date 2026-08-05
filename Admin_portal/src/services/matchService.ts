@@ -17,6 +17,8 @@ export interface MatchResponseDto {
   playerTwo: string | null;
   teamOne: string | null;
   teamTwo: string | null;
+  teamOneChallongeName: string | null;
+  teamTwoChallongeName: string | null;
   teamOneScore: number | null;
   teamTwoScore: number | null;
   winnerTeam: string | null;
@@ -28,7 +30,7 @@ export interface MatchResponseDto {
 
 export interface MatchRequestDto {
   stage: string;
-  scheduledAt: string;
+  scheduledAt: string | null;
   status: string;
   playerOne?: number | null;
   playerTwo?: number | null;
@@ -54,6 +56,7 @@ export interface PlayerDto {
 export interface TeamDto {
   teamId: number;
   teamName: string;
+  challongeTeamName: string | null;
 }
 
 // Get all matches for a tournament
@@ -108,6 +111,26 @@ export const searchPlayers = async (
 export const searchTeams = async (query: string): Promise<TeamDto[]> => {
   const response = await axios.get(
     `${API_BASE}/api/team/search?q=${query}`,
+    { headers: authHeader() },
+  );
+  return response.data.data;
+};
+
+export interface ChallongeSyncResult {
+  totalFromChallonge: number;
+  created: number;
+  updated: number;
+  unmatchedParticipants: string[];
+}
+
+// Sync matches from Challonge into the local DB for a tournament.
+// The tournament must have challongeUrl set.
+export const syncFromChallonge = async (
+  tournamentId: number,
+): Promise<ChallongeSyncResult> => {
+  const response = await axios.post(
+    `${API_BASE}/api/matches/${tournamentId}/sync-challonge`,
+    null,
     { headers: authHeader() },
   );
   return response.data.data;

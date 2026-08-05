@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Lock,
   LockOpen,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "../components/Card";
@@ -19,6 +20,7 @@ import {
   getAvailableYears,
   deleteTournament as deleteTournamentAPI,
   setRegistrationClosed,
+  exportRegistrations,
 } from "../../services/tournamentService";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -202,6 +204,7 @@ export const Tournaments: React.FC = () => {
   const [allTournaments, setAllTournaments] = useState<Tournament[]>([]);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [exportingId, setExportingId] = useState<string | null>(null);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
@@ -315,6 +318,30 @@ export const Tournaments: React.FC = () => {
     }
   };
 
+  const handleExport = async (id: string, tournamentName: string) => {
+    setExportingId(id);
+    try {
+      const blob = await exportRegistrations(id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${tournamentName.replace(/\s+/g, "_")}_registrations.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Registrations exported successfully!");
+    } catch (err: any) {
+      const msg =
+        err?.response?.status === 400
+          ? "Registration must be closed before exporting."
+          : "Failed to export registrations.";
+      toast.error(msg);
+    } finally {
+      setExportingId(null);
+    }
+  };
+
   return (
     <div className="p-2 lg:p-4 max-w-7xl mx-auto">
       {/* Header */}
@@ -422,13 +449,16 @@ export const Tournaments: React.FC = () => {
                 <th className="px-6 py-2 text-sm text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
+                <th className="px-6 py-2 text-sm text-muted-foreground uppercase tracking-wider">
+                  Export
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {loading
                 ? Array.from({ length: PAGE_SIZE }).map((_, i) => (
                     <tr key={i}>
-                      <td colSpan={7} className="px-6 py-4">
+                      <td colSpan={8} className="px-6 py-4">
                         <div className="h-4 bg-muted rounded animate-pulse w-full" />
                       </td>
                     </tr>
@@ -537,6 +567,35 @@ export const Tournaments: React.FC = () => {
                           </button>
                         </div>
                       </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() =>
+                            handleExport(
+                              String(tournament.id),
+                              tournament.tournamentName,
+                            )
+                          }
+                          disabled={exportingId === String(tournament.id)}
+                          title={
+                            tournament.registrationClosed
+                              ? "Download Registrations"
+                              : "Close registration first to export"
+                          }
+                          className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-md border transition-colors
+                            ${
+                              tournament.registrationClosed
+                                ? "border-blue-500/40 text-blue-400 hover:bg-blue-500/10 hover:border-blue-400"
+                                : "border-border text-muted-foreground/40 cursor-not-allowed"
+                            }
+                            ${exportingId === String(tournament.id) ? "opacity-60 cursor-wait" : ""}
+                          `}
+                        >
+                          <Download size={12} />
+                          {exportingId === String(tournament.id)
+                            ? "Exporting…"
+                            : "Download"}
+                        </button>
+                      </td>
                     </tr>
                   ))}
             </tbody>
@@ -621,6 +680,28 @@ export const Tournaments: React.FC = () => {
                   {deleteConfirm === String(tournament.id)
                     ? "Confirm?"
                     : "Delete"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    handleExport(
+                      String(tournament.id),
+                      tournament.tournamentName,
+                    )
+                  }
+                  disabled={
+                    !tournament.registrationClosed ||
+                    exportingId === String(tournament.id)
+                  }
+                  className={
+                    tournament.registrationClosed
+                      ? "text-blue-400 border-blue-500/30"
+                      : "text-muted-foreground/40 cursor-not-allowed"
+                  }
+                >
+                  <Download size={12} className="mr-1" />
+                  {exportingId === String(tournament.id) ? "Exporting…" : "Download"}
                 </Button>
               </div>
             </div>

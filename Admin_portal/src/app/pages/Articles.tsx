@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { Input, Textarea, Select } from '../components/Input';
 import { useCMS } from '../context/CMSContext';
+import {
+  getArticles,
+  createArticle,
+  updateArticle as updateArticleApi,
+  deleteArticle as deleteArticleApi,
+} from '../../services/articlesService';
 
 const CATEGORY_OPTIONS = [
   { value: 'KTSA', label: 'KTSA' },
@@ -24,10 +30,30 @@ const emptyForm = {
 };
 
 export const Articles: React.FC = () => {
-  const { articles, addArticle, updateArticle, deleteArticle } = useCMS();
+  const { articles, addArticle, updateArticle, deleteArticle, setAllArticles } = useCMS();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({ ...emptyForm });
+  const [loading, setLoading] = useState(false);
+
+  // ── Load articles from backend on mount ──────────────────────
+  useEffect(() => {
+    const fetchArticles = async () => {
+      setLoading(true);
+      try {
+        const data = await getArticles();
+        setAllArticles(data);
+      } catch (error) {
+        console.error('Failed to load articles', error);
+        toast.error('Failed to load articles from server');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleEdit = (id: string) => {
     const article = articles.find((a) => a.id === id);
@@ -47,21 +73,48 @@ export const Articles: React.FC = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.title.trim()) {
       toast.error('Title is required');
       return;
     }
-    if (editingId) {
-      updateArticle(editingId, formData);
-      toast.success('Article updated successfully!');
-      setEditingId(null);
-    } else {
-      addArticle(formData);
-      toast.success('Article published successfully!');
-      setIsAdding(false);
+
+    setLoading(true);
+    try {
+      if (editingId) {
+        // Update existing
+        const updated = await updateArticleApi(editingId, formData);
+        updateArticle(editingId, updated);
+        toast.success('Article updated successfully!');
+        setEditingId(null);
+      } else {
+        // Create new
+        const created = await createArticle(formData);
+        addArticle(created);
+        toast.success('Article published successfully!');
+        setIsAdding(false);
+      }
+      setFormData({ ...emptyForm });
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to save article. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    setFormData({ ...emptyForm });
+  };
+
+  const handleDelete = async (id: string) => {
+    setLoading(true);
+    try {
+      await deleteArticleApi(id);
+      deleteArticle(id);
+      toast.success('Article deleted');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to delete article. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -79,7 +132,7 @@ export const Articles: React.FC = () => {
           <p className="text-muted-foreground">Manage news articles and announcements</p>
         </div>
         {!isAdding && !editingId && (
-          <Button onClick={() => setIsAdding(true)}>
+          <Button onClick={() => setIsAdding(true)} disabled={loading}>
             <Plus size={20} className="mr-2" />
             Write Article
           </Button>
@@ -121,7 +174,9 @@ export const Articles: React.FC = () => {
                 label="Published Date"
                 type="date"
                 value={formData.publishedDate}
-                onChange={(e) => setFormData({ ...formData, publishedDate: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, publishedDate: e.target.value })
+                }
               />
             </div>
 
@@ -139,7 +194,9 @@ export const Articles: React.FC = () => {
                   <input
                     type="checkbox"
                     checked={formData.featured}
-                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, featured: e.target.checked })
+                    }
                     className="h-4 w-4 accent-ktsa-primary"
                   />
                   <span className="text-sm text-muted-foreground flex items-center gap-1">
@@ -171,15 +228,20 @@ export const Articles: React.FC = () => {
             )}
 
             <div className="flex items-center gap-3 pt-2">
-              <Button onClick={handleSave}>
-                {editingId ? 'Save Changes' : 'Publish'}
+              <Button onClick={handleSave} disabled={loading}>
+                {loading ? 'Saving...' : editingId ? 'Save Changes' : 'Publish'}
               </Button>
-              <Button variant="ghost" onClick={handleCancel}>
+              <Button variant="ghost" onClick={handleCancel} disabled={loading}>
                 Cancel
               </Button>
             </div>
           </div>
         </Card>
+      )}
+
+      {/* Loading state */}
+      {loading && !isAdding && !editingId && (
+        <p className="text-muted-foreground text-sm mb-4">Loading articles...</p>
       )}
 
       {/* Articles List */}
@@ -219,7 +281,9 @@ export const Articles: React.FC = () => {
               </span>
             )}
 
-            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{article.excerpt}</p>
+            <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+              {article.excerpt}
+            </p>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>{article.author}</span>
@@ -253,9 +317,10 @@ export const Articles: React.FC = () => {
                 </button>
               )}
               <button
-                onClick={() => deleteArticle(article.id)}
+                onClick={() => handleDelete(article.id)}
                 className={`p-1.5 hover:bg-destructive/10 rounded-lg transition-colors ${article.featured ? 'mt-6' : ''}`}
                 title="Delete"
+                disabled={loading}
               >
                 <Trash2 size={15} className="text-destructive" />
               </button>
@@ -264,15 +329,12 @@ export const Articles: React.FC = () => {
         ))}
       </div>
 
-      {articles.length === 0 && !isAdding && (
-        <Card className="text-center py-12">
-          <h3 className="mb-2">No articles yet</h3>
-          <p className="text-muted-foreground mb-6">Write your first article to get started.</p>
-          <Button onClick={() => setIsAdding(true)}>
-            <Plus size={20} className="mr-2" />
-            Write Article
-          </Button>
-        </Card>
+      {/* Empty state */}
+      {!loading && articles.length === 0 && (
+        <div className="text-center py-16 text-muted-foreground">
+          <p className="text-lg font-semibold mb-2">No articles yet</p>
+          <p className="text-sm">Click "Write Article" to publish your first article.</p>
+        </div>
       )}
     </div>
   );

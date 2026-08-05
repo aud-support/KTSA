@@ -2,13 +2,46 @@ import { motion } from "motion/react";
 import { useParams, useNavigate } from "react-router";
 import { Calendar, Tag, ArrowLeft, User } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
-import { newsArticles } from "../data/newsData";
+import { useContext, useEffect, useState } from "react";
+import { getArticles, NewsArticle } from "../../services/articlesService";
+import { newsArticles as staticArticles } from "../data/newsData";
+
+// Map static newsData shape → NewsArticle shape so the fallback works
+const staticMapped: NewsArticle[] = staticArticles.map((a) => ({
+  id: String(a.id),
+  title: a.title,
+  excerpt: a.excerpt,
+  content: a.content,
+  author: a.author,
+  publishedDate: a.date,
+  imageUrl: a.image,
+  category: a.category,
+  featured: a.featured,
+}));
 
 export function NewsDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const article = newsArticles.find((a) => String(a.id) === id);
+  const [allArticles, setAllArticles] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getArticles()
+      .then((data) => setAllArticles(data.length > 0 ? data : staticMapped))
+      .catch(() => setAllArticles(staticMapped))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const article = allArticles.find((a) => a.id === id);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-32 flex items-center justify-center bg-ktsa-bg">
+        <div className="w-8 h-8 border-4 border-ktsa-accent/30 border-t-ktsa-accent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!article) {
     return (
@@ -25,17 +58,17 @@ export function NewsDetail() {
     );
   }
 
-  const related = newsArticles
+  const related = allArticles
     .filter((a) => a.id !== article.id && a.category === article.category)
     .slice(0, 3);
 
   return (
     <div className="min-h-screen pt-20 bg-ktsa-bg">
       {/* Hero image */}
-      {article.image && (
+      {article.imageUrl && (
         <div className="relative w-full h-[40vh] min-h-[260px] overflow-hidden">
           <ImageWithFallback
-            src={article.image}
+            src={article.imageUrl}
             alt={article.title}
             className="w-full h-full object-cover"
           />
@@ -96,7 +129,7 @@ export function NewsDetail() {
           </span>
           <span className="flex items-center gap-1.5">
             <Calendar size={15} />
-            {new Date(article.date).toLocaleDateString("en-US", {
+            {new Date(article.publishedDate).toLocaleDateString("en-US", {
               year: "numeric",
               month: "long",
               day: "numeric",
@@ -143,10 +176,10 @@ export function NewsDetail() {
                 onClick={() => navigate(`/news/${rel.id}`)}
                 className="cursor-pointer rounded-2xl overflow-hidden border border-ktsa-accent/20 hover:border-ktsa-accent/60 transition-all bg-ktsa-primary/10"
               >
-                {rel.image && (
+                {rel.imageUrl && (
                   <div className="h-32 overflow-hidden">
                     <ImageWithFallback
-                      src={rel.image}
+                      src={rel.imageUrl}
                       alt={rel.title}
                       className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
                     />
@@ -158,7 +191,7 @@ export function NewsDetail() {
                   </p>
                   <p className="text-xs text-ktsa-text/50 flex items-center gap-1">
                     <Calendar size={11} />
-                    {new Date(rel.date).toLocaleDateString("en-US", {
+                    {new Date(rel.publishedDate).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
                       year: "numeric",

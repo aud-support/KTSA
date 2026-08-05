@@ -109,9 +109,10 @@ interface CMSContextType {
   addRule: (rule: Omit<Rule, "id">) => void;
   updateRule: (id: string, rule: Partial<Rule>) => void;
   deleteRule: (id: string) => void;
-  addArticle: (article: Omit<Article, "id">) => void;
+  addArticle: (article: Omit<Article, "id"> & { id?: string }) => void;
   updateArticle: (id: string, article: Partial<Article>) => void;
   deleteArticle: (id: string) => void;
+  setAllArticles: (articles: Article[]) => void;
   addSponsor: (sponsor: Omit<Sponsor, "id">) => void;
   updateSponsor: (id: string, sponsor: Partial<Sponsor>) => void;
   deleteSponsor: (id: string) => void;
@@ -268,30 +269,8 @@ const initialRules: Rule[] = [
   },
 ];
 
-const initialArticles: Article[] = [
-  {
-    id: "1",
-    title: "KTSA Summer Cup Registration Now Open",
-    excerpt: "Join us for the biggest tournament of the season",
-    content:
-      "We are excited to announce that registration for the KTSA Summer Cup is now open! This prestigious tournament will feature the best players from across the region competing for a prize pool of ₹30,000.",
-    publishedDate: "2025-05-01",
-    author: "KTSA Admin",
-    category: "KTSA",
-    featured: true,
-  },
-  {
-    id: "2",
-    title: "New Training Facility Opens",
-    excerpt: "State-of-the-art facility now available for members",
-    content:
-      "KTSA is proud to announce the opening of our new training facility equipped with 8 professional-grade tables and coaching staff.",
-    publishedDate: "2025-04-15",
-    author: "KTSA Admin",
-    category: "KTSA",
-    featured: false,
-  },
-];
+// Articles are loaded from the backend; start with an empty list.
+const initialArticles: Article[] = [];
 
 const initialSponsors: Sponsor[] = [
   {
@@ -381,17 +360,24 @@ export const CMSProvider: React.FC<{ children: ReactNode }> = ({
     setRules(rules.filter((r) => r.id !== id));
   };
 
-  const addArticle = (article: Omit<Article, "id">) => {
-    const newArticle = { ...article, id: Date.now().toString() };
-    setArticles([...articles, newArticle]);
+  const addArticle = (article: Omit<Article, "id"> & { id?: string }) => {
+    // Use the id from the backend if present; otherwise generate a local one
+    const newArticle = { ...article, id: article.id ?? Date.now().toString() } as Article;
+    setArticles((prev) => [...prev, newArticle]);
   };
 
   const updateArticle = (id: string, article: Partial<Article>) => {
-    setArticles(articles.map((a) => (a.id === id ? { ...a, ...article } : a)));
+    setArticles((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, ...article } : a)),
+    );
   };
 
   const deleteArticle = (id: string) => {
-    setArticles(articles.filter((a) => a.id !== id));
+    setArticles((prev) => prev.filter((a) => a.id !== id));
+  };
+
+  const setAllArticles = (newArticles: Article[]) => {
+    setArticles(newArticles);
   };
 
   const addSponsor = (sponsor: Omit<Sponsor, "id">) => {
@@ -434,6 +420,7 @@ export const CMSProvider: React.FC<{ children: ReactNode }> = ({
         addArticle,
         updateArticle,
         deleteArticle,
+        setAllArticles,
         addSponsor,
         updateSponsor,
         deleteSponsor,

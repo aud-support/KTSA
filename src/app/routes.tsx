@@ -4,6 +4,7 @@ import { Home } from "./pages/Home";
 import { Rankings } from "./pages/Rankings";
 import { About } from "./pages/About";
 import { News } from "./pages/News";
+import { NewsDetail } from "./pages/NewsDetail";
 import { Gallery } from "./pages/Gallery";
 import { Tournaments } from "./pages/Tournaments";
 import { NotFound } from "./pages/NotFound";
@@ -17,6 +18,7 @@ export const router = createBrowserRouter([
       { path: "rankings", Component: Rankings },
       { path: "about", Component: About },
       { path: "news", Component: News },
+      { path: "news/:id", Component: NewsDetail },
       { path: "gallery", Component: Gallery },
       { path: "tournaments", Component: Tournaments },
       { path: "*", Component: NotFound },

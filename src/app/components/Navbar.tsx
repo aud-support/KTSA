@@ -116,6 +116,7 @@ export function Navbar({
     { name: "Home", path: "/" },
     { name: "Tournaments", path: "/tournaments" },
     { name: "Rankings", path: "/rankings" },
+    { name: "Services", path: "/services" },
     { name: "About", path: "/about" },
     { name: "News", path: "/news" },
   ];

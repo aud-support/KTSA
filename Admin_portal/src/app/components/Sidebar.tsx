@@ -61,6 +61,12 @@ const navItems: NavItem[] = [
     gradient: "linear-gradient(135deg, #60a5fa 0%, #6366f1 100%)",
   },
   {
+    label: "Services",
+    path: "/services",
+    icon: <Zap size={20} />,
+    gradient: "linear-gradient(135deg, #f59e0b 0%, #f97316 100%)",
+  },
+  {
     label: "Contact",
     path: "/contact",
     icon: <Mail size={20} />,

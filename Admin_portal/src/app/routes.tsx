@@ -11,6 +11,7 @@ import { Homepage } from "./pages/Homepage";
 import { AboutUs } from "./pages/AboutUs";
 import { Contact } from "./pages/Contact";
 import { Articles } from "./pages/Articles";
+import { Services } from "./pages/Services";
 import { Sponsors } from "./pages/Sponsors";
 import { FooterSocial } from "./pages/FooterSocial";
 import { NotFound } from "./pages/NotFound";
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
       { path: "about", Component: AboutUs },
       { path: "contact", Component: Contact },
       { path: "articles", Component: Articles },
+      { path: "services", Component: Services },
       { path: "sponsors", Component: Sponsors },
       { path: "footer-social", Component: FooterSocial },
       { path: "*", Component: NotFound },

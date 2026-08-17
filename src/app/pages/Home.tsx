@@ -28,6 +28,7 @@ import trophy from "../../assets/trophy.JPG";
 
 import { TournamentSection } from "../components/Tournamentsections";
 import { getHomepageContent } from "../../services/homepageService";
+import { SponsorsSection } from "../components/SponsorsSection";
 
 type Tournament = {
   id: number;
@@ -1326,6 +1327,10 @@ export function Home() {
           </div>
         </div>
       </section>
+
+      {/* Sponsors */}
+      <SponsorsSection />
+
     </div>
   );
 }

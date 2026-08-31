@@ -106,7 +106,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
-    toast.success("Logged out successfully");
+    toast.success("Logged out successfully", {
+      duration: 2000,
+    });
     navigate("/login");
   };
 

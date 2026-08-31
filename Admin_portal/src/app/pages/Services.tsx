@@ -1,29 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
-import { toast } from 'sonner';
-import { Card } from '../components/Card';
-import { Button } from '../components/Button';
-import { Input, Textarea } from '../components/Input';
-import { useCMS } from '../context/CMSContext';
+import React, { useState, useEffect } from "react";
+import { Plus, Pencil, Trash2, GripVertical } from "lucide-react";
+import { toast } from "sonner";
+import { Card } from "../components/Card";
+import { Button } from "../components/Button";
+import { Input, Textarea } from "../components/Input";
+import { useCMS } from "../context/CMSContext";
 import {
   getServices,
   createService,
   updateService as updateServiceApi,
   deleteService as deleteServiceApi,
-} from '../../services/servicesService';
+} from "../../services/servicesService";
 
 const emptyForm = {
-  name: '',
-  description: '',
-  icon: 'Zap',
-  features: [''],
-  pricing: 'Contact for pricing',
-  imageUrl: '',
+  name: "",
+  description: "",
+  icon: "Zap",
+  features: [""],
+  pricing: "Contact for pricing",
+  imageUrl: "",
   displayOrder: 0,
 };
 
 export const Services: React.FC = () => {
-  const { services, addService, updateService, deleteService, setAllServices } = useCMS();
+  const { services, addService, updateService, deleteService, setAllServices } =
+    useCMS();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({ ...emptyForm });
@@ -37,8 +38,8 @@ export const Services: React.FC = () => {
         const data = await getServices();
         setAllServices(data);
       } catch (error) {
-        console.error('Failed to load services', error);
-        toast.error('Failed to load services from server');
+        console.error("Failed to load services", error);
+        toast.error("Failed to load services from server");
       } finally {
         setLoading(false);
       }
@@ -55,9 +56,9 @@ export const Services: React.FC = () => {
         name: service.name,
         description: service.description,
         icon: service.icon,
-        features: service.features || [''],
+        features: service.features || [""],
         pricing: service.pricing,
-        imageUrl: service.imageUrl || '',
+        imageUrl: service.imageUrl || "",
         displayOrder: service.displayOrder || 0,
       });
       setEditingId(id);
@@ -67,7 +68,7 @@ export const Services: React.FC = () => {
 
   const handleSave = async () => {
     if (!formData.name.trim()) {
-      toast.error('Service name is required');
+      toast.error("Service name is required");
       return;
     }
 
@@ -81,33 +82,39 @@ export const Services: React.FC = () => {
       if (editingId) {
         const updated = await updateServiceApi(editingId, dataToSave);
         updateService(editingId, updated);
-        toast.success('Service updated successfully!');
+        toast.success("Service updated successfully!", {
+          duration: 2000,
+        });
         setEditingId(null);
       } else {
         const created = await createService(dataToSave);
         addService(created);
-        toast.success('Service created successfully!');
+        toast.success("Service created successfully!", {
+          duration: 2000,
+        });
         setIsAdding(false);
       }
       setFormData({ ...emptyForm });
     } catch (error) {
       console.error(error);
-      toast.error('Failed to save service. Please try again.');
+      toast.error("Failed to save service. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this service?')) {
+    if (window.confirm("Are you sure you want to delete this service?")) {
       setLoading(true);
       try {
         await deleteServiceApi(id);
         deleteService(id);
-        toast.success('Service deleted');
+        toast.success("Service deleted", {
+          duration: 2000,
+        });
       } catch (error) {
         console.error(error);
-        toast.error('Failed to delete service. Please try again.');
+        toast.error("Failed to delete service. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -123,7 +130,7 @@ export const Services: React.FC = () => {
   const addFeatureField = () => {
     setFormData({
       ...formData,
-      features: [...formData.features, ''],
+      features: [...formData.features, ""],
     });
   };
 
@@ -146,7 +153,9 @@ export const Services: React.FC = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="mb-2">Services</h1>
-          <p className="text-muted-foreground">Manage KTSA services and offerings</p>
+          <p className="text-muted-foreground">
+            Manage KTSA services and offerings
+          </p>
         </div>
         {!isAdding && !editingId && (
           <Button onClick={() => setIsAdding(true)} disabled={loading}>
@@ -159,12 +168,16 @@ export const Services: React.FC = () => {
       {/* Add/Edit Form */}
       {(isAdding || editingId) && (
         <Card className="mb-6">
-          <h3 className="mb-4">{editingId ? 'Edit Service' : 'Add New Service'}</h3>
+          <h3 className="mb-4">
+            {editingId ? "Edit Service" : "Add New Service"}
+          </h3>
           <div className="space-y-4">
             <Input
               label="Service Name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="e.g., Table Rental Services"
             />
 
@@ -182,13 +195,17 @@ export const Services: React.FC = () => {
               <Input
                 label="Icon (name or emoji)"
                 value={formData.icon}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, icon: e.target.value })
+                }
                 placeholder="e.g., Zap, Trophy, Users, Trophy"
               />
               <Input
                 label="Pricing"
                 value={formData.pricing}
-                onChange={(e) => setFormData({ ...formData, pricing: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, pricing: e.target.value })
+                }
                 placeholder="e.g., ₹5,000/day or Contact for pricing"
               />
             </div>
@@ -196,7 +213,9 @@ export const Services: React.FC = () => {
             <Input
               label="Image URL (optional)"
               value={formData.imageUrl}
-              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, imageUrl: e.target.value })
+              }
               placeholder="https://..."
             />
 
@@ -207,14 +226,16 @@ export const Services: React.FC = () => {
                   src={formData.imageUrl}
                   alt="Preview"
                   className="w-full h-full object-cover"
-                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                  onError={(e) => (e.currentTarget.style.display = "none")}
                 />
               </div>
             )}
 
             {/* Features */}
             <div>
-              <label className="block text-sm font-medium mb-3">Features/Highlights</label>
+              <label className="block text-sm font-medium mb-3">
+                Features/Highlights
+              </label>
               <div className="space-y-2">
                 {formData.features.map((feature, idx) => (
                   <div key={idx} className="flex gap-2">
@@ -247,7 +268,11 @@ export const Services: React.FC = () => {
 
             <div className="flex items-center gap-3 pt-2">
               <Button onClick={handleSave} disabled={loading}>
-                {loading ? 'Saving...' : editingId ? 'Save Changes' : 'Create Service'}
+                {loading
+                  ? "Saving..."
+                  : editingId
+                    ? "Save Changes"
+                    : "Create Service"}
               </Button>
               <Button variant="ghost" onClick={handleCancel} disabled={loading}>
                 Cancel
@@ -259,7 +284,9 @@ export const Services: React.FC = () => {
 
       {/* Loading state */}
       {loading && !isAdding && !editingId && (
-        <p className="text-muted-foreground text-sm mb-4">Loading services...</p>
+        <p className="text-muted-foreground text-sm mb-4">
+          Loading services...
+        </p>
       )}
 
       {/* Services List */}
@@ -273,7 +300,7 @@ export const Services: React.FC = () => {
                   src={service.imageUrl}
                   alt={service.name}
                   className="w-full h-full object-cover"
-                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                  onError={(e) => (e.currentTarget.style.display = "none")}
                 />
               </div>
             )}
@@ -292,7 +319,10 @@ export const Services: React.FC = () => {
             {service.features && service.features.length > 0 && (
               <div className="mb-3 space-y-1">
                 {service.features.slice(0, 2).map((feature, idx) => (
-                  <div key={idx} className="text-xs text-ktsa-text/70 flex items-start gap-2">
+                  <div
+                    key={idx}
+                    className="text-xs text-ktsa-text/70 flex items-start gap-2"
+                  >
                     <span className="text-ktsa-accent mt-1">•</span>
                     <span>{feature}</span>
                   </div>
@@ -306,7 +336,9 @@ export const Services: React.FC = () => {
             )}
 
             <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-              <span className="font-semibold text-ktsa-primary">{service.pricing}</span>
+              <span className="font-semibold text-ktsa-primary">
+                {service.pricing}
+              </span>
             </div>
 
             {/* Actions */}
@@ -336,7 +368,9 @@ export const Services: React.FC = () => {
       {!loading && services.length === 0 && (
         <div className="text-center py-16 text-muted-foreground">
           <p className="text-lg font-semibold mb-2">No services yet</p>
-          <p className="text-sm">Click "Add Service" to add your first service offering.</p>
+          <p className="text-sm">
+            Click "Add Service" to add your first service offering.
+          </p>
         </div>
       )}
     </div>

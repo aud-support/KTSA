@@ -1,36 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, Star } from 'lucide-react';
-import { toast } from 'sonner';
-import { Card } from '../components/Card';
-import { Button } from '../components/Button';
-import { Input, Textarea, Select } from '../components/Input';
-import { useCMS } from '../context/CMSContext';
+import React, { useState, useEffect } from "react";
+import { Plus, Pencil, Trash2, Star } from "lucide-react";
+import { toast } from "sonner";
+import { Card } from "../components/Card";
+import { Button } from "../components/Button";
+import { Input, Textarea, Select } from "../components/Input";
+import { useCMS } from "../context/CMSContext";
 import {
   getArticles,
   createArticle,
   updateArticle as updateArticleApi,
   deleteArticle as deleteArticleApi,
-} from '../../services/articlesService';
+} from "../../services/articlesService";
 
 const CATEGORY_OPTIONS = [
-  { value: 'KTSA', label: 'KTSA' },
-  { value: 'Events', label: 'Events' },
-  { value: 'Global', label: 'Global' },
+  { value: "KTSA", label: "KTSA" },
+  { value: "Events", label: "Events" },
+  { value: "Global", label: "Global" },
 ];
 
 const emptyForm = {
-  title: '',
-  excerpt: '',
-  content: '',
-  author: 'KTSA Admin',
-  publishedDate: new Date().toISOString().split('T')[0],
-  imageUrl: '',
-  category: 'KTSA',
+  title: "",
+  excerpt: "",
+  content: "",
+  author: "KTSA Admin",
+  publishedDate: new Date().toISOString().split("T")[0],
+  imageUrl: "",
+  category: "KTSA",
   featured: false,
 };
 
 export const Articles: React.FC = () => {
-  const { articles, addArticle, updateArticle, deleteArticle, setAllArticles } = useCMS();
+  const { articles, addArticle, updateArticle, deleteArticle, setAllArticles } =
+    useCMS();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({ ...emptyForm });
@@ -44,8 +45,8 @@ export const Articles: React.FC = () => {
         const data = await getArticles();
         setAllArticles(data);
       } catch (error) {
-        console.error('Failed to load articles', error);
-        toast.error('Failed to load articles from server');
+        console.error("Failed to load articles", error);
+        toast.error("Failed to load articles from server");
       } finally {
         setLoading(false);
       }
@@ -64,8 +65,8 @@ export const Articles: React.FC = () => {
         content: article.content,
         author: article.author,
         publishedDate: article.publishedDate,
-        imageUrl: article.imageUrl || '',
-        category: article.category || 'KTSA',
+        imageUrl: article.imageUrl || "",
+        category: article.category || "KTSA",
         featured: article.featured || false,
       });
       setEditingId(id);
@@ -75,7 +76,7 @@ export const Articles: React.FC = () => {
 
   const handleSave = async () => {
     if (!formData.title.trim()) {
-      toast.error('Title is required');
+      toast.error("Title is required");
       return;
     }
 
@@ -85,19 +86,23 @@ export const Articles: React.FC = () => {
         // Update existing
         const updated = await updateArticleApi(editingId, formData);
         updateArticle(editingId, updated);
-        toast.success('Article updated successfully!');
+        toast.success("Article updated successfully!", {
+          duration: 2000,
+        });
         setEditingId(null);
       } else {
         // Create new
         const created = await createArticle(formData);
         addArticle(created);
-        toast.success('Article published successfully!');
+        toast.success("Article published successfully!", {
+          duration: 2000,
+        });
         setIsAdding(false);
       }
       setFormData({ ...emptyForm });
     } catch (error) {
       console.error(error);
-      toast.error('Failed to save article. Please try again.');
+      toast.error("Failed to save article. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -108,10 +113,12 @@ export const Articles: React.FC = () => {
     try {
       await deleteArticleApi(id);
       deleteArticle(id);
-      toast.success('Article deleted');
+      toast.success("Article deleted", {
+        duration: 2000,
+      });
     } catch (error) {
       console.error(error);
-      toast.error('Failed to delete article. Please try again.');
+      toast.error("Failed to delete article. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -129,7 +136,9 @@ export const Articles: React.FC = () => {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="mb-2">News / Articles</h1>
-          <p className="text-muted-foreground">Manage news articles and announcements</p>
+          <p className="text-muted-foreground">
+            Manage news articles and announcements
+          </p>
         </div>
         {!isAdding && !editingId && (
           <Button onClick={() => setIsAdding(true)} disabled={loading}>
@@ -142,24 +151,32 @@ export const Articles: React.FC = () => {
       {/* Add/Edit Form */}
       {(isAdding || editingId) && (
         <Card className="mb-6">
-          <h3 className="mb-4">{editingId ? 'Edit Article' : 'Write New Article'}</h3>
+          <h3 className="mb-4">
+            {editingId ? "Edit Article" : "Write New Article"}
+          </h3>
           <div className="space-y-4">
             <Input
               label="Title"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               placeholder="Article title"
             />
             <Input
               label="Excerpt"
               value={formData.excerpt}
-              onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, excerpt: e.target.value })
+              }
               placeholder="Short summary"
             />
             <Textarea
               label="Content"
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, content: e.target.value })
+              }
               placeholder="Full article content..."
               rows={8}
             />
@@ -167,7 +184,9 @@ export const Articles: React.FC = () => {
               <Input
                 label="Author"
                 value={formData.author}
-                onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, author: e.target.value })
+                }
                 placeholder="Author name"
               />
               <Input
@@ -185,7 +204,9 @@ export const Articles: React.FC = () => {
               <Select
                 label="Category"
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
                 options={CATEGORY_OPTIONS}
               />
               <div className="flex flex-col gap-1">
@@ -211,7 +232,9 @@ export const Articles: React.FC = () => {
             <Input
               label="Image URL (optional)"
               value={formData.imageUrl}
-              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, imageUrl: e.target.value })
+              }
               placeholder="https://..."
             />
 
@@ -222,14 +245,14 @@ export const Articles: React.FC = () => {
                   src={formData.imageUrl}
                   alt="Preview"
                   className="w-full h-full object-cover"
-                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                  onError={(e) => (e.currentTarget.style.display = "none")}
                 />
               </div>
             )}
 
             <div className="flex items-center gap-3 pt-2">
               <Button onClick={handleSave} disabled={loading}>
-                {loading ? 'Saving...' : editingId ? 'Save Changes' : 'Publish'}
+                {loading ? "Saving..." : editingId ? "Save Changes" : "Publish"}
               </Button>
               <Button variant="ghost" onClick={handleCancel} disabled={loading}>
                 Cancel
@@ -241,7 +264,9 @@ export const Articles: React.FC = () => {
 
       {/* Loading state */}
       {loading && !isAdding && !editingId && (
-        <p className="text-muted-foreground text-sm mb-4">Loading articles...</p>
+        <p className="text-muted-foreground text-sm mb-4">
+          Loading articles...
+        </p>
       )}
 
       {/* Articles List */}
@@ -265,7 +290,7 @@ export const Articles: React.FC = () => {
                   src={article.imageUrl}
                   alt={article.title}
                   className="w-full h-full object-cover"
-                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                  onError={(e) => (e.currentTarget.style.display = "none")}
                 />
               </div>
             )}
@@ -288,10 +313,10 @@ export const Articles: React.FC = () => {
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>{article.author}</span>
               <span>
-                {new Date(article.publishedDate).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
+                {new Date(article.publishedDate).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
                 })}
               </span>
             </div>
@@ -318,7 +343,7 @@ export const Articles: React.FC = () => {
               )}
               <button
                 onClick={() => handleDelete(article.id)}
-                className={`p-1.5 hover:bg-destructive/10 rounded-lg transition-colors ${article.featured ? 'mt-6' : ''}`}
+                className={`p-1.5 hover:bg-destructive/10 rounded-lg transition-colors ${article.featured ? "mt-6" : ""}`}
                 title="Delete"
                 disabled={loading}
               >
@@ -333,7 +358,9 @@ export const Articles: React.FC = () => {
       {!loading && articles.length === 0 && (
         <div className="text-center py-16 text-muted-foreground">
           <p className="text-lg font-semibold mb-2">No articles yet</p>
-          <p className="text-sm">Click "Write Article" to publish your first article.</p>
+          <p className="text-sm">
+            Click "Write Article" to publish your first article.
+          </p>
         </div>
       )}
     </div>

@@ -6,6 +6,7 @@ import { About } from "./pages/About";
 import { News } from "./pages/News";
 import { NewsDetail } from "./pages/NewsDetail";
 import { Gallery } from "./pages/Gallery";
+import { Services } from "./pages/Services";
 import { Tournaments } from "./pages/Tournaments";
 import { NotFound } from "./pages/NotFound";
 
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
       { path: "news", Component: News },
       { path: "news/:id", Component: NewsDetail },
       { path: "gallery", Component: Gallery },
+      { path: "services", Component: Services },
       { path: "tournaments", Component: Tournaments },
       { path: "*", Component: NotFound },
     ],

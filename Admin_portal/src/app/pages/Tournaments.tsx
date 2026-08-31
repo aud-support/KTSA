@@ -291,7 +291,9 @@ export const Tournaments: React.FC = () => {
       try {
         await deleteTournamentAPI(id);
         setAllTournaments((prev) => prev.filter((t) => String(t.id) !== id));
-        toast.success("Tournament deleted successfully!");
+        toast.success("Tournament deleted successfully!", {
+          duration: 2000,
+        });
       } catch {
         toast.error("Failed to delete tournament");
       }
@@ -302,16 +304,24 @@ export const Tournaments: React.FC = () => {
     }
   };
 
-  const handleToggleRegistration = async (id: string, currentlyClosed: boolean) => {
+  const handleToggleRegistration = async (
+    id: string,
+    currentlyClosed: boolean,
+  ) => {
     try {
       await setRegistrationClosed(id, !currentlyClosed);
       setAllTournaments((prev) =>
         prev.map((t) =>
-          String(t.id) === id ? { ...t, registrationClosed: !currentlyClosed } : t,
+          String(t.id) === id
+            ? { ...t, registrationClosed: !currentlyClosed }
+            : t,
         ),
       );
       toast.success(
         !currentlyClosed ? "Registration closed." : "Registration reopened.",
+        {
+          duration: 2000,
+        },
       );
     } catch {
       toast.error("Failed to update registration status");
@@ -330,7 +340,9 @@ export const Tournaments: React.FC = () => {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      toast.success("Registrations exported successfully!");
+      toast.success("Registrations exported successfully!", {
+        duration: 2000,
+      });
     } catch (err: any) {
       const msg =
         err?.response?.status === 400
@@ -547,9 +559,13 @@ export const Tournaments: React.FC = () => {
                               }`}
                             >
                               {tournament.registrationClosed ? (
-                                <><Lock size={12} /> Closed</>
+                                <>
+                                  <Lock size={12} /> Closed
+                                </>
                               ) : (
-                                <><LockOpen size={12} /> Open</>
+                                <>
+                                  <LockOpen size={12} /> Open
+                                </>
                               )}
                             </button>
                           )}
@@ -666,9 +682,15 @@ export const Tournaments: React.FC = () => {
                     }
                   >
                     {tournament.registrationClosed ? (
-                      <><Lock size={12} className="mr-1" />Closed</>
+                      <>
+                        <Lock size={12} className="mr-1" />
+                        Closed
+                      </>
                     ) : (
-                      <><LockOpen size={12} className="mr-1" />Open</>
+                      <>
+                        <LockOpen size={12} className="mr-1" />
+                        Open
+                      </>
                     )}
                   </Button>
                 )}
@@ -701,7 +723,9 @@ export const Tournaments: React.FC = () => {
                   }
                 >
                   <Download size={12} className="mr-1" />
-                  {exportingId === String(tournament.id) ? "Exporting…" : "Download"}
+                  {exportingId === String(tournament.id)
+                    ? "Exporting…"
+                    : "Download"}
                 </Button>
               </div>
             </div>

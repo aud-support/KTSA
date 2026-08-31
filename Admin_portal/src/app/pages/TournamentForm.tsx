@@ -270,11 +270,15 @@ export const TournamentForm: React.FC = () => {
       if (isEdit && id) {
         await updateTournament(id, payload);
 
-        toast.success("Tournament updated successfully!");
+        toast.success("Tournament updated successfully!", {
+          duration: 2000,
+        });
       } else {
         await createTournament(payload);
 
-        toast.success("Tournament created successfully!");
+        toast.success("Tournament created successfully!", {
+          duration: 2000,
+        });
       }
 
       navigate("/tournaments");
@@ -522,7 +526,9 @@ export const TournamentForm: React.FC = () => {
               />
               <p className="text-xs text-muted-foreground">
                 The Challonge tournament URL slug (the part after{" "}
-                <span className="font-mono text-muted-foreground/80">challonge.com/</span>
+                <span className="font-mono text-muted-foreground/80">
+                  challonge.com/
+                </span>
                 ). Used to sync bracket results automatically.
               </p>
             </div>

@@ -148,7 +148,9 @@ interface SearchInputProps {
   placeholder: string;
   value: string;
   selectedId: number | null;
-  onSearch: (query: string) => Promise<{ id: number; label: string; subtitle?: string }[]>;
+  onSearch: (
+    query: string,
+  ) => Promise<{ id: number; label: string; subtitle?: string }[]>;
   onSelect: (id: number, label: string) => void;
   onClear: () => void;
 }
@@ -163,7 +165,9 @@ const SearchInput: React.FC<SearchInputProps> = ({
   onClear,
 }) => {
   const [query, setQuery] = useState(value);
-  const [results, setResults] = useState<{ id: number; label: string; subtitle?: string }[]>([]);
+  const [results, setResults] = useState<
+    { id: number; label: string; subtitle?: string }[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -326,7 +330,9 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
         teamTwo: matchType === "team" ? form.teamTwo : null,
       };
       const created = await createMatch(tournamentId, payload);
-      toast.success("Match created successfully");
+      toast.success("Match created successfully", {
+        duration: 2000,
+      });
       onCreated(created);
     } catch (err: any) {
       toast.error(
@@ -571,7 +577,9 @@ const EditMatchModal: React.FC<EditMatchModalProps> = ({
     setSubmitting(true);
     try {
       const updated = await updateMatch(match.id, form);
-      toast.success("Match updated successfully");
+      toast.success("Match updated successfully", {
+        duration: 2000,
+      });
       onUpdated(updated);
     } catch (err: any) {
       toast.error(
@@ -758,9 +766,13 @@ export const TournamentMatches: React.FC = () => {
   const [matches, setMatches] = useState<MatchResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingMatch, setEditingMatch] = useState<MatchResponseDto | null>(null);
+  const [editingMatch, setEditingMatch] = useState<MatchResponseDto | null>(
+    null,
+  );
   const [syncing, setSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState<ChallongeSyncResult | null>(null);
+  const [syncResult, setSyncResult] = useState<ChallongeSyncResult | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!tournamentId) return;
@@ -782,7 +794,9 @@ export const TournamentMatches: React.FC = () => {
 
   const handleSyncChallonge = async () => {
     if (!tournament?.challongeUrl) {
-      toast.error("No Challonge URL set for this tournament. Edit the tournament to add one.");
+      toast.error(
+        "No Challonge URL set for this tournament. Edit the tournament to add one.",
+      );
       return;
     }
     setSyncing(true);
@@ -801,7 +815,8 @@ export const TournamentMatches: React.FC = () => {
     }
   };
 
-  if (tournamentLoading) {    return (
+  if (tournamentLoading) {
+    return (
       <div className="flex items-center justify-center py-20">
         <Loader2 size={32} className="animate-spin text-ktsa-accent" />
       </div>
@@ -1110,7 +1125,9 @@ export const TournamentMatches: React.FC = () => {
                     />
                     <p className="text-sm font-medium text-amber-400">
                       {syncResult.unmatchedParticipants.length} participant
-                      {syncResult.unmatchedParticipants.length !== 1 ? "s" : ""}{" "}
+                      {syncResult.unmatchedParticipants.length !== 1
+                        ? "s"
+                        : ""}{" "}
                       couldn't be matched to local users
                     </p>
                   </div>

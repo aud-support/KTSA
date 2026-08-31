@@ -51,6 +51,17 @@ export interface Article {
   featured?: boolean;
 }
 
+export interface Service {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  features: string[];
+  pricing: string;
+  imageUrl?: string;
+  displayOrder: number;
+}
+
 export interface Sponsor {
   id: string;
   name: string;
@@ -97,6 +108,7 @@ interface CMSContextType {
   tournaments: Tournament[];
   rules: Rule[];
   articles: Article[];
+  services: Service[];
   sponsors: Sponsor[];
   contactInfo: ContactInfo;
   socialLinks: SocialLinks;
@@ -113,6 +125,10 @@ interface CMSContextType {
   updateArticle: (id: string, article: Partial<Article>) => void;
   deleteArticle: (id: string) => void;
   setAllArticles: (articles: Article[]) => void;
+  addService: (service: Omit<Service, "id"> & { id?: string }) => void;
+  updateService: (id: string, service: Partial<Service>) => void;
+  deleteService: (id: string) => void;
+  setAllServices: (services: Service[]) => void;
   addSponsor: (sponsor: Omit<Sponsor, "id">) => void;
   updateSponsor: (id: string, sponsor: Partial<Sponsor>) => void;
   deleteSponsor: (id: string) => void;
@@ -272,6 +288,9 @@ const initialRules: Rule[] = [
 // Articles are loaded from the backend; start with an empty list.
 const initialArticles: Article[] = [];
 
+// Services are loaded from the backend; start with an empty list.
+const initialServices: Service[] = [];
+
 const initialSponsors: Sponsor[] = [
   {
     id: "1",
@@ -296,6 +315,7 @@ export const CMSProvider: React.FC<{ children: ReactNode }> = ({
     useState<Tournament[]>(initialTournaments);
   const [rules, setRules] = useState<Rule[]>(initialRules);
   const [articles, setArticles] = useState<Article[]>(initialArticles);
+  const [services, setServices] = useState<Service[]>(initialServices);
   const [sponsors, setSponsors] = useState<Sponsor[]>(initialSponsors);
   const [contactInfo, setContactInfo] = useState<ContactInfo>({
     email: "admin@ktsaofficial.in",
@@ -380,6 +400,26 @@ export const CMSProvider: React.FC<{ children: ReactNode }> = ({
     setArticles(newArticles);
   };
 
+  const addService = (service: Omit<Service, "id"> & { id?: string }) => {
+    // Use the id from the backend if present; otherwise generate a local one
+    const newService = { ...service, id: service.id ?? Date.now().toString() } as Service;
+    setServices((prev) => [...prev, newService]);
+  };
+
+  const updateService = (id: string, service: Partial<Service>) => {
+    setServices((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, ...service } : s)),
+    );
+  };
+
+  const deleteService = (id: string) => {
+    setServices((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const setAllServices = (newServices: Service[]) => {
+    setServices(newServices);
+  };
+
   const addSponsor = (sponsor: Omit<Sponsor, "id">) => {
     const newSponsor = { ...sponsor, id: Date.now().toString() };
     setSponsors([...sponsors, newSponsor]);
@@ -405,6 +445,7 @@ export const CMSProvider: React.FC<{ children: ReactNode }> = ({
         tournaments,
         rules,
         articles,
+        services,
         sponsors,
         contactInfo,
         socialLinks,
@@ -421,6 +462,10 @@ export const CMSProvider: React.FC<{ children: ReactNode }> = ({
         updateArticle,
         deleteArticle,
         setAllArticles,
+        addService,
+        updateService,
+        deleteService,
+        setAllServices,
         addSponsor,
         updateSponsor,
         deleteSponsor,

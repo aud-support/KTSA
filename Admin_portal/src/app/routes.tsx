@@ -6,6 +6,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Tournaments } from "./pages/Tournaments";
 import { TournamentForm } from "./pages/TournamentForm";
 import { TournamentMatches } from "./pages/TournamentMatches";
+import { TournamentResults } from "./pages/TournamentResults";
 import { Rules } from "./pages/Rules";
 import { Homepage } from "./pages/Homepage";
 import { AboutUs } from "./pages/AboutUs";
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
       { path: "tournaments/new", Component: TournamentForm },
       { path: "tournaments/:id/edit", Component: TournamentForm },
       { path: "tournaments/:id/matches", Component: TournamentMatches },
+      { path: "tournaments/:id/results", Component: TournamentResults },
       { path: "rules", Component: Rules },
       { path: "homepage", Component: Homepage },
       { path: "about", Component: AboutUs },

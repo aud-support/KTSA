@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router";
-import { ArrowLeft, UploadCloud, X } from "lucide-react";
+import { ArrowLeft, UploadCloud, X, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
@@ -40,12 +40,16 @@ export const TournamentForm: React.FC = () => {
 
   // Banner image state
   const [bannerImage, setBannerImage] = useState<File | null>(null);
-  const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
+  const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(
+    null,
+  );
   const bannerInputRef = useRef<HTMLInputElement>(null);
 
   // QR code image state
   const [qrCodeImage, setQrCodeImage] = useState<File | null>(null);
-  const [qrCodeImagePreview, setQrCodeImagePreview] = useState<string | null>(null);
+  const [qrCodeImagePreview, setQrCodeImagePreview] = useState<string | null>(
+    null,
+  );
   const qrCodeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -459,46 +463,149 @@ export const TournamentForm: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* ── Start Date & Time ── */}
               <div className="space-y-2">
-                <label className="block text-sm text-foreground">
-                  Start Date & Time *
+                <label className="block text-sm font-medium text-foreground">
+                  Start Date &amp; Time *
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    name="startDate"
-                    type="date"
-                    value={formData.startDate}
-                    onChange={handleChange}
+                <div className="relative group">
+                  <input
+                    ref={(el) => {
+                      if (el) (el as any)._isStart = true;
+                    }}
+                    id="startDateTimeInput"
+                    type="datetime-local"
+                    name="startDateTime"
+                    value={
+                      formData.startDate && formData.startTime
+                        ? `${formData.startDate}T${formData.startTime}`
+                        : formData.startDate
+                          ? `${formData.startDate}T00:00`
+                          : ""
+                    }
+                    onChange={(e) => {
+                      const [date, time] = e.target.value.split("T");
+                      setFormData((prev) => ({
+                        ...prev,
+                        startDate: date || "",
+                        startTime: time ? time.slice(0, 5) : "",
+                      }));
+                    }}
                     required
+                    className="
+                      w-full pl-3 pr-10 py-2 rounded-lg
+                      bg-background border border-border
+                      text-foreground text-sm
+                      focus:outline-none focus:ring-1 focus:ring-ktsa-primary
+                      hover:border-ktsa-primary/50
+                      transition-colors
+                      [&::-webkit-calendar-picker-indicator]:opacity-0
+                      [&::-webkit-calendar-picker-indicator]:absolute
+                      [&::-webkit-calendar-picker-indicator]:right-0
+                      [&::-webkit-calendar-picker-indicator]:w-10
+                      [&::-webkit-calendar-picker-indicator]:h-full
+                      [&::-webkit-calendar-picker-indicator]:cursor-pointer
+                    "
                   />
-                  <Input
-                    name="startTime"
-                    type="time"
-                    value={formData.startTime}
-                    onChange={handleChange}
-                    placeholder="HH:MM"
-                    required
-                  />
+                  {/* Custom icon — click triggers picker */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const el = document.getElementById(
+                        "startDateTimeInput",
+                      ) as HTMLInputElement | null;
+                      if (el) {
+                        try {
+                          el.showPicker();
+                        } catch {
+                          el.focus();
+                        }
+                      }
+                    }}
+                    className="
+                      absolute right-0 top-0 h-full w-10
+                      flex items-center justify-center
+                      rounded-r-lg
+                      text-muted-foreground
+                      hover:text-ktsa-primary
+                      hover:bg-ktsa-primary/10
+                      transition-colors
+                    "
+                    tabIndex={-1}
+                  >
+                    <Calendar size={16} />
+                  </button>
                 </div>
               </div>
+
+              {/* ── End Date & Time ── */}
               <div className="space-y-2">
-                <label className="block text-sm text-foreground">
-                  End Date & Time
+                <label className="block text-sm font-medium text-foreground">
+                  End Date &amp; Time
                 </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    name="endDate"
-                    type="date"
-                    value={formData.endDate}
-                    onChange={handleChange}
+                <div className="relative group">
+                  <input
+                    id="endDateTimeInput"
+                    type="datetime-local"
+                    name="endDateTime"
+                    value={
+                      formData.endDate && formData.endTime
+                        ? `${formData.endDate}T${formData.endTime}`
+                        : formData.endDate
+                          ? `${formData.endDate}T00:00`
+                          : ""
+                    }
+                    onChange={(e) => {
+                      const [date, time] = e.target.value.split("T");
+                      setFormData((prev) => ({
+                        ...prev,
+                        endDate: date || "",
+                        endTime: time ? time.slice(0, 5) : "",
+                      }));
+                    }}
+                    className="
+                      w-full pl-3 pr-10 py-2 rounded-lg
+                      bg-background border border-border
+                      text-foreground text-sm
+                      focus:outline-none focus:ring-1 focus:ring-ktsa-primary
+                      hover:border-ktsa-primary/50
+                      transition-colors
+                      [&::-webkit-calendar-picker-indicator]:opacity-0
+                      [&::-webkit-calendar-picker-indicator]:absolute
+                      [&::-webkit-calendar-picker-indicator]:right-0
+                      [&::-webkit-calendar-picker-indicator]:w-10
+                      [&::-webkit-calendar-picker-indicator]:h-full
+                      [&::-webkit-calendar-picker-indicator]:cursor-pointer
+                    "
                   />
-                  <Input
-                    name="endTime"
-                    type="time"
-                    value={formData.endTime}
-                    onChange={handleChange}
-                    placeholder="HH:MM"
-                  />
+                  {/* Custom icon — click triggers picker */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const el = document.getElementById(
+                        "endDateTimeInput",
+                      ) as HTMLInputElement | null;
+                      if (el) {
+                        try {
+                          el.showPicker();
+                        } catch {
+                          el.focus();
+                        }
+                      }
+                    }}
+                    className="
+                      absolute right-0 top-0 h-full w-10
+                      flex items-center justify-center
+                      rounded-r-lg
+                      text-muted-foreground
+                      hover:text-ktsa-primary
+                      hover:bg-ktsa-primary/10
+                      transition-colors
+                    "
+                    tabIndex={-1}
+                  >
+                    <Calendar size={16} />
+                  </button>
                 </div>
               </div>
             </div>

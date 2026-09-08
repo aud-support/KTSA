@@ -58,6 +58,11 @@ export interface Rule {
   order: number;
 }
 
+export interface ArticleLink {
+  label: string;
+  url: string;
+}
+
 export interface Article {
   id: string;
   title: string;
@@ -68,6 +73,7 @@ export interface Article {
   imageUrl?: string;
   category?: string;
   featured?: boolean;
+  links?: ArticleLink[];
 }
 
 export interface Service {

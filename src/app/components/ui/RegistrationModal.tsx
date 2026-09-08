@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+import React from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   X,
@@ -16,6 +17,10 @@ import {
   AlertCircle,
   Search,
   Shield,
+  IndianRupee,
+  CreditCard,
+  Copy,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,6 +31,9 @@ interface Tournament {
   location: string;
   status: "Upcoming" | "Live" | "Completed";
   image: string;
+  enabledCategories?: string[];
+  categoryFees?: Record<string, number | null>;
+  qrCodeUrl?: string;
   _key?: string;
 }
 
@@ -68,8 +76,11 @@ function useCurrentUser(): { user: AuthUser | null; loading: boolean } {
 // ─── Category config ──────────────────────────────────────────────────────────
 const ALL_CATEGORIES = [
   { id: "Open Singles", label: "Open Singles", doubles: false },
-  { id: "Open Doubles", label: "Open Doubles", doubles: true },
   { id: "Women's Singles", label: "Women's Singles", doubles: false },
+  { id: "Men's Singles", label: "Men's Singles", doubles: false },
+  { id: "Under 16", label: "Under 16", doubles: false },
+  { id: "Above 16", label: "Above 16", doubles: false },
+  { id: "Open Doubles", label: "Open Doubles", doubles: true },
   { id: "Mixed Doubles", label: "Mixed Doubles", doubles: true },
 ] as const;
 
@@ -199,6 +210,14 @@ export default function RegistrationModal({
     "Defender" | "Attacker" | "All-rounder" | ""
   >("");
 
+  // ── Payment step state ──
+  // "form" → user fills categories/partner info
+  // "payment" → order summary + QR + UTR entry
+  const [step, setStep] = useState<"form" | "payment">("form");
+  const [utrNumber, setUtrNumber] = useState("");
+  const [utrError, setUtrError] = useState("");
+  const [utrCopied, setUtrCopied] = useState(false);
+
   // Helper: reset all three doubles sub-states
   const resetDoublesState = () => {
     setHasPartner(false);
@@ -248,6 +267,12 @@ export default function RegistrationModal({
   const hasDoublesSelected = ALL_CATEGORIES.some(
     (c) => c.doubles && selectedCategories.has(c.id),
   );
+
+  // Total fee across all selected categories
+  const totalFee = Array.from(selectedCategories).reduce((sum, catId) => {
+    const fee = tournament.categoryFees?.[catId];
+    return sum + (fee != null && fee > 0 ? fee : 0);
+  }, 0);
 
   // When all doubles are deselected, reset all doubles sub-state
   useEffect(() => {
@@ -367,8 +392,8 @@ export default function RegistrationModal({
     }, 300);
   };
 
-  // ── Submit ──
-  const handleSubmit = async (e: React.FormEvent) => {
+  // ── Phase 1: validate form, move to payment step ──
+  const handleProceedToPayment = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (selectedCategories.size === 0) {
@@ -380,40 +405,40 @@ export default function RegistrationModal({
       (c) => c.doubles && selectedCategories.has(c.id),
     );
 
-    // Validate partner fields if doubles selected with partner
     if (doubleCategories.length > 0 && hasPartner) {
       if (!partnerEmailValid) {
         toast.error("Please enter a valid partner email");
         return;
       }
-      if (doubleCategories.length > 1) {
-        toast.error(
-          "A team can only enter one doubles category per tournament. Please select a single doubles category.",
-        );
-        return;
-      }
     }
 
-    // Validate existing team — also limited to one doubles category
     if (doubleCategories.length > 0 && hasExistingTeam) {
       if (!selectedTeam) {
         toast.error("Please select a team from the search results");
         return;
       }
-      if (doubleCategories.length > 1) {
-        toast.error(
-          "A team can only enter one doubles category per tournament. Please select a single doubles category.",
-        );
-        return;
-      }
     }
 
-    // Validate need-partner role preference
     if (doubleCategories.length > 0 && needPartner && !rolePreference) {
       toast.error("Please select your role preference");
       return;
     }
 
+    // All form validation passed — move to payment step
+    setStep("payment");
+  };
+
+  // ── Phase 2: validate UTR, submit registration ──
+  const handleSubmit = async () => {
+    if (!utrNumber.trim()) {
+      setUtrError("Please enter your UTR / transaction reference number");
+      return;
+    }
+    if (utrNumber.trim().length < 6) {
+      setUtrError("UTR number seems too short. Please check and try again.");
+      return;
+    }
+    setUtrError("");
     setLoading(true);
 
     const BASE = import.meta.env.VITE_BACKEND_BASE_URL;
@@ -424,7 +449,6 @@ export default function RegistrationModal({
     };
 
     try {
-      // ── Build category entries for the batch endpoint ──
       const categoryEntries = Array.from(selectedCategories).map((cat) => {
         const catConfig = ALL_CATEGORIES.find((c) => c.id === cat)!;
 
@@ -449,10 +473,10 @@ export default function RegistrationModal({
         partnerPreference: needPartner ? rolePreference : undefined,
         teamName: hasPartner ? teamName.trim() : undefined,
         existingTeamId: hasExistingTeam && selectedTeam ? selectedTeam.teamId : undefined,
+        utrNumber: utrNumber.trim(),
         categories: categoryEntries,
       };
 
-      // ── Single request — backend validates ALL, saves ALL or NONE ──
       const res = await fetch(
         `${BASE}/api/registration/batch/${tournament.id}`,
         { method: "POST", headers, body: JSON.stringify(payload) }
@@ -461,18 +485,15 @@ export default function RegistrationModal({
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        // Backend returns a combined error message separated by " | "
         const fullMessage: string = data?.message || data?.errors || "Registration failed. Please fix the errors and try again.";
-        // Split on " | " and show each error as a separate toast
         const parts = fullMessage.split(" | ").filter(Boolean);
         parts.forEach((msg) => toast.error(msg));
         if (parts.length > 1) {
           toast.error("Registration failed. Please fix the errors and try again.");
         }
-        return; // stay on form
+        return;
       }
 
-      // All categories registered successfully
       setSubmitted(true);
 
     } catch (err: any) {
@@ -529,7 +550,7 @@ export default function RegistrationModal({
           )}
 
           {/* ── 3. Registration form ── */}
-          {!authLoading && user && !submitted && (
+          {!authLoading && user && !submitted && step === "form" && (
             <motion.div
               key="form"
               initial={{ opacity: 0 }}
@@ -570,7 +591,7 @@ export default function RegistrationModal({
                 </div>
               </div>
 
-              <form className="space-y-5" onSubmit={handleSubmit}>
+              <form className="space-y-5" onSubmit={handleProceedToPayment}>
                 {/* ── Category Checkboxes ── */}
                 <div>
                   <label className="block text-sm text-ktsa-accent mb-2">
@@ -580,38 +601,333 @@ export default function RegistrationModal({
                     </span>
                   </label>
                   <div className="space-y-2">
-                    {ALL_CATEGORIES.map((cat) => {
+                    {ALL_CATEGORIES.filter((cat) =>
+                      !tournament.enabledCategories ||
+                      tournament.enabledCategories.length === 0 ||
+                      tournament.enabledCategories.includes(cat.id)
+                    ).map((cat) => {
                       const checked = selectedCategories.has(cat.id);
+                      // Once any double is selected, disable all OTHER double categories
+                      const isDisabledDouble =
+                        cat.doubles &&
+                        !checked &&
+                        hasDoublesSelected;
+
                       return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => toggleCategory(cat.id)}
-                          className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200 text-left
-                            ${
-                              checked
-                                ? "border-ktsa-accent/60 bg-ktsa-accent/10 text-white"
-                                : "border-gray-700 bg-transparent text-gray-400 hover:border-gray-500 hover:text-gray-200"
-                            }`}
-                        >
-                          {checked ? (
-                            <CheckSquare
-                              size={16}
-                              className="text-ktsa-accent flex-shrink-0"
-                            />
-                          ) : (
-                            <Square
-                              size={16}
-                              className="text-gray-600 flex-shrink-0"
-                            />
+                        <React.Fragment key={cat.id}>
+                          <button
+                            type="button"
+                            disabled={isDisabledDouble}
+                            onClick={() => !isDisabledDouble && toggleCategory(cat.id)}
+                            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all duration-200 text-left
+                              ${
+                                isDisabledDouble
+                                  ? "border-gray-800 bg-transparent text-gray-600 cursor-not-allowed opacity-40"
+                                  : checked
+                                  ? "border-ktsa-accent/60 bg-ktsa-accent/10 text-white"
+                                  : "border-gray-700 bg-transparent text-gray-400 hover:border-gray-500 hover:text-gray-200"
+                              }`}
+                          >
+                            {checked ? (
+                              <CheckSquare
+                                size={16}
+                                className="text-ktsa-accent flex-shrink-0"
+                              />
+                            ) : (
+                              <Square
+                                size={16}
+                                className={isDisabledDouble ? "text-gray-700 flex-shrink-0" : "text-gray-600 flex-shrink-0"}
+                              />
+                            )}
+                            <span>{cat.label}</span>
+                            {cat.doubles && (
+                              <span className="ml-auto text-xs text-gray-500 font-normal">
+                                {isDisabledDouble ? "Only one doubles allowed" : "Doubles"}
+                              </span>
+                            )}
+                            {!isDisabledDouble && (() => {
+                              const fee = tournament.categoryFees?.[cat.id];
+                              return fee != null && fee > 0 ? (
+                                <span className={`${cat.doubles ? "" : "ml-auto"} text-xs font-semibold text-ktsa-accent/80`}>
+                                  ₹{fee}
+                                </span>
+                              ) : null;
+                            })()}
+                          </button>
+
+                          {/* ── Inline partner/team toggles — injected right below the selected double ── */}
+                          {cat.doubles && checked && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="ml-4 space-y-3 border-l-2 border-ktsa-accent/20 pl-3"
+                            >
+                              {/* Have a Partner? */}
+                              <div
+                                className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
+                                ${hasPartner ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Users size={16} className="text-ktsa-accent" />
+                                  <span className="text-sm font-medium text-white">Have a Partner?</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  aria-label="Toggle have partner"
+                                  onClick={() => {
+                                    if (hasPartner) resetDoublesState();
+                                    else { resetDoublesState(); setHasPartner(true); }
+                                  }}
+                                >
+                                  {hasPartner ? (
+                                    <ToggleRight size={28} className="text-ktsa-accent" />
+                                  ) : (
+                                    <ToggleLeft size={28} className="text-gray-500" />
+                                  )}
+                                </button>
+                              </div>
+
+                              {/* Partner fields */}
+                              {hasPartner && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="space-y-4 pl-1"
+                                >
+                                  <div>
+                                    <label className="block text-sm text-ktsa-accent mb-1">
+                                      Partner's Email
+                                    </label>
+                                    <div className="relative">
+                                      <input
+                                        required
+                                        type="email"
+                                        value={partnerEmail}
+                                        onChange={(e) => {
+                                          setPartnerEmail(e.target.value);
+                                          setPartnerEmailValid(null);
+                                          setPartnerEmailError("");
+                                          setExistingTeamForPair(null);
+                                        }}
+                                        onBlur={() => validatePartnerEmail(partnerEmail)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            validatePartnerEmail(partnerEmail);
+                                          }
+                                        }}
+                                        placeholder="Enter partner's email"
+                                        className={`w-full px-4 py-2 pr-9 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
+                                          ${partnerEmailValid === true ? "border-green-500" : partnerEmailValid === false ? "border-red-500" : "border-gray-600 focus:border-ktsa-primary"}`}
+                                      />
+                                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                        {partnerEmailChecking && <Loader2 size={14} className="text-gray-400 animate-spin" />}
+                                        {!partnerEmailChecking && partnerEmailValid === true && <CheckCircle size={14} className="text-green-500" />}
+                                        {!partnerEmailChecking && partnerEmailValid === false && <AlertCircle size={14} className="text-red-500" />}
+                                      </div>
+                                    </div>
+                                    {partnerEmailError && <p className="text-xs text-red-400 mt-1">{partnerEmailError}</p>}
+                                    {partnerEmailValid === true && !existingTeamForPair && (
+                                      <p className="text-xs text-green-400 mt-1">Valid registered player ✓</p>
+                                    )}
+                                  </div>
+
+                                  {existingTeamForPair && (
+                                    <motion.div
+                                      initial={{ opacity: 0, y: -4 }}
+                                      animate={{ opacity: 1, y: 0 }}
+                                      className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-500/10 border border-green-500/30"
+                                    >
+                                      <CheckCircle size={14} className="text-green-400 flex-shrink-0" />
+                                      <div>
+                                        <p className="text-xs text-green-400 font-medium">
+                                          Existing team found: "{existingTeamForPair.teamName}"
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                          Your team will be used automatically — no need to enter a name.
+                                        </p>
+                                      </div>
+                                    </motion.div>
+                                  )}
+
+                                  {!existingTeamForPair && (
+                                    <div>
+                                      <label className="block text-sm text-ktsa-accent mb-1">
+                                        Team Name{" "}
+                                        <span className="text-gray-500 text-xs font-normal">(optional)</span>
+                                      </label>
+                                      <input
+                                        type="text"
+                                        value={teamName}
+                                        onChange={(e) => { setTeamName(e.target.value); setTeamNameError(""); }}
+                                        placeholder="Leave blank to auto-generate from player names"
+                                        className={`w-full px-4 py-2 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
+                                          ${teamNameError ? "border-red-500" : "border-gray-600 focus:border-ktsa-primary"}`}
+                                      />
+                                      {teamNameError && <p className="text-xs text-red-400 mt-1">{teamNameError}</p>}
+                                    </div>
+                                  )}
+                                </motion.div>
+                              )}
+
+                              {/* Have a Team? */}
+                              <div
+                                className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
+                                ${hasExistingTeam ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Shield size={16} className="text-ktsa-accent" />
+                                  <span className="text-sm font-medium text-white">Have a Team?</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  aria-label="Toggle have team"
+                                  onClick={() => {
+                                    if (hasExistingTeam) resetDoublesState();
+                                    else { resetDoublesState(); setHasExistingTeam(true); }
+                                  }}
+                                >
+                                  {hasExistingTeam ? (
+                                    <ToggleRight size={28} className="text-ktsa-accent" />
+                                  ) : (
+                                    <ToggleLeft size={28} className="text-gray-500" />
+                                  )}
+                                </button>
+                              </div>
+
+                              {/* Team search */}
+                              {hasExistingTeam && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="pl-1"
+                                >
+                                  <label className="block text-sm text-ktsa-accent mb-1">Search Team</label>
+                                  <div ref={teamSearchRef} className="relative">
+                                    <div className="relative">
+                                      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                                      <input
+                                        type="text"
+                                        value={selectedTeam ? selectedTeam.teamName : teamSearchQuery}
+                                        onChange={(e) => {
+                                          if (selectedTeam) setSelectedTeam(null);
+                                          handleTeamSearchChange(e.target.value);
+                                        }}
+                                        onFocus={() => { if (teamSearchResults.length > 0) setTeamSearchOpen(true); }}
+                                        placeholder="Enter team name to search..."
+                                        className={`w-full pl-9 pr-8 py-2 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
+                                          ${selectedTeam ? "border-green-500" : "border-gray-600 focus:border-ktsa-primary"}`}
+                                      />
+                                      {teamSearchLoading && <Loader2 size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 animate-spin" />}
+                                      {selectedTeam && (
+                                        <button
+                                          type="button"
+                                          onClick={() => { setSelectedTeam(null); setTeamSearchQuery(""); }}
+                                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                                        >
+                                          <X size={14} />
+                                        </button>
+                                      )}
+                                    </div>
+                                    {teamSearchOpen && !selectedTeam && (
+                                      <div className="absolute z-50 top-full mt-1 w-full bg-black/90 border border-ktsa-accent/20 rounded-lg overflow-hidden shadow-xl max-h-48 overflow-y-auto">
+                                        {teamSearchResults.length > 0 ? (
+                                          teamSearchResults.map((team) => (
+                                            <button
+                                              key={team.teamId}
+                                              type="button"
+                                              onClick={() => { setSelectedTeam(team); setTeamSearchOpen(false); }}
+                                              className="w-full text-left px-4 py-2.5 text-sm text-white hover:bg-ktsa-primary/30 transition-colors flex items-center gap-2"
+                                            >
+                                              <Shield size={13} className="text-ktsa-accent flex-shrink-0" />
+                                              {team.teamName}
+                                            </button>
+                                          ))
+                                        ) : (
+                                          <p className="px-4 py-3 text-sm text-gray-500">No teams found</p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                  {selectedTeam ? (
+                                    <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                                      <CheckCircle size={12} /> Team "{selectedTeam.teamName}" selected
+                                    </p>
+                                  ) : (
+                                    <p className="text-xs text-gray-600 mt-1">Type to search existing teams by name</p>
+                                  )}
+                                </motion.div>
+                              )}
+
+                              {/* Need a Partner? */}
+                              <div
+                                className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
+                                ${needPartner ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <UserPlus size={16} className="text-ktsa-accent" />
+                                  <div>
+                                    <span className="text-sm font-medium text-white">Need a Partner?</span>
+                                    <p className="text-xs text-gray-500">We'll find someone for you</p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  aria-label="Toggle need partner"
+                                  onClick={() => {
+                                    if (needPartner) resetDoublesState();
+                                    else { resetDoublesState(); setNeedPartner(true); }
+                                  }}
+                                >
+                                  {needPartner ? (
+                                    <ToggleRight size={28} className="text-ktsa-accent" />
+                                  ) : (
+                                    <ToggleLeft size={28} className="text-gray-500" />
+                                  )}
+                                </button>
+                              </div>
+
+                              {/* Role preference */}
+                              {needPartner && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: -6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="pl-1"
+                                >
+                                  <label className="block text-sm text-ktsa-accent mb-2">
+                                    Your Role Preference <span className="text-red-400">*</span>
+                                  </label>
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {(["Defender", "Attacker", "All-rounder"] as const).map((role) => (
+                                      <button
+                                        key={role}
+                                        type="button"
+                                        onClick={() => setRolePreference(role)}
+                                        className={`py-2 rounded-lg text-xs font-semibold border transition-all duration-200
+                                          ${rolePreference === role
+                                            ? "bg-ktsa-primary/70 border-ktsa-primary text-white"
+                                            : "bg-transparent border-gray-600 text-gray-400 hover:border-gray-400 hover:text-white"
+                                          }`}
+                                      >
+                                        {role}
+                                      </button>
+                                    ))}
+                                  </div>
+                                  {rolePreference && (
+                                    <p className="text-xs text-ktsa-accent/70 mt-1.5">
+                                      You'll be matched with a compatible partner
+                                    </p>
+                                  )}
+                                </motion.div>
+                              )}
+                            </motion.div>
                           )}
-                          <span>{cat.label}</span>
-                          {cat.doubles && (
-                            <span className="ml-auto text-xs text-gray-500 font-normal">
-                              Doubles
-                            </span>
-                          )}
-                        </button>
+                        </React.Fragment>
                       );
                     })}
                   </div>
@@ -648,396 +964,140 @@ export default function RegistrationModal({
                   />
                 </div>
 
-                {/* ── Have a Partner? / Have a Team? / Need a Partner? Toggles — only when doubles selected ── */}
-                {hasDoublesSelected && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="space-y-3"
-                  >
-                    {/* ── Toggle row: Have a Partner? ── */}
-                    <div
-                      className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
-                      ${hasPartner ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Users size={16} className="text-ktsa-accent" />
-                        <span className="text-sm font-medium text-white">
-                          Have a Partner?
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        aria-label="Toggle have partner"
-                        onClick={() => {
-                          if (hasPartner) {
-                            resetDoublesState();
-                          } else {
-                            resetDoublesState();
-                            setHasPartner(true);
-                          }
-                        }}
-                      >
-                        {hasPartner ? (
-                          <ToggleRight size={28} className="text-ktsa-accent" />
-                        ) : (
-                          <ToggleLeft size={28} className="text-gray-500" />
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Partner fields */}
-                    {hasPartner && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="space-y-4 pl-1"
-                      >
-                        {/* Partner Email */}
-                        <div>
-                          <label className="block text-sm text-ktsa-accent mb-1">
-                            Partner's Email
-                          </label>
-                          <div className="relative">
-                            <input
-                              required
-                              type="email"
-                              value={partnerEmail}
-                              onChange={(e) => {
-                                setPartnerEmail(e.target.value);
-                                setPartnerEmailValid(null);
-                                setPartnerEmailError("");
-                                setExistingTeamForPair(null);
-                              }}
-                              onBlur={() => validatePartnerEmail(partnerEmail)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  validatePartnerEmail(partnerEmail);
-                                }
-                              }}
-                              placeholder="Enter partner's email"
-                              className={`w-full px-4 py-2 pr-9 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
-                                ${partnerEmailValid === true ? "border-green-500" : partnerEmailValid === false ? "border-red-500" : "border-gray-600 focus:border-ktsa-primary"}`}
-                            />
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              {partnerEmailChecking && (
-                                <Loader2
-                                  size={14}
-                                  className="text-gray-400 animate-spin"
-                                />
-                              )}
-                              {!partnerEmailChecking &&
-                                partnerEmailValid === true && (
-                                  <CheckCircle
-                                    size={14}
-                                    className="text-green-500"
-                                  />
-                                )}
-                              {!partnerEmailChecking &&
-                                partnerEmailValid === false && (
-                                  <AlertCircle
-                                    size={14}
-                                    className="text-red-500"
-                                  />
-                                )}
-                            </div>
-                          </div>
-                          {partnerEmailError && (
-                            <p className="text-xs text-red-400 mt-1">
-                              {partnerEmailError}
-                            </p>
-                          )}
-                          {partnerEmailValid === true &&
-                            !existingTeamForPair && (
-                              <p className="text-xs text-green-400 mt-1">
-                                Valid registered player ✓
-                              </p>
-                            )}
-                        </div>
-
-                        {/* Existing team banner — shown when pair already has a team */}
-                        {existingTeamForPair && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-green-500/10 border border-green-500/30"
-                          >
-                            <CheckCircle
-                              size={14}
-                              className="text-green-400 flex-shrink-0"
-                            />
-                            <div>
-                              <p className="text-xs text-green-400 font-medium">
-                                Existing team found: "
-                                {existingTeamForPair.teamName}"
-                              </p>
-                              <p className="text-xs text-gray-500 mt-0.5">
-                                Your team will be used automatically — no need
-                                to enter a name.
-                              </p>
-                            </div>
-                          </motion.div>
-                        )}
-
-                        {/* Team Name — only shown when no existing team for this pair */}
-                        {!existingTeamForPair && (
-                          <div>
-                            <label className="block text-sm text-ktsa-accent mb-1">
-                              Team Name{" "}
-                              <span className="text-gray-500 text-xs font-normal">
-                                (optional)
-                              </span>
-                            </label>
-                            <input
-                              type="text"
-                              value={teamName}
-                              onChange={(e) => {
-                                setTeamName(e.target.value);
-                                setTeamNameError("");
-                              }}
-                              placeholder="Leave blank to auto-generate from player names"
-                              className={`w-full px-4 py-2 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
-                                ${teamNameError ? "border-red-500" : "border-gray-600 focus:border-ktsa-primary"}`}
-                            />
-                            {teamNameError && (
-                              <p className="text-xs text-red-400 mt-1">
-                                {teamNameError}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </motion.div>
-                    )}
-
-                    {/* ── Toggle row: Have a Team? ── */}
-                    <div
-                      className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
-                      ${hasExistingTeam ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <Shield size={16} className="text-ktsa-accent" />
-                        <span className="text-sm font-medium text-white">
-                          Have a Team?
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        aria-label="Toggle have team"
-                        onClick={() => {
-                          if (hasExistingTeam) {
-                            resetDoublesState();
-                          } else {
-                            resetDoublesState();
-                            setHasExistingTeam(true);
-                          }
-                        }}
-                      >
-                        {hasExistingTeam ? (
-                          <ToggleRight size={28} className="text-ktsa-accent" />
-                        ) : (
-                          <ToggleLeft size={28} className="text-gray-500" />
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Team search field */}
-                    {hasExistingTeam && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="pl-1"
-                      >
-                        <label className="block text-sm text-ktsa-accent mb-1">
-                          Search Team
-                        </label>
-                        <div ref={teamSearchRef} className="relative">
-                          <div className="relative">
-                            <Search
-                              size={14}
-                              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                            />
-                            <input
-                              type="text"
-                              value={
-                                selectedTeam
-                                  ? selectedTeam.teamName
-                                  : teamSearchQuery
-                              }
-                              onChange={(e) => {
-                                if (selectedTeam) setSelectedTeam(null);
-                                handleTeamSearchChange(e.target.value);
-                              }}
-                              onFocus={() => {
-                                if (teamSearchResults.length > 0)
-                                  setTeamSearchOpen(true);
-                              }}
-                              placeholder="Enter team name to search..."
-                              className={`w-full pl-9 pr-8 py-2 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm transition-colors
-                                ${selectedTeam ? "border-green-500" : "border-gray-600 focus:border-ktsa-primary"}`}
-                            />
-                            {teamSearchLoading && (
-                              <Loader2
-                                size={14}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 animate-spin"
-                              />
-                            )}
-                            {selectedTeam && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedTeam(null);
-                                  setTeamSearchQuery("");
-                                }}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-                              >
-                                <X size={14} />
-                              </button>
-                            )}
-                          </div>
-
-                          {/* Dropdown */}
-                          {teamSearchOpen && !selectedTeam && (
-                            <div className="absolute z-50 top-full mt-1 w-full bg-black/90 border border-ktsa-accent/20 rounded-lg overflow-hidden shadow-xl max-h-48 overflow-y-auto">
-                              {teamSearchResults.length > 0 ? (
-                                teamSearchResults.map((team) => (
-                                  <button
-                                    key={team.teamId}
-                                    type="button"
-                                    onClick={() => {
-                                      setSelectedTeam(team);
-                                      setTeamSearchOpen(false);
-                                    }}
-                                    className="w-full text-left px-4 py-2.5 text-sm text-white hover:bg-ktsa-primary/30 transition-colors flex items-center gap-2"
-                                  >
-                                    <Shield
-                                      size={13}
-                                      className="text-ktsa-accent flex-shrink-0"
-                                    />
-                                    {team.teamName}
-                                  </button>
-                                ))
-                              ) : (
-                                <p className="px-4 py-3 text-sm text-gray-500">
-                                  No teams found
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {selectedTeam ? (
-                          <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
-                            <CheckCircle size={12} /> Team "
-                            {selectedTeam.teamName}" selected
-                          </p>
-                        ) : (
-                          <p className="text-xs text-gray-600 mt-1">
-                            Type to search existing teams by name
-                          </p>
-                        )}
-                      </motion.div>
-                    )}
-
-                    {/* ── Toggle row: Need a Partner? ── */}
-                    <div
-                      className={`flex items-center justify-between px-4 py-3 rounded-lg border transition-colors
-                      ${needPartner ? "border-ktsa-accent/40 bg-ktsa-primary/10" : "border-gray-700 bg-transparent"}`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <UserPlus size={16} className="text-ktsa-accent" />
-                        <div>
-                          <span className="text-sm font-medium text-white">
-                            Need a Partner?
-                          </span>
-                          <p className="text-xs text-gray-500">
-                            We'll find someone for you
-                          </p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        aria-label="Toggle need partner"
-                        onClick={() => {
-                          if (needPartner) {
-                            resetDoublesState();
-                          } else {
-                            resetDoublesState();
-                            setNeedPartner(true);
-                          }
-                        }}
-                      >
-                        {needPartner ? (
-                          <ToggleRight size={28} className="text-ktsa-accent" />
-                        ) : (
-                          <ToggleLeft size={28} className="text-gray-500" />
-                        )}
-                      </button>
-                    </div>
-
-                    {/* Role preference — shown when "Need a Partner?" is ON */}
-                    {needPartner && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -6 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="pl-1"
-                      >
-                        <label className="block text-sm text-ktsa-accent mb-2">
-                          Your Role Preference{" "}
-                          <span className="text-red-400">*</span>
-                        </label>
-                        <div className="grid grid-cols-3 gap-2">
-                          {(
-                            ["Defender", "Attacker", "All-rounder"] as const
-                          ).map((role) => (
-                            <button
-                              key={role}
-                              type="button"
-                              onClick={() => setRolePreference(role)}
-                              className={`py-2 rounded-lg text-xs font-semibold border transition-all duration-200
-                                ${
-                                  rolePreference === role
-                                    ? "bg-ktsa-primary/70 border-ktsa-primary text-white"
-                                    : "bg-transparent border-gray-600 text-gray-400 hover:border-gray-400 hover:text-white"
-                                }`}
-                            >
-                              {role}
-                            </button>
-                          ))}
-                        </div>
-                        {rolePreference && (
-                          <p className="text-xs text-ktsa-accent/70 mt-1.5">
-                            You'll be matched with a compatible partner
-                          </p>
-                        )}
-                      </motion.div>
-                    )}
-                  </motion.div>
-                )}
-
-                {/* Submit */}
+                {/* Make Payment */}
                 <button
                   type="submit"
-                  disabled={loading || selectedCategories.size === 0}
-                  className="w-full py-2.5 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-semibold hover:bg-ktsa-primary/60 hover:cursor-pointer transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed text-sm"
+                  disabled={selectedCategories.size === 0}
+                  className="w-full py-2.5 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-semibold hover:bg-ktsa-primary/60 hover:cursor-pointer transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
                 >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <Loader2 size={14} className="animate-spin" />
-                      Submitting…
-                    </span>
-                  ) : selectedCategories.size === 0 ? (
-                    "Select a Category to Register"
-                  ) : (
-                    `Register for ${selectedCategories.size} ${selectedCategories.size === 1 ? "Category" : "Categories"}`
-                  )}
+                  <CreditCard size={15} />
+                  {selectedCategories.size === 0
+                    ? "Select a Category to Continue"
+                    : `Make Payment · ₹${totalFee > 0 ? totalFee : "—"}`}
                 </button>
               </form>
+            </motion.div>
+          )}
+
+          {/* ── 3b. Payment step ── */}
+          {!authLoading && user && !submitted && step === "payment" && (
+            <motion.div
+              key="payment"
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -40 }}
+              transition={{ duration: 0.25 }}
+              className="space-y-5"
+            >
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-1">
+                <button
+                  type="button"
+                  onClick={() => setStep("form")}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <X size={18} />
+                </button>
+                <div>
+                  <h2 className="text-xl font-bold text-ktsa-accent">Complete Payment</h2>
+                  <p className="text-xs text-gray-400">Scan & pay, then enter your UTR</p>
+                </div>
+              </div>
+
+              {/* Order summary */}
+              <div className="rounded-xl border border-ktsa-accent/20 bg-ktsa-primary/10 p-4 space-y-2">
+                <p className="text-xs text-gray-400 uppercase tracking-wider mb-3">Order Summary</p>
+                {Array.from(selectedCategories).map((catId) => {
+                  const fee = tournament.categoryFees?.[catId];
+                  return (
+                    <div key={catId} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-300">{catId}</span>
+                      <span className="text-ktsa-accent font-semibold">
+                        {fee != null && fee > 0 ? `₹${fee}` : "Free"}
+                      </span>
+                    </div>
+                  );
+                })}
+                <div className="border-t border-ktsa-accent/20 pt-2 mt-2 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-white">Total</span>
+                  <span className="text-ktsa-accent font-bold text-lg flex items-center gap-0.5">
+                    <IndianRupee size={15} />{totalFee > 0 ? totalFee : "0"}
+                  </span>
+                </div>
+              </div>
+
+              {/* QR Code */}
+              {tournament.qrCodeUrl ? (
+                <div className="rounded-xl border border-ktsa-accent/20 bg-white p-4 flex flex-col items-center gap-3">
+                  <p className="text-xs text-gray-500 font-medium">Scan to Pay</p>
+                  <img
+                    src={tournament.qrCodeUrl}
+                    alt="Payment QR Code"
+                    className="w-48 h-48 object-contain"
+                  />
+                  <p className="text-xs text-gray-400 text-center">
+                    Scan the QR code using any UPI app and pay the amount above
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-gray-700 bg-transparent p-4 text-center">
+                  <p className="text-sm text-gray-400">
+                    No QR code set for this tournament. Please contact the organiser for payment details.
+                  </p>
+                </div>
+              )}
+
+              {/* UTR input */}
+              <div>
+                <label className="block text-sm text-ktsa-accent mb-1">
+                  UTR / Transaction Reference Number <span className="text-red-400">*</span>
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  After payment, enter the 12-digit UTR number from your UPI app
+                </p>
+                <input
+                  type="text"
+                  value={utrNumber}
+                  onChange={(e) => {
+                    setUtrNumber(e.target.value);
+                    setUtrError("");
+                  }}
+                  placeholder="e.g. 123456789012"
+                  maxLength={30}
+                  className={`w-full px-4 py-2.5 rounded-lg bg-transparent border text-white placeholder-gray-500 focus:outline-none text-sm tracking-wider transition-colors
+                    ${utrError ? "border-red-500" : utrNumber.trim().length >= 6 ? "border-green-500" : "border-gray-600 focus:border-ktsa-primary"}`}
+                />
+                {utrError && <p className="text-xs text-red-400 mt-1">{utrError}</p>}
+                {!utrError && utrNumber.trim().length >= 6 && (
+                  <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                    <CheckCircle size={11} /> UTR entered
+                  </p>
+                )}
+              </div>
+
+              {/* Submit */}
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading || !utrNumber.trim()}
+                className="w-full py-2.5 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-semibold hover:bg-ktsa-primary/60 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    Submitting…
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={15} />
+                    Confirm Registration
+                  </>
+                )}
+              </button>
+
+              <p className="text-xs text-gray-600 text-center">
+                Your registration will be confirmed once the UTR is verified by the organiser.
+              </p>
             </motion.div>
           )}
 

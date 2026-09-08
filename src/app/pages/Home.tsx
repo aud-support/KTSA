@@ -37,6 +37,9 @@ type Tournament = {
   location: string;
   status: "Upcoming" | "Live" | "Completed";
   image: string;
+  enabledCategories?: string[];
+  categoryFees?: Record<string, number | null>;
+  qrCodeUrl?: string;
   _key?: string;
 };
 
@@ -291,6 +294,25 @@ function TournamentCarousel() {
                   ? "Live"
                   : "Completed",
             image: [april, april1, jan, march][json.data.indexOf(t) % 4],
+            enabledCategories: [
+              t.openSingleEnabled && "Open Singles",
+              t.womenSingleEnabled && "Women's Singles",
+              t.mensSingleEnabled && "Men's Singles",
+              t.underSixteenEnabled && "Under 16",
+              t.aboveSixteenEnabled && "Above 16",
+              t.openDoubleEnabled && "Open Doubles",
+              t.mixedDoubleEnabled && "Mixed Doubles",
+            ].filter(Boolean) as string[],
+            categoryFees: {
+              "Open Singles":    t.openSingleFee   ?? null,
+              "Women's Singles": t.womenSingleFee  ?? null,
+              "Men's Singles":   t.mensSingleFee   ?? null,
+              "Under 16":        t.underSixteenFee ?? null,
+              "Above 16":        t.aboveSixteenFee ?? null,
+              "Open Doubles":    t.openDoubleFee   ?? null,
+              "Mixed Doubles":   t.mixedDoubleFee  ?? null,
+            },
+            qrCodeUrl: t.qrCodeUrl ?? undefined,
           }));
           setTournaments(mapped);
         }

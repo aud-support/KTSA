@@ -37,7 +37,14 @@ export type ApiTournament = {
   mixedDoubleFee: number;
   womenSingleEnabled: boolean;
   womenSingleFee: number;
+  mensSingleEnabled: boolean;
+  mensSingleFee: number;
+  underSixteenEnabled: boolean;
+  underSixteenFee: number;
+  aboveSixteenEnabled: boolean;
+  aboveSixteenFee: number;
   registrationClosed: boolean;
+  qrCodeUrl?: string;
 };
 
 // ─── Fetch Hook ───────────────────────────────────────────────────────────────
@@ -281,9 +288,12 @@ function formatTime(iso: string): string | null {
 function getCategories(t: ApiTournament) {
   const cats: string[] = [];
   if (t.openSingleEnabled) cats.push("Open Singles");
+  if (t.womenSingleEnabled) cats.push("Women's Singles");
+  if (t.mensSingleEnabled) cats.push("Men's Singles");
+  if (t.underSixteenEnabled) cats.push("Under 16");
+  if (t.aboveSixteenEnabled) cats.push("Above 16");
   if (t.openDoubleEnabled) cats.push("Open Doubles");
   if (t.mixedDoubleEnabled) cats.push("Mixed Doubles");
-  if (t.womenSingleEnabled) cats.push("Women's Singles");
   return cats;
 }
 
@@ -547,6 +557,17 @@ function FeaturedTournament({ tournament }: { tournament: ApiTournament }) {
         ? "Live"
         : "Completed") as "Upcoming" | "Live" | "Completed",
     image: tournament.bannerUrl,
+    enabledCategories: categories,
+    categoryFees: {
+      "Open Singles":     tournament.openSingleFee   ?? null,
+      "Women's Singles":  tournament.womenSingleFee  ?? null,
+      "Men's Singles":    tournament.mensSingleFee   ?? null,
+      "Under 16":         tournament.underSixteenFee ?? null,
+      "Above 16":         tournament.aboveSixteenFee ?? null,
+      "Open Doubles":     tournament.openDoubleFee   ?? null,
+      "Mixed Doubles":    tournament.mixedDoubleFee  ?? null,
+    },
+    qrCodeUrl: tournament.qrCodeUrl,
   };
 
   return (
@@ -799,6 +820,17 @@ function EventCard({
         ? "Live"
         : "Completed") as "Upcoming" | "Live" | "Completed",
     image: tournament.bannerUrl,
+    enabledCategories: getCategories(tournament),
+    categoryFees: {
+      "Open Singles":     tournament.openSingleFee   ?? null,
+      "Women's Singles":  tournament.womenSingleFee  ?? null,
+      "Men's Singles":    tournament.mensSingleFee   ?? null,
+      "Under 16":         tournament.underSixteenFee ?? null,
+      "Above 16":         tournament.aboveSixteenFee ?? null,
+      "Open Doubles":     tournament.openDoubleFee   ?? null,
+      "Mixed Doubles":    tournament.mixedDoubleFee  ?? null,
+    },
+    qrCodeUrl: tournament.qrCodeUrl,
   };
 
   return (

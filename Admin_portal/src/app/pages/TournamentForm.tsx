@@ -33,7 +33,6 @@ export const TournamentForm: React.FC = () => {
     venue: "",
     maxParticipants: "",
     pricePool: "",
-    challongeUrl: "",
     description: "",
     registrationClosed: false,
     categories: structuredClone(defaultCategories),
@@ -41,10 +40,13 @@ export const TournamentForm: React.FC = () => {
 
   // Banner image state
   const [bannerImage, setBannerImage] = useState<File | null>(null);
-  const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(
-    null,
-  );
+  const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
+
+  // QR code image state
+  const [qrCodeImage, setQrCodeImage] = useState<File | null>(null);
+  const [qrCodeImagePreview, setQrCodeImagePreview] = useState<string | null>(null);
+  const qrCodeInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchTournament = async () => {
@@ -83,8 +85,6 @@ export const TournamentForm: React.FC = () => {
 
           pricePool: tournament.pricePool?.toString() || "",
 
-          challongeUrl: tournament.challongeUrl || "",
-
           description: tournament.description,
 
           registrationClosed: tournament.registrationClosed ?? false,
@@ -93,21 +93,40 @@ export const TournamentForm: React.FC = () => {
             openSingle: {
               enabled: tournament.openSingleEnabled ?? false,
               fee: tournament.openSingleFee?.toString() || "",
+              challongeUrl: tournament.openSingleChallongeUrl || "",
             },
 
             openDouble: {
               enabled: tournament.openDoubleEnabled ?? false,
               fee: tournament.openDoubleFee?.toString() || "",
+              challongeUrl: tournament.openDoubleChallongeUrl || "",
             },
 
             mixedDouble: {
               enabled: tournament.mixedDoubleEnabled ?? false,
               fee: tournament.mixedDoubleFee?.toString() || "",
+              challongeUrl: tournament.mixedDoubleChallongeUrl || "",
             },
 
             womenSingle: {
               enabled: tournament.womenSingleEnabled ?? false,
               fee: tournament.womenSingleFee?.toString() || "",
+              challongeUrl: tournament.womenSingleChallongeUrl || "",
+            },
+            mensSingle: {
+              enabled: tournament.mensSingleEnabled ?? false,
+              fee: tournament.mensSingleFee?.toString() || "",
+              challongeUrl: tournament.mensSingleChallongeUrl || "",
+            },
+            underSixteen: {
+              enabled: tournament.underSixteenEnabled ?? false,
+              fee: tournament.underSixteenFee?.toString() || "",
+              challongeUrl: tournament.underSixteenChallongeUrl || "",
+            },
+            aboveSixteen: {
+              enabled: tournament.aboveSixteenEnabled ?? false,
+              fee: tournament.aboveSixteenFee?.toString() || "",
+              challongeUrl: tournament.aboveSixteenChallongeUrl || "",
             },
           },
         });
@@ -115,6 +134,11 @@ export const TournamentForm: React.FC = () => {
         // Pre-populate preview with existing banner URL from DB
         if (tournament.bannerUrl) {
           setBannerImagePreview(tournament.bannerUrl);
+        }
+
+        // Pre-populate QR code preview
+        if (tournament.qrCodeUrl) {
+          setQrCodeImagePreview(tournament.qrCodeUrl);
         }
       } catch (error) {
         toast.error("Failed to load tournament");
@@ -170,6 +194,31 @@ export const TournamentForm: React.FC = () => {
     if (bannerInputRef.current) bannerInputRef.current.value = "";
   };
 
+  const handleQrCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const maxSize = 2 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast.error("QR code image must be less than 2MB");
+      if (qrCodeInputRef.current) qrCodeInputRef.current.value = "";
+      return;
+    }
+    if (qrCodeImagePreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(qrCodeImagePreview);
+    }
+    setQrCodeImage(file);
+    setQrCodeImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleRemoveQrCode = () => {
+    if (qrCodeImagePreview?.startsWith("blob:")) {
+      URL.revokeObjectURL(qrCodeImagePreview);
+    }
+    setQrCodeImage(null);
+    setQrCodeImagePreview(null);
+    if (qrCodeInputRef.current) qrCodeInputRef.current.value = "";
+  };
+
   const handleCategoryToggle = (category: keyof typeof formData.categories) => {
     setFormData((prev) => ({
       ...prev,
@@ -204,6 +253,22 @@ export const TournamentForm: React.FC = () => {
     }));
   };
 
+  const handleCategoryChallongeUrlChange = (
+    category: keyof typeof formData.categories,
+    value: string,
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      categories: {
+        ...prev.categories,
+        [category]: {
+          ...prev.categories[category],
+          challongeUrl: value,
+        },
+      },
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -233,10 +298,18 @@ export const TournamentForm: React.FC = () => {
         ? Number(formData.categories.openSingle.fee)
         : null,
 
+      openSingleChallongeUrl: formData.categories.openSingle.enabled
+        ? formData.categories.openSingle.challongeUrl.trim() || null
+        : null,
+
       openDoubleEnabled: formData.categories.openDouble.enabled,
 
       openDoubleFee: formData.categories.openDouble.enabled
         ? Number(formData.categories.openDouble.fee)
+        : null,
+
+      openDoubleChallongeUrl: formData.categories.openDouble.enabled
+        ? formData.categories.openDouble.challongeUrl.trim() || null
         : null,
 
       mixedDoubleEnabled: formData.categories.mixedDouble.enabled,
@@ -245,15 +318,51 @@ export const TournamentForm: React.FC = () => {
         ? Number(formData.categories.mixedDouble.fee)
         : null,
 
+      mixedDoubleChallongeUrl: formData.categories.mixedDouble.enabled
+        ? formData.categories.mixedDouble.challongeUrl.trim() || null
+        : null,
+
       womenSingleEnabled: formData.categories.womenSingle.enabled,
 
       womenSingleFee: formData.categories.womenSingle.enabled
         ? Number(formData.categories.womenSingle.fee)
         : null,
 
-      registrationClosed: formData.registrationClosed,
+      womenSingleChallongeUrl: formData.categories.womenSingle.enabled
+        ? formData.categories.womenSingle.challongeUrl.trim() || null
+        : null,
 
-      challongeUrl: formData.challongeUrl.trim() || null,
+      mensSingleEnabled: formData.categories.mensSingle.enabled,
+
+      mensSingleFee: formData.categories.mensSingle.enabled
+        ? Number(formData.categories.mensSingle.fee)
+        : null,
+
+      mensSingleChallongeUrl: formData.categories.mensSingle.enabled
+        ? formData.categories.mensSingle.challongeUrl.trim() || null
+        : null,
+
+      underSixteenEnabled: formData.categories.underSixteen.enabled,
+
+      underSixteenFee: formData.categories.underSixteen.enabled
+        ? Number(formData.categories.underSixteen.fee)
+        : null,
+
+      underSixteenChallongeUrl: formData.categories.underSixteen.enabled
+        ? formData.categories.underSixteen.challongeUrl.trim() || null
+        : null,
+
+      aboveSixteenEnabled: formData.categories.aboveSixteen.enabled,
+
+      aboveSixteenFee: formData.categories.aboveSixteen.enabled
+        ? Number(formData.categories.aboveSixteen.fee)
+        : null,
+
+      aboveSixteenChallongeUrl: formData.categories.aboveSixteen.enabled
+        ? formData.categories.aboveSixteen.challongeUrl.trim() || null
+        : null,
+
+      registrationClosed: formData.registrationClosed,
     };
 
     // Build multipart payload
@@ -264,6 +373,9 @@ export const TournamentForm: React.FC = () => {
     );
     if (bannerImage) {
       payload.append("banner", bannerImage);
+    }
+    if (qrCodeImage) {
+      payload.append("qrCode", qrCodeImage);
     }
 
     try {
@@ -452,16 +564,28 @@ export const TournamentForm: React.FC = () => {
                     label: "Open Single",
                   },
                   {
+                    key: "womenSingle",
+                    label: "Women Single",
+                  },
+                  {
+                    key: "mensSingle",
+                    label: "Men Singles",
+                  },
+                  {
+                    key: "underSixteen",
+                    label: "Under 16",
+                  },
+                  {
+                    key: "aboveSixteen",
+                    label: "Above 16",
+                  },
+                  {
                     key: "openDouble",
                     label: "Open Double",
                   },
                   {
                     key: "mixedDouble",
                     label: "Mixed Double",
-                  },
-                  {
-                    key: "womenSingle",
-                    label: "Women Single",
                   },
                 ].map((item) => (
                   <div
@@ -511,26 +635,32 @@ export const TournamentForm: React.FC = () => {
                         }
                       />
                     </div>
+
+                    <div className="flex-1">
+                      <Input
+                        type="text"
+                        placeholder="Challonge URL (e.g. ktsa_open_singles)"
+                        disabled={
+                          !formData.categories[
+                            item.key as keyof typeof formData.categories
+                          ].enabled
+                        }
+                        value={
+                          formData.categories[
+                            item.key as keyof typeof formData.categories
+                          ].challongeUrl
+                        }
+                        onChange={(e) =>
+                          handleCategoryChallongeUrlChange(
+                            item.key as keyof typeof formData.categories,
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Input
-                label="Challonge Tournament ID"
-                name="challongeUrl"
-                value={formData.challongeUrl}
-                onChange={handleChange}
-                placeholder="e.g. akash12345"
-              />
-              <p className="text-xs text-muted-foreground">
-                The Challonge tournament URL slug (the part after{" "}
-                <span className="font-mono text-muted-foreground/80">
-                  challonge.com/
-                </span>
-                ). Used to sync bracket results automatically.
-              </p>
             </div>
 
             <Textarea
@@ -622,6 +752,78 @@ export const TournamentForm: React.FC = () => {
                 accept="image/png, image/jpeg, image/webp"
                 className="hidden"
                 onChange={handleBannerChange}
+              />
+            </div>
+
+            {/* ── QR Code Upload ── */}
+            <div>
+              <label className="block text-sm font-medium mb-3">
+                Payment QR Code
+              </label>
+
+              {qrCodeImagePreview ? (
+                <div className="relative rounded-xl overflow-hidden border border-border bg-card">
+                  <div className="flex items-center justify-center p-6 bg-white">
+                    <img
+                      src={qrCodeImagePreview}
+                      alt="QR Code Preview"
+                      className="w-48 h-48 object-contain"
+                    />
+                  </div>
+
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => qrCodeInputRef.current?.click()}
+                      className="px-3 py-2 text-sm rounded-lg text-ktsa-highlight bg-background/80 backdrop-blur border border-border hover:bg-background transition"
+                    >
+                      Replace
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRemoveQrCode}
+                      className="p-2 rounded-lg bg-background/80 text-ktsa-highlight backdrop-blur border border-border hover:bg-background transition"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+
+                  <div className="p-3 border-t border-border bg-background/50">
+                    <p className="text-sm font-medium">
+                      {qrCodeImage?.name || "Current Payment QR Code"}
+                    </p>
+                    {qrCodeImage && (
+                      <p className="text-xs text-muted-foreground">
+                        {(qrCodeImage.size / 1024).toFixed(0)} KB
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => qrCodeInputRef.current?.click()}
+                  className="w-full rounded-xl border-2 border-dashed border-border hover:border-ktsa-primary transition-all bg-card px-6 py-10 flex flex-col items-center justify-center text-center group"
+                >
+                  <div className="rounded-full p-4 bg-muted mb-4 group-hover:scale-105 transition">
+                    <UploadCloud size={28} />
+                  </div>
+                  <h3 className="font-medium">Upload Payment QR Code</h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Click to upload PNG, JPG or WEBP
+                  </p>
+                  <span className="text-xs text-muted-foreground mt-2">
+                    Recommended: 400 × 400px · Max 2MB
+                  </span>
+                </button>
+              )}
+
+              <input
+                ref={qrCodeInputRef}
+                type="file"
+                accept="image/png, image/jpeg, image/webp"
+                className="hidden"
+                onChange={handleQrCodeChange}
               />
             </div>
           </div>

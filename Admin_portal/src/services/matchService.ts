@@ -26,6 +26,7 @@ export interface MatchResponseDto {
   createdAt: string;
   roundNumber: number;
   tournamentId: number;
+  category: string | null;
 }
 
 export interface MatchRequestDto {
@@ -37,6 +38,7 @@ export interface MatchRequestDto {
   teamOne?: number | null;
   teamTwo?: number | null;
   roundNumber: number;
+  category?: string | null;
 }
 
 export interface MatchUpdateDto {
@@ -59,11 +61,13 @@ export interface TeamDto {
   challongeTeamName: string | null;
 }
 
-// Get all matches for a tournament
+// Get all matches for a tournament, optionally filtered by category
 export const getMatchesByTournament = async (
   tournamentId: number,
+  category?: string,
 ): Promise<MatchResponseDto[]> => {
-  const response = await axios.get(`${API_BASE}/api/matches/${tournamentId}`, {
+  const params = category ? `?category=${encodeURIComponent(category)}` : "";
+  const response = await axios.get(`${API_BASE}/api/matches/${tournamentId}${params}`, {
     headers: authHeader(),
   });
   return response.data.data;
@@ -131,6 +135,20 @@ export const syncFromChallonge = async (
   const response = await axios.post(
     `${API_BASE}/api/matches/${tournamentId}/sync-challonge`,
     null,
+    { headers: authHeader() },
+  );
+  return response.data.data;
+};
+
+// Sync a specific category using its own Challonge URL
+export const syncCategoryFromChallonge = async (
+  tournamentId: number,
+  challongeUrl: string,
+  category: string,
+): Promise<ChallongeSyncResult> => {
+  const response = await axios.post(
+    `${API_BASE}/api/matches/${tournamentId}/sync-challonge/category`,
+    { challongeUrl, category },
     { headers: authHeader() },
   );
   return response.data.data;

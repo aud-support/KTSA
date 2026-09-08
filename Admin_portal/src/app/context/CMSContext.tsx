@@ -16,18 +16,37 @@ export interface Tournament {
     openSingle: {
       enabled: boolean;
       fee: string;
+      challongeUrl: string;
     };
     openDouble: {
       enabled: boolean;
       fee: string;
+      challongeUrl: string;
     };
     mixedDouble: {
       enabled: boolean;
       fee: string;
+      challongeUrl: string;
     };
     womenSingle: {
       enabled: boolean;
       fee: string;
+      challongeUrl: string;
+    };
+    mensSingle: {
+      enabled: boolean;
+      fee: string;
+      challongeUrl: string;
+    };
+    underSixteen: {
+      enabled: boolean;
+      fee: string;
+      challongeUrl: string;
+    };
+    aboveSixteen: {
+      enabled: boolean;
+      fee: string;
+      challongeUrl: string;
     };
   };
 }
@@ -151,18 +170,37 @@ export const defaultCategories = {
   openSingle: {
     enabled: false,
     fee: "",
+    challongeUrl: "",
   },
   openDouble: {
     enabled: false,
     fee: "",
+    challongeUrl: "",
   },
   mixedDouble: {
     enabled: false,
     fee: "",
+    challongeUrl: "",
   },
   womenSingle: {
     enabled: false,
     fee: "",
+    challongeUrl: "",
+  },
+  mensSingle: {
+    enabled: false,
+    fee: "",
+    challongeUrl: "",
+  },
+  underSixteen: {
+    enabled: false,
+    fee: "",
+    challongeUrl: "",
+  },
+  aboveSixteen: {
+    enabled: false,
+    fee: "",
+    challongeUrl: "",
   },
 };
 

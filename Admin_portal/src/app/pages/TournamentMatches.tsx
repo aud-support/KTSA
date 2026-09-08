@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿﻿import React, { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
   ArrowLeft,
@@ -12,6 +12,7 @@ import {
   ChevronDown,
   RefreshCw,
   AlertCircle,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -24,14 +25,14 @@ import {
   updateMatch,
   searchPlayers,
   searchTeams,
-  syncFromChallonge,
+  syncCategoryFromChallonge,
   MatchResponseDto,
   MatchRequestDto,
   MatchUpdateDto,
   ChallongeSyncResult,
 } from "../../services/matchService";
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const STAGE_OPTIONS = [
   { value: "group", label: "Group" },
@@ -54,8 +55,8 @@ const STATUS_EDIT_OPTIONS = [
   { value: "cancelled", label: "Cancelled" },
 ];
 
-// ─── ModalDropdown ─────────────────────────────────────────────────────────────
-// Fully custom dropdown — matches the FilterDropdown style from Tournaments page
+// â”€â”€â”€ ModalDropdown â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Fully custom dropdown â€” matches the FilterDropdown style from Tournaments page
 
 interface ModalDropdownProps {
   label: string;
@@ -69,7 +70,7 @@ interface ModalDropdownProps {
 const ModalDropdown: React.FC<ModalDropdownProps> = ({
   label,
   value,
-  placeholder = "Select…",
+  placeholder = "Selectâ€¦",
   options,
   onChange,
   required,
@@ -141,7 +142,7 @@ const ModalDropdown: React.FC<ModalDropdownProps> = ({
   );
 };
 
-// ─── Reusable SearchInput ──────────────────────────────────────────────────────
+// â”€â”€â”€ Reusable SearchInput â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface SearchInputProps {
   label: string;
@@ -285,16 +286,18 @@ const SearchInput: React.FC<SearchInputProps> = ({
   );
 };
 
-// ─── CreateMatchModal ──────────────────────────────────────────────────────────
+// â”€â”€â”€ CreateMatchModal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface CreateMatchModalProps {
   tournamentId: number;
+  category: string;
   onClose: () => void;
   onCreated: (match: MatchResponseDto) => void;
 }
 
 const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
   tournamentId,
+  category,
   onClose,
   onCreated,
 }) => {
@@ -328,6 +331,7 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
         playerTwo: matchType === "player" ? form.playerTwo : null,
         teamOne: matchType === "team" ? form.teamOne : null,
         teamTwo: matchType === "team" ? form.teamTwo : null,
+        category: category,
       };
       const created = await createMatch(tournamentId, payload);
       toast.success("Match created successfully", {
@@ -544,7 +548,7 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
   );
 };
 
-// ─── EditMatchModal ────────────────────────────────────────────────────────────
+// â”€â”€â”€ EditMatchModal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface EditMatchModalProps {
   match: MatchResponseDto;
@@ -728,7 +732,7 @@ const EditMatchModal: React.FC<EditMatchModalProps> = ({
   );
 };
 
-// ─── Status & Stage Helpers ────────────────────────────────────────────────────
+// â”€â”€â”€ Status & Stage Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -751,65 +755,94 @@ const formatStatus = (status: string) =>
 const formatStage = (stage: string) =>
   stage.replace(/\b\w/g, (c) => c.toUpperCase());
 
-// ─── Main Component ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Category config â€” maps display label â†’ tournament field keys â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+interface CategoryConfig {
+  label: string;
+  challongeUrlKey: string;
+  doubles: boolean;
+}
+
+const ALL_CATEGORY_CONFIGS: CategoryConfig[] = [
+  { label: "Open Singles",    challongeUrlKey: "openSingleChallongeUrl", doubles: false },
+  { label: "Women's Singles", challongeUrlKey: "womenSingleChallongeUrl", doubles: false },
+  { label: "Men's Singles",   challongeUrlKey: "mensSingleChallongeUrl", doubles: false },
+  { label: "Under 16",        challongeUrlKey: "underSixteenChallongeUrl", doubles: false },
+  { label: "Above 16",        challongeUrlKey: "aboveSixteenChallongeUrl", doubles: false },
+  { label: "Open Doubles",    challongeUrlKey: "openDoubleChallongeUrl", doubles: true  },
+  { label: "Mixed Doubles",   challongeUrlKey: "mixedDoubleChallongeUrl", doubles: true  },
+];
+
+// enabledKey maps label â†’ the Boolean enabled field on the tournament
+const ENABLED_KEY_MAP: Record<string, string> = {
+  "Open Singles":    "openSingleEnabled",
+  "Women's Singles": "womenSingleEnabled",
+  "Men's Singles":   "mensSingleEnabled",
+  "Under 16":        "underSixteenEnabled",
+  "Above 16":        "aboveSixteenEnabled",
+  "Open Doubles":    "openDoubleEnabled",
+  "Mixed Doubles":   "mixedDoubleEnabled",
+};
+
+// â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const TournamentMatches: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const tournamentId = Number(id);
 
-  // Fetch tournament directly from backend — not from CMS context
-  // (CMS context only has hardcoded dummy data, not real backend tournaments)
   const [tournament, setTournament] = useState<any>(null);
   const [tournamentLoading, setTournamentLoading] = useState(true);
 
+  // Category navigation â€” null = show categories grid
+  const [selectedCategory, setSelectedCategory] = useState<CategoryConfig | null>(null);
+
   const [matches, setMatches] = useState<MatchResponseDto[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [matchesLoading, setMatchesLoading] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [editingMatch, setEditingMatch] = useState<MatchResponseDto | null>(
-    null,
-  );
+  const [editingMatch, setEditingMatch] = useState<MatchResponseDto | null>(null);
   const [syncing, setSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState<ChallongeSyncResult | null>(
-    null,
-  );
+  const [syncResult, setSyncResult] = useState<ChallongeSyncResult | null>(null);
 
   useEffect(() => {
     if (!tournamentId) return;
-    // With this:
     getTournamentById(String(tournamentId))
       .then((res) => setTournament(res.data))
       .catch(() => setTournament(null))
       .finally(() => setTournamentLoading(false));
   }, [tournamentId]);
 
+  // Load matches whenever selected category changes
   useEffect(() => {
-    if (!tournamentId) return;
-    setLoading(true);
-    getMatchesByTournament(tournamentId)
+    if (!tournamentId || !selectedCategory) return;
+    setMatchesLoading(true);
+    getMatchesByTournament(tournamentId, selectedCategory.label)
       .then(setMatches)
       .catch(() => toast.error("Failed to load matches"))
-      .finally(() => setLoading(false));
-  }, [tournamentId]);
+      .finally(() => setMatchesLoading(false));
+  }, [tournamentId, selectedCategory]);
 
-  const handleSyncChallonge = async () => {
-    if (!tournament?.challongeUrl) {
+  const handleSyncCategory = async () => {
+    if (!selectedCategory) return;
+    const challongeUrl = tournament?.[selectedCategory.challongeUrlKey];
+    if (!challongeUrl) {
       toast.error(
-        "No Challonge URL set for this tournament. Edit the tournament to add one.",
+        `No Challonge URL set for "${selectedCategory.label}". Edit the tournament to add one.`,
       );
       return;
     }
     setSyncing(true);
     try {
-      const result = await syncFromChallonge(tournamentId);
+      const result = await syncCategoryFromChallonge(
+        tournamentId,
+        challongeUrl,
+        selectedCategory.label,
+      );
       setSyncResult(result);
-      // Refresh the match list
-      const refreshed = await getMatchesByTournament(tournamentId);
+      const refreshed = await getMatchesByTournament(tournamentId, selectedCategory.label);
       setMatches(refreshed);
     } catch (err: any) {
-      toast.error(
-        err?.response?.data?.message || "Failed to sync from Challonge",
-      );
+      toast.error(err?.response?.data?.message || "Failed to sync from Challonge");
     } finally {
       setSyncing(false);
     }
@@ -829,80 +862,95 @@ export const TournamentMatches: React.FC = () => {
         <div className="text-center py-12">
           <Trophy size={48} className="mx-auto mb-4 text-muted-foreground" />
           <h2 className="mb-2">Tournament not found</h2>
-          <Button onClick={() => navigate("/tournaments")}>
-            Back to Tournaments
-          </Button>
+          <Button onClick={() => navigate("/tournaments")}>Back to Tournaments</Button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="p-2 lg:p-4 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <button
-          onClick={() => navigate("/tournaments")}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
-        >
-          <ArrowLeft size={20} />
-          Back to Tournaments
-        </button>
+  // Build list of enabled categories for this tournament
+  const enabledCategories = ALL_CATEGORY_CONFIGS.filter(
+    (c) => tournament[ENABLED_KEY_MAP[c.label]] === true,
+  );
 
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <h1 className="mb-2 bg-gradient-to-r from-ktsa-primary to-ktsa-accent bg-clip-text text-transparent">
-              {tournament.name}
-            </h1>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <Calendar size={16} className="text-ktsa-accent" />
-                {new Date(tournament.startDate).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </div>
-              {tournament.venue && (
-                <div className="flex items-center gap-1.5">
-                  <MapPin size={16} className="text-ktsa-accent" />
-                  {tournament.venue}
-                </div>
-              )}
-              <span
-                className={`px-2 py-1 rounded-full text-xs border ${
-                  tournament.status === "upcoming"
-                    ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
-                    : tournament.status === "ongoing"
-                      ? "bg-green-500/10 text-green-400 border-green-500/20"
-                      : "bg-gray-500/10 text-gray-400 border-gray-500/20"
-                }`}
-              >
-                {tournament.status}
-              </span>
+  // â”€â”€ Tournament header (shared across both views) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const header = (
+    <div className="mb-8">
+      <button
+        onClick={() => {
+          if (selectedCategory) {
+            setSelectedCategory(null);
+            setMatches([]);
+          } else {
+            navigate("/tournaments");
+          }
+        }}
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-4"
+      >
+        <ArrowLeft size={20} />
+        {selectedCategory ? `Back to ${tournament.tournamentName || tournament.name} Categories` : "Back to Tournaments"}
+      </button>
+
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="mb-1 bg-gradient-to-r from-ktsa-primary to-ktsa-accent bg-clip-text text-transparent">
+            {tournament.tournamentName || tournament.name}
+          </h1>
+          {selectedCategory && (
+            <p className="text-sm text-ktsa-accent font-semibold">
+              {selectedCategory.label}
+            </p>
+          )}
+          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-2">
+            <div className="flex items-center gap-1.5">
+              <Calendar size={16} className="text-ktsa-accent" />
+              {new Date(tournament.startDate).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
             </div>
+            {tournament.venue && (
+              <div className="flex items-center gap-1.5">
+                <MapPin size={16} className="text-ktsa-accent" />
+                {tournament.venue}
+              </div>
+            )}
+            <span
+              className={`px-2 py-1 rounded-full text-xs border ${
+                tournament.status === "upcoming" || tournament.status === "UPCOMING"
+                  ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+                  : tournament.status === "ongoing" || tournament.status === "ACTIVE"
+                    ? "bg-green-500/10 text-green-400 border-green-500/20"
+                    : "bg-gray-500/10 text-gray-400 border-gray-500/20"
+              }`}
+            >
+              {tournament.status}
+            </span>
           </div>
+        </div>
+
+        {/* Category-level actions */}
+        {selectedCategory && (
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Challonge sync button */}
             <button
-              onClick={handleSyncChallonge}
+              onClick={handleSyncCategory}
               disabled={syncing}
               title={
-                tournament?.challongeUrl
-                  ? `Sync from Challonge (${tournament.challongeUrl})`
-                  : "No Challonge URL set — edit the tournament to add one"
+                tournament[selectedCategory.challongeUrlKey]
+                  ? `Sync "${selectedCategory.label}" from Challonge`
+                  : `No Challonge URL set for "${selectedCategory.label}"`
               }
               className={`flex items-center gap-2 text-sm font-semibold px-3 py-2 rounded-lg border transition-colors
-                ${
-                  tournament?.challongeUrl
-                    ? "border-ktsa-accent/50 text-ktsa-accent hover:bg-ktsa-accent/10 hover:border-ktsa-accent"
-                    : "border-border text-muted-foreground/40 cursor-not-allowed"
+                ${tournament[selectedCategory.challongeUrlKey]
+                  ? "border-ktsa-accent/50 text-ktsa-accent hover:bg-ktsa-accent/10 hover:border-ktsa-accent"
+                  : "border-border text-muted-foreground/40 cursor-not-allowed"
                 }
                 ${syncing ? "opacity-60 cursor-wait" : ""}
               `}
             >
               <RefreshCw size={15} className={syncing ? "animate-spin" : ""} />
-              {syncing ? "Syncing…" : "Sync Challonge"}
+              {syncing ? "Syncing..." : "Sync Challonge"}
             </button>
 
             <Button onClick={() => setShowCreateModal(true)}>
@@ -910,9 +958,74 @@ export const TournamentMatches: React.FC = () => {
               Add Match
             </Button>
           </div>
-        </div>
+        )}
       </div>
-      {loading ? (
+    </div>
+  );
+
+  // â”€â”€ VIEW 1: Categories grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  if (!selectedCategory) {
+    return (
+      <div className="p-2 lg:p-4 max-w-7xl mx-auto">
+        {header}
+
+        {enabledCategories.length === 0 ? (
+          <Card className="p-12 text-center">
+            <Trophy size={48} className="mx-auto mb-4 text-muted-foreground" />
+            <h3 className="mb-2">No categories configured</h3>
+            <p className="text-muted-foreground mb-6">
+              Edit the tournament to enable at least one category.
+            </p>
+            <Button onClick={() => navigate(`/tournaments/${tournamentId}/edit`)}>
+              Edit Tournament
+            </Button>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {enabledCategories.map((cat) => {
+              const hasChallonge = !!tournament[cat.challongeUrlKey];
+              return (
+                <button
+                  key={cat.label}
+                  onClick={() => setSelectedCategory(cat)}
+                  className="group text-left rounded-xl border border-border hover:border-ktsa-accent bg-card hover:bg-ktsa-accent/5 transition-all duration-200 p-6"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    {cat.doubles && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                        Doubles
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="font-semibold text-foreground mb-1 group-hover:text-ktsa-accent transition-colors">
+                    {cat.label}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {hasChallonge ? (
+                      <span className="text-green-400 flex items-center gap-1"><CheckCircle2 size={11} />Challonge URL set</span>
+                    ) : (
+                      <span className="text-muted-foreground/60">No Challonge URL</span>
+                    )}
+                  </p>
+                  <div className="mt-4 flex items-center gap-1 text-xs text-ktsa-accent/70 group-hover:text-ktsa-accent transition-colors">
+                    View Matches
+                    <ArrowLeft size={12} className="rotate-180" />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // â”€â”€ VIEW 2: Matches for selected category â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  return (
+    <div className="p-2 lg:p-4 max-w-7xl mx-auto">
+      {header}
+
+      {matchesLoading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 size={32} className="animate-spin text-ktsa-accent" />
         </div>
@@ -921,7 +1034,7 @@ export const TournamentMatches: React.FC = () => {
           <Trophy size={48} className="mx-auto mb-4 text-muted-foreground" />
           <h3 className="mb-2">No matches yet</h3>
           <p className="text-muted-foreground mb-6">
-            Add matches to this tournament to get started.
+            Add matches for {selectedCategory.label} to get started.
           </p>
           <Button onClick={() => setShowCreateModal(true)}>
             <Plus size={20} className="mr-2" />
@@ -941,21 +1054,14 @@ export const TournamentMatches: React.FC = () => {
             const twoWins = hasScores && scoreTwo! > scoreOne;
 
             return (
-              <Card
-                key={match.id}
-                className="p-6 hover:border-ktsa-accent/30 transition-all"
-              >
+              <Card key={match.id} className="p-6 hover:border-ktsa-accent/30 transition-all">
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   <div className="flex-1 min-w-[250px]">
-                    {/* Round / Stage / Status */}
                     <div className="flex items-center gap-2 mb-3 flex-wrap">
                       <span className="text-xs text-ktsa-accent font-semibold uppercase tracking-wider">
-                        {formatStage(match.stage ?? "")} · Round{" "}
-                        {match.roundNumber}
+                        {formatStage(match.stage ?? "")} &middot; Round {match.roundNumber}
                       </span>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-xs border ${getStatusColor(match.status)}`}
-                      >
+                      <span className={`px-2 py-0.5 rounded-full text-xs border ${getStatusColor(match.status)}`}>
                         {formatStatus(match.status)}
                       </span>
                       {isTeamMatch && (
@@ -965,19 +1071,13 @@ export const TournamentMatches: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Players / Teams vs Scores */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between gap-4">
                         <div>
-                          <span
-                            className={`font-medium ${oneWins ? "text-ktsa-primary" : "text-foreground"}`}
-                          >
+                          <span className={`font-medium ${oneWins ? "text-ktsa-primary" : "text-foreground"}`}>
                             {nameOne}
-                            {(match.winnerPlayer === nameOne ||
-                              match.winnerTeam === nameOne) && (
-                              <span className="ml-2 text-xs text-ktsa-accent">
-                                🏆 Winner
-                              </span>
+                            {(match.winnerPlayer === nameOne || match.winnerTeam === nameOne) && (
+                              <span className="ml-2 inline-flex items-center gap-1 text-xs font-semibold text-yellow-400"><Trophy size={12} /> Winner</span>
                             )}
                           </span>
                           {isTeamMatch && match.teamOneChallongeName && (
@@ -986,24 +1086,17 @@ export const TournamentMatches: React.FC = () => {
                             </p>
                           )}
                         </div>
-                        <span
-                          className={`text-2xl font-bold tabular-nums ${oneWins ? "text-ktsa-primary" : "text-muted-foreground"}`}
-                        >
-                          {scoreOne ?? "–"}
+                        <span className={`text-2xl font-bold tabular-nums ${oneWins ? "text-ktsa-primary" : "text-muted-foreground"}`}>
+                          {scoreOne ?? "-"}
                         </span>
                       </div>
                       <div className="h-px bg-border" />
                       <div className="flex items-center justify-between gap-4">
                         <div>
-                          <span
-                            className={`font-medium ${twoWins ? "text-ktsa-primary" : "text-foreground"}`}
-                          >
+                          <span className={`font-medium ${twoWins ? "text-ktsa-primary" : "text-foreground"}`}>
                             {nameTwo}
-                            {(match.winnerPlayer === nameTwo ||
-                              match.winnerTeam === nameTwo) && (
-                              <span className="ml-2 text-xs text-ktsa-accent">
-                                🏆 Winner
-                              </span>
+                            {(match.winnerPlayer === nameTwo || match.winnerTeam === nameTwo) && (
+                              <span className="ml-2 inline-flex items-center gap-1 text-xs font-semibold text-yellow-400"><Trophy size={12} /> Winner</span>
                             )}
                           </span>
                           {isTeamMatch && match.teamTwoChallongeName && (
@@ -1012,10 +1105,8 @@ export const TournamentMatches: React.FC = () => {
                             </p>
                           )}
                         </div>
-                        <span
-                          className={`text-2xl font-bold tabular-nums ${twoWins ? "text-ktsa-primary" : "text-muted-foreground"}`}
-                        >
-                          {scoreTwo ?? "–"}
+                        <span className={`text-2xl font-bold tabular-nums ${twoWins ? "text-ktsa-primary" : "text-muted-foreground"}`}>
+                          {scoreTwo ?? "-"}
                         </span>
                       </div>
                     </div>
@@ -1031,13 +1122,8 @@ export const TournamentMatches: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Edit Button */}
                   <div className="flex gap-2 self-start">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingMatch(match)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => setEditingMatch(match)}>
                       Edit
                     </Button>
                   </div>
@@ -1052,6 +1138,7 @@ export const TournamentMatches: React.FC = () => {
       {showCreateModal && (
         <CreateMatchModal
           tournamentId={tournamentId}
+          category={selectedCategory.label}
           onClose={() => setShowCreateModal(false)}
           onCreated={(m) => {
             setMatches((prev) => [m, ...prev]);
@@ -1066,9 +1153,7 @@ export const TournamentMatches: React.FC = () => {
           tournamentId={tournamentId}
           onClose={() => setEditingMatch(null)}
           onUpdated={(updated) => {
-            setMatches((prev) =>
-              prev.map((m) => (m.id === updated.id ? updated : m)),
-            );
+            setMatches((prev) => prev.map((m) => (m.id === updated.id ? updated : m)));
             setEditingMatch(null);
           }}
         />
@@ -1079,86 +1164,54 @@ export const TournamentMatches: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-md">
             <div className="flex items-center justify-between p-6 border-b border-border">
-              <h2 className="text-lg font-semibold text-foreground">
-                Challonge Sync Complete
-              </h2>
-              <button
-                onClick={() => setSyncResult(null)}
-                className="text-muted-foreground hover:text-foreground transition-colors"
-              >
+              <h2 className="text-lg font-semibold text-foreground">Challonge Sync Complete</h2>
+              <button onClick={() => setSyncResult(null)} className="text-muted-foreground hover:text-foreground transition-colors">
                 <X size={20} />
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              {/* Stats grid */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="rounded-lg bg-muted/30 border border-border p-3 text-center">
-                  <p className="text-2xl font-bold text-foreground">
-                    {syncResult.totalFromChallonge}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    From Challonge
-                  </p>
+                  <p className="text-2xl font-bold text-foreground">{syncResult.totalFromChallonge}</p>
+                  <p className="text-xs text-muted-foreground mt-1">From Challonge</p>
                 </div>
                 <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-3 text-center">
-                  <p className="text-2xl font-bold text-green-400">
-                    {syncResult.created}
-                  </p>
+                  <p className="text-2xl font-bold text-green-400">{syncResult.created}</p>
                   <p className="text-xs text-muted-foreground mt-1">Created</p>
                 </div>
                 <div className="rounded-lg bg-ktsa-accent/10 border border-ktsa-accent/20 p-3 text-center">
-                  <p className="text-2xl font-bold text-ktsa-accent">
-                    {syncResult.updated}
-                  </p>
+                  <p className="text-2xl font-bold text-ktsa-accent">{syncResult.updated}</p>
                   <p className="text-xs text-muted-foreground mt-1">Updated</p>
                 </div>
               </div>
 
-              {/* Unmatched participants warning */}
               {syncResult.unmatchedParticipants.length > 0 && (
                 <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-4">
                   <div className="flex items-start gap-2 mb-2">
-                    <AlertCircle
-                      size={16}
-                      className="text-amber-400 mt-0.5 flex-shrink-0"
-                    />
+                    <AlertCircle size={16} className="text-amber-400 mt-0.5 flex-shrink-0" />
                     <p className="text-sm font-medium text-amber-400">
-                      {syncResult.unmatchedParticipants.length} participant
-                      {syncResult.unmatchedParticipants.length !== 1
-                        ? "s"
-                        : ""}{" "}
-                      couldn't be matched to local users
+                      {syncResult.unmatchedParticipants.length} participant{syncResult.unmatchedParticipants.length !== 1 ? "s" : ""} couldn't be matched
                     </p>
                   </div>
                   <ul className="space-y-1 ml-6">
                     {syncResult.unmatchedParticipants.map((name) => (
-                      <li
-                        key={name}
-                        className="text-xs text-amber-300/80 font-mono"
-                      >
-                        "{name}"
-                      </li>
+                      <li key={name} className="text-xs text-amber-300/80 font-mono">"{name}"</li>
                     ))}
                   </ul>
                   <p className="text-xs text-muted-foreground mt-2 ml-6">
-                    Make sure each Challonge participant name exactly matches a
-                    local user's <span className="font-mono">userName</span>.
+                    Make sure each Challonge participant name exactly matches a local user's <span className="font-mono">userName</span>.
                   </p>
                 </div>
               )}
 
               {syncResult.unmatchedParticipants.length === 0 && (
-                <p className="text-sm text-muted-foreground text-center">
-                  All participants matched successfully.
-                </p>
+                <p className="text-sm text-muted-foreground text-center">All participants matched successfully.</p>
               )}
             </div>
 
             <div className="px-6 pb-6">
-              <Button className="w-full" onClick={() => setSyncResult(null)}>
-                Done
-              </Button>
+              <Button className="w-full" onClick={() => setSyncResult(null)}>Done</Button>
             </div>
           </div>
         </div>

@@ -30,61 +30,7 @@ interface Props {
   userId: number;
 }
 
-// ── Mock data — replace with real API call ────────────────────────────────────
-const MOCK_MATCHES: Match[] = [
-  {
-    id: 1,
-    tournamentName: "Karnataka Open 2026",
-    opponent: "Rahul Mehta",
-    date: "2026-04-25T10:00:00",
-    location: "Bengaluru",
-    category: "Open Singles",
-    status: "upcoming",
-  },
-  {
-    id: 2,
-    tournamentName: "Women's Foosball 2026",
-    opponent: "Priya & Divya",
-    date: "2026-04-25T14:30:00",
-    location: "Near Silkboard, Bengaluru",
-    category: "Mixed Doubles",
-    status: "upcoming",
-  },
-  {
-    id: 3,
-    tournamentName: "Bengaluru Tournament",
-    opponent: "Arjun Singh",
-    date: "2026-03-29T11:00:00",
-    location: "Kormangala, Bengaluru",
-    category: "Open Singles",
-    result: "win",
-    score: "5-3",
-    status: "past",
-  },
-  {
-    id: 4,
-    tournamentName: "Bengaluru Tournament",
-    opponent: "Vikram & Kiran",
-    date: "2026-03-29T15:00:00",
-    location: "Kormangala, Bengaluru",
-    category: "Open Doubles",
-    result: "loss",
-    score: "2-5",
-    status: "past",
-  },
-  {
-    id: 5,
-    tournamentName: "January Open",
-    opponent: "Deepak Rao",
-    date: "2026-01-31T09:00:00",
-    location: "Whitefield, Bengaluru",
-    category: "Open Singles",
-    result: "win",
-    score: "5-1",
-    status: "past",
-  },
-];
-
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function formatDate(iso: string) {
   const d = new Date(iso);
   return d.toLocaleDateString("en-IN", {
@@ -197,14 +143,69 @@ export default function MyMatchesModal({ isOpen, onClose, userId }: Props) {
     if (!isOpen || !userId) return;
     setLoading(true);
 
-    // Replace with real API call:
-    // fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/matches/user/${userId}`)
-    //   .then(r => r.json()).then(d => setMatches(d.data)).finally(() => setLoading(false));
+    const BASE = import.meta.env.VITE_BACKEND_BASE_URL;
+    const token = localStorage.getItem("token");
 
-    setTimeout(() => {
-      setMatches(MOCK_MATCHES);
-      setLoading(false);
-    }, 600);
+    fetch(`${BASE}/api/matches/user/${userId}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const raw: any[] = data?.data ?? [];
+        const now = Date.now();
+
+        const mapped: Match[] = raw.map((m) => {
+          // Build opponent display string
+          const isTeam = !!(m.teamOne || m.teamTwo);
+          let opponent: string;
+          if (isTeam) {
+            // Show both team names separated by vs
+            const t1 = m.teamOne ?? "";
+            const t2 = m.teamTwo ?? "";
+            opponent = t1 && t2 ? `${t1} vs ${t2}` : t1 || t2 || "TBD";
+          } else {
+            const p1 = m.playerOne ?? "";
+            const p2 = m.playerTwo ?? "";
+            opponent = p1 && p2 ? `${p1} vs ${p2}` : p1 || p2 || "TBD";
+          }
+
+          const scheduledMs = m.scheduledAt
+            ? new Date(m.scheduledAt).getTime()
+            : null;
+          const isCompleted =
+            m.status === "completed" || m.status === "COMPLETED";
+          const isPast =
+            isCompleted || (scheduledMs !== null && scheduledMs < now);
+
+          // Determine result from score
+          let result: "win" | "loss" | "draw" | undefined;
+          if (isPast && m.teamOneScore !== null && m.teamTwoScore !== null) {
+            const s1 = Number(m.teamOneScore);
+            const s2 = Number(m.teamTwoScore);
+            if (s1 === s2) result = "draw";
+            else result = s1 > s2 ? "win" : "loss";
+          }
+
+          return {
+            id: m.id,
+            tournamentName: m.tournamentName ?? `Tournament #${m.tournamentId}`,
+            opponent,
+            date: m.scheduledAt ?? new Date().toISOString(),
+            location: m.venue ?? "",
+            category: m.category ?? "—",
+            status: isPast ? "past" : "upcoming",
+            result,
+            score:
+              m.teamOneScore !== null && m.teamTwoScore !== null
+                ? `${m.teamOneScore}-${m.teamTwoScore}`
+                : undefined,
+          } as Match;
+        });
+
+        setMatches(mapped);
+      })
+      .catch(() => setMatches([]))
+      .finally(() => setLoading(false));
   }, [isOpen, userId]);
 
   // ── Close handlers ───────────────────────────────────────────────────────

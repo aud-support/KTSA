@@ -325,7 +325,7 @@ export function TournamentResults() {
   return (
     <div className="min-h-screen bg-ktsa-bg">
       {/* ── Hero Banner ─────────────────────────────────────────── */}
-      <section className="relative h-[calc(38vh+5rem)] min-h-[320px] flex items-end justify-center overflow-hidden">
+      <section className="relative min-h-[420px] sm:min-h-[480px] overflow-hidden">
         <div className="absolute inset-0">
           {tournament.bannerUrl ? (
             <ImageWithFallback
@@ -340,71 +340,75 @@ export function TournamentResults() {
           <div className="absolute inset-0 bg-gradient-to-r from-ktsa-accent/5 via-transparent to-ktsa-highlight/5" />
         </div>
 
-        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 pb-8">
+        {/* All content starts at pt-24 so it clears the fixed 80px navbar */}
+        <div className="relative z-10 w-full max-w-6xl mx-auto px-4 pt-24 pb-8 flex flex-col min-h-[420px] sm:min-h-[480px] gap-8">
           {/* Back button */}
           <button
             onClick={() => navigate("/tournaments")}
-            className="flex items-center gap-2 text-ktsa-text/60 hover:text-ktsa-accent transition-colors mb-4 font-medium text-sm"
+            className="flex items-center gap-2 text-ktsa-text/80 hover:text-ktsa-accent transition-colors font-medium text-sm bg-black/40 backdrop-blur-sm self-start px-3 py-1.5 rounded-full"
           >
             <ArrowLeft size={16} />
             All Tournaments
           </button>
 
-          {/* Status + format */}
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span
-              className={`px-3 py-1 rounded-full text-xs font-bold border ${statusBadge(tournament.status)}`}
-            >
-              {tournament.status}
-            </span>
-            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-ktsa-accent/10 border border-ktsa-accent/20 text-ktsa-accent/80">
-              {tournament.format.replace(/_/g, " ")}
-            </span>
-          </div>
-
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-3">
-            {tournament.tournamentName}
-          </h1>
-
-          <div className="flex flex-wrap items-center gap-4 text-sm text-ktsa-text/70">
-            <span className="flex items-center gap-1.5">
-              <Calendar size={14} className="text-ktsa-accent" />
-              {formatDateRange(tournament.startDate, tournament.endDate)}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <MapPin size={14} className="text-ktsa-accent" />
-              {tournament.venue}
-            </span>
-          </div>
-
-          {/* Stats strip */}
-          <div className="flex flex-wrap gap-4 mt-4">
-            <div className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center">
-              <p className="text-lg font-black text-ktsa-accent">
-                {matches.length}
-              </p>
-              <p className="text-xs text-ktsa-text/60">Total Matches</p>
+          {/* Bottom content — badges, title, meta, stats */}
+          <div>
+            {/* Status + format */}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-bold border ${statusBadge(tournament.status)}`}
+              >
+                {tournament.status}
+              </span>
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-ktsa-accent/10 border border-ktsa-accent/20 text-ktsa-accent/80">
+                {tournament.format.replace(/_/g, " ")}
+              </span>
             </div>
-            <div className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center">
-              <p className="text-lg font-black text-ktsa-accent">
-                {completedCount}
-              </p>
-              <p className="text-xs text-ktsa-text/60">Completed</p>
+
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-3">
+              {tournament.tournamentName}
+            </h1>
+
+            <div className="flex flex-wrap items-center gap-4 text-sm text-ktsa-text/70">
+              <span className="flex items-center gap-1.5">
+                <Calendar size={14} className="text-ktsa-accent" />
+                {formatDateRange(tournament.startDate, tournament.endDate)}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <MapPin size={14} className="text-ktsa-accent" />
+                {tournament.venue}
+              </span>
             </div>
-            <div className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center">
-              <p className="text-lg font-black text-ktsa-accent">
-                {standings.length}
-              </p>
-              <p className="text-xs text-ktsa-text/60">Participants</p>
-            </div>
-            {tournament.pricePool > 0 && (
+
+            {/* Stats strip */}
+            <div className="flex flex-wrap gap-4 mt-4">
               <div className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center">
                 <p className="text-lg font-black text-ktsa-accent">
-                  ₹{tournament.pricePool.toLocaleString("en-IN")}
+                  {matches.length}
                 </p>
-                <p className="text-xs text-ktsa-text/60">Prize Pool</p>
+                <p className="text-xs text-ktsa-text/60">Total Matches</p>
               </div>
-            )}
+              <div className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center">
+                <p className="text-lg font-black text-ktsa-accent">
+                  {completedCount}
+                </p>
+                <p className="text-xs text-ktsa-text/60">Completed</p>
+              </div>
+              <div className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center">
+                <p className="text-lg font-black text-ktsa-accent">
+                  {standings.length}
+                </p>
+                <p className="text-xs text-ktsa-text/60">Participants</p>
+              </div>
+              {tournament.pricePool > 0 && (
+                <div className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center">
+                  <p className="text-lg font-black text-ktsa-accent">
+                    ₹{tournament.pricePool.toLocaleString("en-IN")}
+                  </p>
+                  <p className="text-xs text-ktsa-text/60">Prize Pool</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>

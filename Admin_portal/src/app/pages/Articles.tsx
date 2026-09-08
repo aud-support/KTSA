@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Star, Link, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import { Input, Textarea, Select } from "../components/Input";
 import { useCMS } from "../context/CMSContext";
+import type { ArticleLink } from "../context/CMSContext";
 import {
   getArticles,
   createArticle,
@@ -27,6 +28,7 @@ const emptyForm = {
   imageUrl: "",
   category: "KTSA",
   featured: false,
+  links: [] as ArticleLink[],
 };
 
 export const Articles: React.FC = () => {
@@ -37,7 +39,7 @@ export const Articles: React.FC = () => {
   const [formData, setFormData] = useState({ ...emptyForm });
   const [loading, setLoading] = useState(false);
 
-  // ── Load articles from backend on mount ──────────────────────
+  // ── Load articles from backend on mount ───────────────────────
   useEffect(() => {
     const fetchArticles = async () => {
       setLoading(true);
@@ -51,11 +53,31 @@ export const Articles: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchArticles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Link helpers ──────────────────────────────────────────────
+  const addLink = () =>
+    setFormData((prev) => ({
+      ...prev,
+      links: [...prev.links, { label: "", url: "" }],
+    }));
+
+  const removeLink = (idx: number) =>
+    setFormData((prev) => ({
+      ...prev,
+      links: prev.links.filter((_, i) => i !== idx),
+    }));
+
+  const updateLink = (idx: number, field: keyof ArticleLink, value: string) =>
+    setFormData((prev) => {
+      const links = [...prev.links];
+      links[idx] = { ...links[idx], [field]: value };
+      return { ...prev, links };
+    });
+
+  // ── CRUD handlers ─────────────────────────────────────────────
   const handleEdit = (id: string) => {
     const article = articles.find((a) => a.id === id);
     if (article) {
@@ -68,6 +90,7 @@ export const Articles: React.FC = () => {
         imageUrl: article.imageUrl || "",
         category: article.category || "KTSA",
         featured: article.featured || false,
+        links: article.links || [],
       });
       setEditingId(id);
       setIsAdding(false);
@@ -80,23 +103,23 @@ export const Articles: React.FC = () => {
       return;
     }
 
+    // Strip empty link rows before saving
+    const payload = {
+      ...formData,
+      links: formData.links.filter((l) => l.label.trim() && l.url.trim()),
+    };
+
     setLoading(true);
     try {
       if (editingId) {
-        // Update existing
-        const updated = await updateArticleApi(editingId, formData);
+        const updated = await updateArticleApi(editingId, payload);
         updateArticle(editingId, updated);
-        toast.success("Article updated successfully!", {
-          duration: 2000,
-        });
+        toast.success("Article updated successfully!", { duration: 2000 });
         setEditingId(null);
       } else {
-        // Create new
-        const created = await createArticle(formData);
+        const created = await createArticle(payload);
         addArticle(created);
-        toast.success("Article published successfully!", {
-          duration: 2000,
-        });
+        toast.success("Article published successfully!", { duration: 2000 });
         setIsAdding(false);
       }
       setFormData({ ...emptyForm });
@@ -113,9 +136,7 @@ export const Articles: React.FC = () => {
     try {
       await deleteArticleApi(id);
       deleteArticle(id);
-      toast.success("Article deleted", {
-        duration: 2000,
-      });
+      toast.success("Article deleted", { duration: 2000 });
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete article. Please try again.");
@@ -148,45 +169,44 @@ export const Articles: React.FC = () => {
         )}
       </div>
 
-      {/* Add/Edit Form */}
+      {/* ── Add / Edit Form ──────────────────────────────────────── */}
       {(isAdding || editingId) && (
         <Card className="mb-6">
           <h3 className="mb-4">
             {editingId ? "Edit Article" : "Write New Article"}
           </h3>
           <div className="space-y-4">
+            {/* Title */}
             <Input
               label="Title"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="Article title"
             />
+
+            {/* Excerpt */}
             <Input
               label="Excerpt"
               value={formData.excerpt}
-              onChange={(e) =>
-                setFormData({ ...formData, excerpt: e.target.value })
-              }
-              placeholder="Short summary"
+              onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+              placeholder="Short summary shown on listing pages"
             />
+
+            {/* Content */}
             <Textarea
               label="Content"
               value={formData.content}
-              onChange={(e) =>
-                setFormData({ ...formData, content: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
               placeholder="Full article content..."
               rows={8}
             />
+
+            {/* Author + Date */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Author"
                 value={formData.author}
-                onChange={(e) =>
-                  setFormData({ ...formData, author: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, author: e.target.value })}
                 placeholder="Author name"
               />
               <Input
@@ -204,9 +224,7 @@ export const Articles: React.FC = () => {
               <Select
                 label="Category"
                 value={formData.category}
-                onChange={(e) =>
-                  setFormData({ ...formData, category: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 options={CATEGORY_OPTIONS}
               />
               <div className="flex flex-col gap-1">
@@ -232,13 +250,9 @@ export const Articles: React.FC = () => {
             <Input
               label="Image URL (optional)"
               value={formData.imageUrl}
-              onChange={(e) =>
-                setFormData({ ...formData, imageUrl: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
               placeholder="https://..."
             />
-
-            {/* Image preview */}
             {formData.imageUrl && (
               <div className="rounded-lg overflow-hidden border border-border h-40">
                 <img
@@ -250,6 +264,71 @@ export const Articles: React.FC = () => {
               </div>
             )}
 
+            {/* ── Hyperlinks section ─────────────────────────────── */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Link size={15} className="text-ktsa-primary" />
+                  Article Links
+                  <span className="text-xs text-muted-foreground font-normal">
+                    — displayed as buttons at the bottom of the article
+                  </span>
+                </label>
+                <Button variant="secondary" size="sm" onClick={addLink} type="button">
+                  <Plus size={14} className="mr-1" /> Add Link
+                </Button>
+              </div>
+
+              {formData.links.length === 0 ? (
+                <p className="text-xs text-muted-foreground italic">
+                  No links added yet. Click "Add Link" to attach a hyperlink to this article.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {formData.links.map((link, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-end gap-2 p-3 bg-secondary/30 rounded-lg border border-border"
+                    >
+                      <div className="flex-1">
+                        <label className="block text-xs text-muted-foreground mb-1">
+                          Label (button text)
+                        </label>
+                        <input
+                          type="text"
+                          value={link.label}
+                          onChange={(e) => updateLink(idx, "label", e.target.value)}
+                          placeholder="e.g. Watch Highlights"
+                          className="w-full px-3 py-1.5 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ktsa-accent text-foreground"
+                        />
+                      </div>
+                      <div className="flex-[2]">
+                        <label className="block text-xs text-muted-foreground mb-1">
+                          URL
+                        </label>
+                        <input
+                          type="url"
+                          value={link.url}
+                          onChange={(e) => updateLink(idx, "url", e.target.value)}
+                          placeholder="https://..."
+                          className="w-full px-3 py-1.5 text-sm bg-background border border-border rounded-md focus:outline-none focus:ring-1 focus:ring-ktsa-accent text-foreground"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeLink(idx)}
+                        className="p-2 hover:bg-destructive/10 rounded-md transition-colors flex-shrink-0 mb-0.5"
+                        title="Remove link"
+                      >
+                        <Trash2 size={14} className="text-destructive" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
             <div className="flex items-center gap-3 pt-2">
               <Button onClick={handleSave} disabled={loading}>
                 {loading ? "Saving..." : editingId ? "Save Changes" : "Publish"}
@@ -264,12 +343,10 @@ export const Articles: React.FC = () => {
 
       {/* Loading state */}
       {loading && !isAdding && !editingId && (
-        <p className="text-muted-foreground text-sm mb-4">
-          Loading articles...
-        </p>
+        <p className="text-muted-foreground text-sm mb-4">Loading articles...</p>
       )}
 
-      {/* Articles List */}
+      {/* ── Articles List ─────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {articles.map((article) => (
           <Card key={article.id} className="relative overflow-hidden">
@@ -309,6 +386,21 @@ export const Articles: React.FC = () => {
             <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
               {article.excerpt}
             </p>
+
+            {/* Links preview */}
+            {article.links && article.links.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {article.links.map((link, i) => (
+                  <span
+                    key={i}
+                    className="flex items-center gap-1 px-2 py-0.5 bg-ktsa-accent/10 text-ktsa-accent border border-ktsa-accent/20 rounded-full text-xs font-medium"
+                  >
+                    <ExternalLink size={10} />
+                    {link.label}
+                  </span>
+                ))}
+              </div>
+            )}
 
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>{article.author}</span>

@@ -11,6 +11,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import RegistrationModal from "../components/ui/RegistrationModal";
 import TournamentDetailsModal from "../components/ui/TournamentDetailsModal";
@@ -189,6 +190,7 @@ function TournamentDrawer({
   onClose,
   onRegister,
   onDetails,
+  onResults,
   onImageClick,
   lightboxOpen,
 }: {
@@ -196,6 +198,7 @@ function TournamentDrawer({
   onClose: () => void;
   onRegister: () => void;
   onDetails: () => void;
+  onResults: () => void;
   onImageClick: () => void;
   lightboxOpen: boolean;
 }) {
@@ -383,8 +386,8 @@ function TournamentDrawer({
               )}
               {tournament.status === "COMPLETED" && (
                 <button
-                  onClick={onDetails}
-                  className="w-full py-3 rounded-full font-bold text-sm border border-white/40 text-white/70 hover:border-white hover:text-white transition-all duration-300"
+                  onClick={onResults}
+                  className="w-full py-3 rounded-full font-bold text-sm bg-gradient-to-r from-ktsa-accent to-ktsa-primary text-ktsa-bg hover:opacity-90 transition-all duration-300"
                 >
                   View Results
                 </button>
@@ -409,6 +412,7 @@ function TournamentCard({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [modalType, setModalType] = useState<"register" | "details" | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const navigate = useNavigate();
   const { label, cls } = statusMeta(tournament.status);
   const canRegister = isRegistrationOpen(tournament);
 
@@ -509,6 +513,7 @@ function TournamentCard({
           onClose={() => setDrawerOpen(false)}
           onRegister={() => { setDrawerOpen(false); setModalType("register"); }}
           onDetails={() => { setDrawerOpen(false); setModalType("details"); }}
+          onResults={() => { setDrawerOpen(false); navigate(`/tournaments/${tournament.id}/results`); }}
           onImageClick={() => { if (tournament.bannerUrl) { setLightboxOpen(true); } }}
           lightboxOpen={lightboxOpen}
         />

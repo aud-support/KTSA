@@ -535,10 +535,23 @@ export const Tournaments: React.FC = () => {
                             onClick={() =>
                               navigate(`/tournaments/${tournament.id}/edit`)
                             }
-                            className="text-ktsa-primary hover:text-ktsa-highlight transition-colors text-sm"
+                            className="text-ktsa-accent hover:text-ktsa-highlight transition-colors text-sm"
                           >
                             Edit
                           </button>
+                          {tournament.status === "COMPLETED" && (
+                            <button
+                              onClick={() =>
+                                navigate(
+                                  `/tournaments/${tournament.id}/results`,
+                                )
+                              }
+                              className="text-green-400 hover:text-green-300 transition-colors text-sm flex items-center gap-1 font-semibold"
+                            >
+                              <Trophy size={12} />
+                              Results
+                            </button>
+                          )}
                           {tournament.status === "UPCOMING" && (
                             <button
                               onClick={() =>
@@ -703,6 +716,19 @@ export const Tournaments: React.FC = () => {
                     ? "Confirm?"
                     : "Delete"}
                 </Button>
+                {tournament.status === "COMPLETED" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      navigate(`/tournaments/${tournament.id}/results`)
+                    }
+                    className="text-green-400 border-green-500/30 font-semibold"
+                  >
+                    <Trophy size={12} className="mr-1" />
+                    Results
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"

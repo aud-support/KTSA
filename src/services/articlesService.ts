@@ -2,6 +2,11 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL;
 
+export interface ArticleLink {
+  label: string;
+  url: string;
+}
+
 export interface NewsArticle {
   id: string;
   title: string;
@@ -12,6 +17,7 @@ export interface NewsArticle {
   imageUrl?: string;
   category: string;
   featured: boolean;
+  links?: ArticleLink[];
 }
 
 export const getArticles = async (): Promise<NewsArticle[]> => {

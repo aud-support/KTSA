@@ -19,6 +19,7 @@ export interface RankingResponse {
   gender: "MALE" | "FEMALE" | "OTHER" | null;
   category: RankingCategory;
   teamId: number | null;  // only set for doubles entries
+  profilePictureUrl: string | null;
 }
 
 export const getAllRankings = async (): Promise<RankingResponse[]> => {
@@ -28,5 +29,16 @@ export const getAllRankings = async (): Promise<RankingResponse[]> => {
 
 export const getRankingByUserId = async (userId: number): Promise<RankingResponse> => {
   const response = await axios.get(`${API_BASE_URL}/api/rankings/user/${userId}`);
+  return response.data;
+};
+
+/**
+ * Returns top 3 spotlight players for the homepage:
+ *   index 0 — #1 Men's Singles
+ *   index 1 — #1 Women's Singles
+ *   index 2 — #1 Open Doubles
+ */
+export const getTopSpotlightPlayers = async (): Promise<RankingResponse[]> => {
+  const response = await axios.get(`${API_BASE_URL}/api/rankings/top`);
   return response.data;
 };

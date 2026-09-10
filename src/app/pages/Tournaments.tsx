@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import {
   Calendar,
   MapPin,
@@ -14,7 +14,6 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import RegistrationModal from "../components/ui/RegistrationModal";
-import TournamentDetailsModal from "../components/ui/TournamentDetailsModal";
 import {
   useTournaments,
   useAvailableYears,
@@ -403,7 +402,7 @@ function TournamentDrawer({
   );
 }
 
-// ─── Tournament Card — minimal, tap to open drawer ────────────────────────────
+// ─── Tournament Card — tap navigates to detail page ──────────────────────────
 
 function TournamentCard({
   tournament,
@@ -412,9 +411,7 @@ function TournamentCard({
   tournament: ApiTournament;
   index: number;
 }) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [modalType, setModalType] = useState<"register" | "details" | null>(null);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [modalType, setModalType] = useState<"register" | null>(null);
   const navigate = useNavigate();
   const { label, cls } = statusMeta(tournament.status);
   const canRegister = isRegistrationOpen(tournament);
@@ -445,14 +442,14 @@ function TournamentCard({
 
   return (
     <>
-      {/* ── Minimal card — tap anywhere to open drawer ── */}
+      {/* ── Card — click navigates to detail page ── */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: (index % 4) * 0.05 }}
         whileHover={{ y: -2 }}
-        onClick={() => setDrawerOpen(true)}
+        onClick={() => navigate(`/tournaments/${tournament.id}`)}
         className="group cursor-pointer bg-gradient-to-br from-ktsa-primary/40 to-ktsa-secondary/30 rounded-xl overflow-hidden border border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-300"
         style={{ boxShadow: "0 4px 16px rgba(0,229,255,0.07)" }}
       >
@@ -498,55 +495,39 @@ function TournamentCard({
             </span>
           </div>
 
-          {/* Register button / tap hint */}
+          {/* Bottom action */}
           <div className="mt-3">
             {canRegister ? (
               <button
                 onClick={(e) => {
-                  e.stopPropagation();
+                  e.stopPropagation(); // prevent card navigation
                   setModalType("register");
                 }}
                 className="w-full py-2 rounded-full text-[11px] font-bold border border-white/70 text-white hover:border-ktsa-highlight hover:bg-ktsa-highlight transition-all duration-300"
               >
                 Register Now
               </button>
+            ) : tournament.status === "COMPLETED" ? (
+              <div className="flex items-center justify-end gap-1">
+                <span className="text-[10px] text-green-400/60 font-medium tracking-wide">view results</span>
+                <ChevronRight size={11} className="text-green-400/60" />
+              </div>
             ) : (
-              <div className="flex items-center justify-end">
+              <div className="flex items-center justify-end gap-1">
                 <span className="text-[10px] text-ktsa-accent/50 font-medium tracking-wide">tap for details</span>
-                <ChevronRight size={11} className="text-ktsa-accent/50 ml-0.5" />
+                <ChevronRight size={11} className="text-ktsa-accent/50" />
               </div>
             )}
           </div>
         </div>
       </motion.div>
 
-      {/* Drawer */}
-      {drawerOpen && (
-        <TournamentDrawer
-          tournament={tournament}
-          onClose={() => setDrawerOpen(false)}
-          onRegister={() => { setDrawerOpen(false); setModalType("register"); }}
-          onDetails={() => { setDrawerOpen(false); setModalType("details"); }}
-          onResults={() => { setDrawerOpen(false); navigate(`/tournaments/${tournament.id}/results`); }}
-          onImageClick={() => { if (tournament.bannerUrl) { setLightboxOpen(true); } }}
-          lightboxOpen={lightboxOpen}
-        />
-      )}
-
-      {/* Lightbox */}
-      {lightboxOpen && tournament.bannerUrl && (
-        <ImageLightbox
-          src={tournament.bannerUrl}
-          alt={tournament.tournamentName}
-          onClose={() => setLightboxOpen(false)}
-        />
-      )}
-
+      {/* Registration Modal — opened directly from Register Now button */}
       {modalType === "register" && (
-        <RegistrationModal tournament={modalShape} onClose={() => setModalType(null)} />
-      )}
-      {modalType === "details" && (
-        <TournamentDetailsModal tournament={modalShape} onClose={() => setModalType(null)} />
+        <RegistrationModal
+          tournament={modalShape}
+          onClose={() => setModalType(null)}
+        />
       )}
     </>
   );

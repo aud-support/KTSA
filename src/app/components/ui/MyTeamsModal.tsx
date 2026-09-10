@@ -38,48 +38,45 @@ interface Props {
   userId: number;
 }
 
-// ── Mock data — replace with real API call ────────────────────────────────────
-const MOCK_TEAMS: Team[] = [
-  {
-    id: 1,
-    teamName: "Team Blitz",
-    category: "Open Doubles",
-    role: "Attacker",
-    partner: {
-      name: "Rahul Mehta",
-      email: "rahul@gmail.com",
-      role: "Defender",
-    },
-    tournaments: [
-      {
-        id: 1,
-        name: "Karnataka Open 2026",
-        date: "2026-04-25",
-        status: "Upcoming",
-      },
-      {
-        id: 3,
-        name: "Bengaluru Tournament",
-        date: "2026-03-29",
-        status: "Completed",
-      },
-    ],
-  },
-  {
-    id: 2,
-    teamName: "Solo Run",
-    category: "Open Singles",
-    role: "Solo",
-    tournaments: [
-      {
-        id: 2,
-        name: "January Open",
-        date: "2026-01-31",
-        status: "Completed",
-      },
-    ],
-  },
-];
+/** Shape returned by GET /api/team/user/{userId} */
+interface UserTeamApiResponse {
+  id: number;
+  teamName: string;
+  userRole: "playerOne" | "playerTwo";
+  partner?: {
+    id: number;
+    name: string;
+    email: string;
+  } | null;
+  tournaments: {
+    tournamentId: number;
+    tournamentName: string;
+    category: string;
+    status: string;
+    startDate: string;
+  }[];
+}
+
+/** Maps backend tournament status to the UI status values */
+function mapTournamentStatus(
+  status: string,
+): "Upcoming" | "Completed" | "Live" {
+  const s = status?.toUpperCase();
+  if (s === "COMPLETED" || s === "DONE") return "Completed";
+  if (s === "ONGOING" || s === "LIVE" || s === "IN_PROGRESS") return "Live";
+  return "Upcoming";
+}
+
+/** Formats backend category enum to display label */
+function formatCategory(category: string): string {
+  const map: Record<string, string> = {
+    MENS_SINGLES: "Men's Singles",
+    WOMENS_SINGLES: "Women's Singles",
+    OPEN_DOUBLES: "Open Doubles",
+    MIXED_DOUBLES: "Mixed Doubles",
+  };
+  return map[category?.toUpperCase()] ?? category ?? "Doubles";
+}
 
 const ROLE_CONFIG: Record<
   string,
@@ -255,14 +252,34 @@ export default function MyTeamsModal({ isOpen, onClose, userId }: Props) {
     if (!isOpen || !userId) return;
     setLoading(true);
 
-    // Replace with real API call:
-    // fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/teams/user/${userId}`)
-    //   .then(r => r.json()).then(d => setTeams(d.data)).finally(() => setLoading(false));
-
-    setTimeout(() => {
-      setTeams(MOCK_TEAMS);
-      setLoading(false);
-    }, 600);
+    fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/team/user/${userId}`)
+      .then((r) => r.json())
+      .then((json) => {
+        const raw: UserTeamApiResponse[] = json.data ?? [];
+        const mapped: Team[] = raw.map((t) => ({
+          id: t.id,
+          teamName: t.teamName,
+          // category comes from the first tournament registration, or fallback
+          category:
+            t.tournaments.length > 0
+              ? formatCategory(t.tournaments[0].category)
+              : "Doubles",
+          // No role info from backend — default to Solo if no partner
+          role: t.partner ? "All-rounder" : "Solo",
+          partner: t.partner
+            ? { name: t.partner.name, email: t.partner.email }
+            : undefined,
+          tournaments: t.tournaments.map((tr) => ({
+            id: tr.tournamentId,
+            name: tr.tournamentName ?? "Unknown",
+            date: tr.startDate ?? "",
+            status: mapTournamentStatus(tr.status),
+          })),
+        }));
+        setTeams(mapped);
+      })
+      .catch(() => setTeams([]))
+      .finally(() => setLoading(false));
   }, [isOpen, userId]);
 
   // ── Close handlers ───────────────────────────────────────────────────────

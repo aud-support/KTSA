@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Trophy,
   Users,
   Award,
   Star,
-  Globe,
-  MapPin,
   Plus,
   Trash2,
   ChevronDown,
   ChevronUp,
+  UploadCloud,
+  FileText,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "../components/Card";
@@ -184,6 +185,8 @@ export const AboutUs: React.FC = () => {
   const [data, setData] = useState<AboutData>(defaultData);
   const [saved, setSaved] = useState<AboutData>(defaultData);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [rulebookFile, setRulebookFile] = useState<File | null>(null);
+  const rulebookInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
 
   // ── Load existing content on mount ──────────────────────────────────────
@@ -256,11 +259,12 @@ export const AboutUs: React.FC = () => {
   const handleSave = async () => {
     try {
       setLoading(true);
-      // Strip the image URL from the payload — backend handles it separately
+      // Strip image URL from payload — backend handles both files separately
       const { whoWeAreImageUrl, ...dataWithoutImage } = data;
-      await saveAboutUsContent(dataWithoutImage, imageFile);
+      await saveAboutUsContent(dataWithoutImage, imageFile, rulebookFile);
       setSaved(data);
       setImageFile(null);
+      setRulebookFile(null);
       toast.success("About Us page updated successfully!");
     } catch (error) {
       console.error("Failed to save About Us content", error);
@@ -273,6 +277,7 @@ export const AboutUs: React.FC = () => {
   const handleReset = () => {
     setData(saved);
     setImageFile(null);
+    setRulebookFile(null);
   };
 
   return (
@@ -300,13 +305,82 @@ export const AboutUs: React.FC = () => {
             Tip: separate paragraphs with a blank line — each block will render as its own paragraph on the frontend.
           </p>
         </div>
-        <Input
-          label="Rulebook Download URL"
-          name="rulebookUrl"
-          value={data.rulebookUrl}
-          onChange={(e) => set("rulebookUrl", e.target.value)}
-          placeholder="/assets/Rulebook.pdf"
-        />
+
+        {/* ── Rulebook Upload ── */}
+        <div>
+          <label className="block text-sm font-medium mb-2">Rulebook PDF</label>
+
+          {rulebookFile ? (
+            /* New file selected — show name + remove */
+            <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-ktsa-primary/40 bg-ktsa-primary/5">
+              <FileText size={18} className="text-ktsa-primary flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{rulebookFile.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {(rulebookFile.size / 1024).toFixed(0)} KB — will be uploaded on save
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setRulebookFile(null);
+                  if (rulebookInputRef.current) rulebookInputRef.current.value = "";
+                }}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : data.rulebookUrl ? (
+            /* Existing URL saved — show link + replace button */
+            <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-border bg-muted/20">
+              <FileText size={18} className="text-muted-foreground flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground mb-0.5">Current rulebook</p>
+                <a
+                  href={data.rulebookUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-ktsa-primary hover:underline truncate block"
+                >
+                  {data.rulebookUrl.split("/").pop() || data.rulebookUrl}
+                </a>
+              </div>
+              <button
+                type="button"
+                onClick={() => rulebookInputRef.current?.click()}
+                className="px-3 py-1.5 text-xs rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-ktsa-primary/50 transition-colors"
+              >
+                Replace
+              </button>
+            </div>
+          ) : (
+            /* No file yet — upload button */
+            <button
+              type="button"
+              onClick={() => rulebookInputRef.current?.click()}
+              className="w-full rounded-xl border-2 border-dashed border-border hover:border-ktsa-primary transition-all bg-card px-6 py-8 flex flex-col items-center justify-center text-center group"
+            >
+              <div className="rounded-full p-3 bg-muted mb-3 group-hover:scale-105 transition">
+                <UploadCloud size={22} />
+              </div>
+              <p className="text-sm font-medium">Upload Rulebook PDF</p>
+              <p className="text-xs text-muted-foreground mt-1">Click to select a PDF file</p>
+            </button>
+          )}
+
+          {/* Hidden file input */}
+          <input
+            ref={rulebookInputRef}
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) setRulebookFile(file);
+            }}
+          />
+        </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {(["totalPlayers", "tournaments", "activePlayers", "clubs"] as const).map((f) => (
             <Input

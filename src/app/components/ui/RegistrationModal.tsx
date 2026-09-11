@@ -392,8 +392,8 @@ export default function RegistrationModal({
     }, 300);
   };
 
-  // ── Phase 1: validate form, move to payment step ──
-  const handleProceedToPayment = (e: React.FormEvent) => {
+  // ── Phase 1: validate via backend, then move to payment step ──
+  const handleProceedToPayment = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (selectedCategories.size === 0) {
@@ -424,8 +424,57 @@ export default function RegistrationModal({
       return;
     }
 
-    // All form validation passed — move to payment step
-    setStep("payment");
+    // Build the same payload shape used for final submission (no utrNumber needed)
+    const categoryEntries = Array.from(selectedCategories).map((cat) => {
+      const catConfig = ALL_CATEGORIES.find((c) => c.id === cat)!;
+      if (!catConfig.doubles) return { category: cat, doublesMode: "SINGLE" };
+      if (hasExistingTeam && selectedTeam) return { category: cat, doublesMode: "EXISTING_TEAM" };
+      if (hasPartner) return { category: cat, doublesMode: "WITH_PARTNER" };
+      if (needPartner) return { category: cat, doublesMode: "NEED_PARTNER" };
+      return { category: cat, doublesMode: "SINGLE" };
+    });
+
+    const payload = {
+      playerOneEmail: email,
+      playerTwoEmail: hasPartner ? partnerEmail : undefined,
+      partnerPreference: needPartner ? rolePreference : undefined,
+      teamName: hasPartner ? teamName.trim() : undefined,
+      existingTeamId: hasExistingTeam && selectedTeam ? selectedTeam.teamId : undefined,
+      categories: categoryEntries,
+    };
+
+    setLoading(true);
+    try {
+      const BASE = import.meta.env.VITE_BACKEND_BASE_URL;
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${BASE}/api/registration/validate/${tournament.id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        const fullMessage: string = data?.message || data?.errors || "Validation failed. Please check your details.";
+        const parts = fullMessage.split(" | ").filter(Boolean);
+        parts.forEach((msg) => toast.error(msg));
+        return;
+      }
+
+      // All checks passed — move to payment
+      setStep("payment");
+    } catch {
+      toast.error("Could not validate registration. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ── Phase 2: validate UTR, submit registration ──
@@ -967,13 +1016,22 @@ export default function RegistrationModal({
                 {/* Make Payment */}
                 <button
                   type="submit"
-                  disabled={selectedCategories.size === 0}
+                  disabled={selectedCategories.size === 0 || loading || partnerEmailChecking}
                   className="w-full py-2.5 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-semibold hover:bg-ktsa-primary/60 hover:cursor-pointer transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
                 >
-                  <CreditCard size={15} />
-                  {selectedCategories.size === 0
-                    ? "Select a Category to Continue"
-                    : `Make Payment · ₹${totalFee > 0 ? totalFee : "—"}`}
+                  {loading ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" />
+                      Checking eligibility…
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard size={15} />
+                      {selectedCategories.size === 0
+                        ? "Select a Category to Continue"
+                        : `Make Payment · ₹${totalFee > 0 ? totalFee : "—"}`}
+                    </>
+                  )}
                 </button>
               </form>
             </motion.div>

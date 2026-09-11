@@ -38,6 +38,8 @@ export const TournamentForm: React.FC = () => {
     categories: structuredClone(defaultCategories),
   });
 
+  const [submitting, setSubmitting] = useState(false);
+
   // Banner image state
   const [bannerImage, setBannerImage] = useState<File | null>(null);
   const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(
@@ -275,6 +277,7 @@ export const TournamentForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
 
     const tournamentData = {
       tournamentName: formData.name,
@@ -383,25 +386,20 @@ export const TournamentForm: React.FC = () => {
     }
 
     try {
+      setSubmitting(true);
       if (isEdit && id) {
         await updateTournament(id, payload);
-
-        toast.success("Tournament updated successfully!", {
-          duration: 2000,
-        });
+        toast.success("Tournament updated successfully!", { duration: 2000 });
       } else {
         await createTournament(payload);
-
-        toast.success("Tournament created successfully!", {
-          duration: 2000,
-        });
+        toast.success("Tournament created successfully!", { duration: 2000 });
       }
-
       navigate("/tournaments");
     } catch (error) {
       console.error(error);
-
       toast.error("Failed to save tournament");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -945,8 +943,10 @@ export const TournamentForm: React.FC = () => {
           >
             Cancel
           </Button>
-          <Button type="submit">
-            {isEdit ? "Save Changes" : "Create Tournament"}
+          <Button type="submit" disabled={submitting}>
+            {submitting
+              ? isEdit ? "Saving…" : "Creating…"
+              : isEdit ? "Save Changes" : "Create Tournament"}
           </Button>
         </div>
       </form>

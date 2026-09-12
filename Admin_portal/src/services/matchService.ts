@@ -47,6 +47,8 @@ export interface MatchUpdateDto {
   winnerTeam?: number | null;
   winnerPlayer?: number | null;
   status?: string;
+  /** When true, removes any existing winner from the match. */
+  clearWinner?: boolean;
 }
 
 export interface PlayerDto {

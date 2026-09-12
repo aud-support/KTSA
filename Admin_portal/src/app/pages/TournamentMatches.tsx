@@ -350,9 +350,7 @@ const CreateMatchModal: React.FC<CreateMatchModalProps> = ({
   };
 
   const handlePlayerSearch = async (q: string) => {
-    console.log("Searching:", q);
     const results = await searchPlayers(tournamentId, q);
-    console.log("API Results:", results);
     return results.map((p) => ({ id: p.id, label: p.name }));
   };
 
@@ -569,9 +567,12 @@ const EditMatchModal: React.FC<EditMatchModalProps> = ({
     status: match.status,
     winnerPlayer: null,
     winnerTeam: null,
+    clearWinner: false,
   });
-  const [winnerPlayerLabel, setWinnerPlayerLabel] = useState("");
-  const [winnerTeamLabel, setWinnerTeamLabel] = useState("");
+
+  // Pre-populate winner labels from the existing match so admin can see the current winner
+  const [winnerPlayerLabel, setWinnerPlayerLabel] = useState(match.winnerPlayer ?? "");
+  const [winnerTeamLabel, setWinnerTeamLabel] = useState(match.winnerTeam ?? "");
   const [submitting, setSubmitting] = useState(false);
 
   const isTeamMatch = !!match.teamOne;
@@ -676,37 +677,65 @@ const EditMatchModal: React.FC<EditMatchModalProps> = ({
 
           {/* Winner */}
           {isTeamMatch ? (
-            <SearchInput
-              label="Winner Team (optional)"
-              placeholder="Search winner team..."
-              value={winnerTeamLabel}
-              selectedId={form.winnerTeam ?? null}
-              onSearch={handleTeamSearch}
-              onSelect={(id, label) => {
-                setForm({ ...form, winnerTeam: id });
-                setWinnerTeamLabel(label);
-              }}
-              onClear={() => {
-                setForm({ ...form, winnerTeam: null });
-                setWinnerTeamLabel("");
-              }}
-            />
+            <div className="space-y-2">
+              <SearchInput
+                label="Winner Team (optional)"
+                placeholder="Search winner team..."
+                value={winnerTeamLabel}
+                selectedId={form.winnerTeam ?? null}
+                onSearch={handleTeamSearch}
+                onSelect={(id, label) => {
+                  setForm({ ...form, winnerTeam: id, clearWinner: false });
+                  setWinnerTeamLabel(label);
+                }}
+                onClear={() => {
+                  setForm({ ...form, winnerTeam: null, clearWinner: false });
+                  setWinnerTeamLabel("");
+                }}
+              />
+              {(match.winnerTeam || form.winnerTeam) && !form.clearWinner && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm({ ...form, winnerTeam: null, clearWinner: true });
+                    setWinnerTeamLabel("");
+                  }}
+                  className="text-xs text-destructive/70 hover:text-destructive transition-colors"
+                >
+                  ✕ Clear winner
+                </button>
+              )}
+            </div>
           ) : (
-            <SearchInput
-              label="Winner Player (optional)"
-              placeholder="Search winner player..."
-              value={winnerPlayerLabel}
-              selectedId={form.winnerPlayer ?? null}
-              onSearch={handlePlayerSearch}
-              onSelect={(id, label) => {
-                setForm({ ...form, winnerPlayer: id });
-                setWinnerPlayerLabel(label);
-              }}
-              onClear={() => {
-                setForm({ ...form, winnerPlayer: null });
-                setWinnerPlayerLabel("");
-              }}
-            />
+            <div className="space-y-2">
+              <SearchInput
+                label="Winner Player (optional)"
+                placeholder="Search winner player..."
+                value={winnerPlayerLabel}
+                selectedId={form.winnerPlayer ?? null}
+                onSearch={handlePlayerSearch}
+                onSelect={(id, label) => {
+                  setForm({ ...form, winnerPlayer: id, clearWinner: false });
+                  setWinnerPlayerLabel(label);
+                }}
+                onClear={() => {
+                  setForm({ ...form, winnerPlayer: null, clearWinner: false });
+                  setWinnerPlayerLabel("");
+                }}
+              />
+              {(match.winnerPlayer || form.winnerPlayer) && !form.clearWinner && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm({ ...form, winnerPlayer: null, clearWinner: true });
+                    setWinnerPlayerLabel("");
+                  }}
+                  className="text-xs text-destructive/70 hover:text-destructive transition-colors"
+                >
+                  ✕ Clear winner
+                </button>
+              )}
+            </div>
           )}
 
           {/* Actions */}

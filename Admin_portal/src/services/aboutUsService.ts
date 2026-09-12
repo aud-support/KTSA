@@ -12,12 +12,14 @@ export const getAboutUsContent = async (): Promise<any> => {
 
 /**
  * Save About Us content to the backend.
- * @param data  - The AboutData object (without the image URL field)
- * @param image - Optional new team image file
+ * @param data     - The AboutData object (without the image URL field)
+ * @param image    - Optional new team image file
+ * @param rulebook - Optional new rulebook PDF file
  */
 export const saveAboutUsContent = async (
   data: any,
   image: File | null,
+  rulebook?: File | null,
 ): Promise<void> => {
   const formData = new FormData();
 
@@ -29,6 +31,10 @@ export const saveAboutUsContent = async (
 
   if (image) {
     formData.append("image", image);
+  }
+
+  if (rulebook) {
+    formData.append("rulebook", rulebook);
   }
 
   await axios.post(`${API_BASE_URL}/api/about-us/content`, formData);

@@ -30,6 +30,20 @@ interface Props {
   userId: number;
 }
 
+/** Shape returned by GET /api/matches/user/{userId} */
+interface UserMatchApiResponse {
+  id: number;
+  tournamentName: string;
+  location: string;
+  category: string;
+  status: "upcoming" | "past";
+  opponent: string;
+  score?: string;
+  result?: "win" | "loss";
+  scheduledAt: string;
+  tournamentId: number;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -143,65 +157,21 @@ export default function MyMatchesModal({ isOpen, onClose, userId }: Props) {
     if (!isOpen || !userId) return;
     setLoading(true);
 
-    const BASE = import.meta.env.VITE_BACKEND_BASE_URL;
-    const token = localStorage.getItem("token");
-
-    fetch(`${BASE}/api/matches/user/${userId}`, {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
+    fetch(`${import.meta.env.VITE_BACKEND_BASE_URL}/api/matches/user/${userId}`)
       .then((r) => r.json())
-      .then((data) => {
-        const raw: any[] = data?.data ?? [];
-        const now = Date.now();
-
-        const mapped: Match[] = raw.map((m) => {
-          // Build opponent display string
-          const isTeam = !!(m.teamOne || m.teamTwo);
-          let opponent: string;
-          if (isTeam) {
-            // Show both team names separated by vs
-            const t1 = m.teamOne ?? "";
-            const t2 = m.teamTwo ?? "";
-            opponent = t1 && t2 ? `${t1} vs ${t2}` : t1 || t2 || "TBD";
-          } else {
-            const p1 = m.playerOne ?? "";
-            const p2 = m.playerTwo ?? "";
-            opponent = p1 && p2 ? `${p1} vs ${p2}` : p1 || p2 || "TBD";
-          }
-
-          const scheduledMs = m.scheduledAt
-            ? new Date(m.scheduledAt).getTime()
-            : null;
-          const isCompleted =
-            m.status === "completed" || m.status === "COMPLETED";
-          const isPast =
-            isCompleted || (scheduledMs !== null && scheduledMs < now);
-
-          // Determine result from score
-          let result: "win" | "loss" | "draw" | undefined;
-          if (isPast && m.teamOneScore !== null && m.teamTwoScore !== null) {
-            const s1 = Number(m.teamOneScore);
-            const s2 = Number(m.teamTwoScore);
-            if (s1 === s2) result = "draw";
-            else result = s1 > s2 ? "win" : "loss";
-          }
-
-          return {
-            id: m.id,
-            tournamentName: m.tournamentName ?? `Tournament #${m.tournamentId}`,
-            opponent,
-            date: m.scheduledAt ?? new Date().toISOString(),
-            location: m.venue ?? "",
-            category: m.category ?? "—",
-            status: isPast ? "past" : "upcoming",
-            result,
-            score:
-              m.teamOneScore !== null && m.teamTwoScore !== null
-                ? `${m.teamOneScore}-${m.teamTwoScore}`
-                : undefined,
-          } as Match;
-        });
-
+      .then((json) => {
+        const raw: UserMatchApiResponse[] = json.data ?? [];
+        const mapped: Match[] = raw.map((m) => ({
+          id: m.id,
+          tournamentName: m.tournamentName ?? "Unknown Tournament",
+          opponent: m.opponent ?? "TBD",
+          date: m.scheduledAt,
+          location: m.location ?? "",
+          category: m.category ?? "",
+          status: m.status,
+          result: m.result as "win" | "loss" | undefined,
+          score: m.score,
+        }));
         setMatches(mapped);
       })
       .catch(() => setMatches([]))

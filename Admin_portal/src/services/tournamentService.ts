@@ -2,8 +2,16 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_ADMIN_BACKEND_BASE_URL;
 
+/** Returns the Authorization header using the stored admin JWT. */
+function authHeader(): Record<string, string> {
+  const token = localStorage.getItem("adminToken");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export const createTournament = async (data: any) => {
-  const response = await axios.post(`${API_BASE_URL}/api/tournament`, data);
+  const response = await axios.post(`${API_BASE_URL}/api/tournament`, data, {
+    headers: authHeader(),
+  });
   return response.data;
 };
 
@@ -11,23 +19,30 @@ export const updateTournament = async (id: string, data: any) => {
   const response = await axios.put(
     `${API_BASE_URL}/api/tournament/${id}`,
     data,
+    { headers: authHeader() },
   );
   return response.data;
 };
 
 export const deleteTournament = async (id: string) => {
-  const response = await axios.delete(`${API_BASE_URL}/api/tournament/${id}`);
+  const response = await axios.delete(`${API_BASE_URL}/api/tournament/${id}`, {
+    headers: authHeader(),
+  });
   return response.data;
 };
 
 export const getTournamentById = async (id: string) => {
-  const response = await axios.get(`${API_BASE_URL}/api/tournament/${id}`);
+  const response = await axios.get(`${API_BASE_URL}/api/tournament/${id}`, {
+    headers: authHeader(),
+  });
   return response.data;
 };
 
 export const getAllTournaments = async () => {
   // Admin needs all tournaments — request a large page so pagination is transparent
-  const response = await axios.get(`${API_BASE_URL}/api/tournament?page=0&size=1000`);
+  const response = await axios.get(`${API_BASE_URL}/api/tournament?page=0&size=1000`, {
+    headers: authHeader(),
+  });
   return response.data;
 };
 
@@ -40,7 +55,9 @@ export const getTournamentsByFilter = async (month?: number, year?: number) => {
   const base = month != null || year != null
     ? `${API_BASE_URL}/api/tournament/filter`
     : `${API_BASE_URL}/api/tournament`;
-  const response = await axios.get(`${base}?${params.toString()}`);
+  const response = await axios.get(`${base}?${params.toString()}`, {
+    headers: authHeader(),
+  });
   return response.data;
 };
 
@@ -49,6 +66,7 @@ export const getAvailableYears = async (): Promise<number[]> => {
   try {
     const response = await axios.get(
       `${API_BASE_URL}/api/tournament/available-years`,
+      { headers: authHeader() },
     );
     const years: number[] = response.data?.data ?? [];
     if (years.length > 0) return years;
@@ -63,6 +81,8 @@ export const getAvailableYears = async (): Promise<number[]> => {
 export const setRegistrationClosed = async (id: string | number, closed: boolean) => {
   const response = await axios.patch(
     `${API_BASE_URL}/api/tournament/${id}/close-registration?closed=${closed}`,
+    null,
+    { headers: authHeader() },
   );
   return response.data;
 };
@@ -75,7 +95,7 @@ export const setRegistrationClosed = async (id: string | number, closed: boolean
 export const exportRegistrations = async (id: string | number): Promise<Blob> => {
   const response = await axios.get(
     `${API_BASE_URL}/api/tournament/${id}/registrations/export`,
-    { responseType: "blob" },
+    { responseType: "blob", headers: authHeader() },
   );
   return response.data;
 };

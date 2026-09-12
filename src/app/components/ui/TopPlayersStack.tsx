@@ -2,44 +2,78 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Trophy } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
-import palyer1 from "../../../assets/male_avatar.jfif";
-import palyer2 from "../../../assets/female_avatar.jfif";
-import palyer3 from "../../../assets/doubles_avatar.jfif";
+import maleAvatar from "../../../assets/male_avatar.jfif";
+import femaleAvatar from "../../../assets/female_avatar.jfif";
+import doublesAvatar from "../../../assets/doubles_avatar.jfif";
+import {
+  getTopSpotlightPlayers,
+  RankingResponse,
+} from "../../../services/rankingService";
 
-const topPlayers = [
-  {
-    rank: 1,
-    name: "Nadeem",
-    points: 140,
-    image: palyer1,
-  },
-  {
-    rank: 2,
-    name: "Akshatha",
-    points: 40,
-    image: palyer2,
-  },
-  {
-    rank: 3,
-    name: "Manoj & Saravanan",
-    points: 120,
-    image: palyer3,
-  },
-];
+// ── Types ─────────────────────────────────────────────────────────────────────
+interface SpotlightPlayer {
+  rank: number;
+  name: string;
+  points: number;
+  category: string;
+  image: string;
+}
+
+/** Picks the correct fallback avatar based on backend category */
+function fallbackAvatar(category: string): string {
+  if (category === "WOMENS_SINGLES") return femaleAvatar;
+  if (category === "OPEN_DOUBLES" || category === "MIXED_DOUBLES")
+    return doublesAvatar;
+  return maleAvatar;
+}
+
+/** Maps backend category enum to a short display label */
+function categoryLabel(category: string): string {
+  const map: Record<string, string> = {
+    MENS_SINGLES: "Men's Singles",
+    WOMENS_SINGLES: "Women's Singles",
+    OPEN_DOUBLES: "Open Doubles",
+    MIXED_DOUBLES: "Mixed Doubles",
+  };
+  return map[category] ?? category;
+}
+
+/** Converts the API response array to the 3-slot spotlight format */
+function toSpotlight(data: RankingResponse[]): SpotlightPlayer[] {
+  return data.slice(0, 3).map((r, i) => ({
+    rank: i + 1,
+    name: r.userName,
+    points: r.points,
+    category: categoryLabel(r.category),
+    image: r.profilePictureUrl ?? fallbackAvatar(r.category),
+  }));
+}
 
 // Display order: rank2 left, rank1 center, rank3 right
 const displayOrder = [1, 0, 2];
 
-// Stacked rotations (closed state)
+// Stacked rotations / offsets (closed state)
 const stackedRotations = [-10, 0, 10];
 const stackedTranslateX = [-8, 0, 8];
 
+// ── Component ─────────────────────────────────────────────────────────────────
 export function TopPlayersStack() {
   const [opened, setOpened] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(1);
   const [isMobile, setIsMobile] = useState(false);
+  const [players, setPlayers] = useState<SpotlightPlayer[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // ── Fetch top spotlight players on mount ──────────────────────────────
+  useEffect(() => {
+    getTopSpotlightPlayers()
+      .then((data) => setPlayers(toSpotlight(data)))
+      .catch(() => setPlayers([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // ── Responsive breakpoint ─────────────────────────────────────────────
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
@@ -53,8 +87,6 @@ export function TopPlayersStack() {
 
   const getTranslateX = (displayIdx: number) => {
     if (!opened) return stackedTranslateX[displayIdx];
-
-    // Always keep all 3 spread at fixed positions regardless of focus
     if (displayIdx === 0) return -SPREAD_X;
     if (displayIdx === 2) return SPREAD_X;
     return 0;
@@ -76,19 +108,31 @@ export function TopPlayersStack() {
       : SPREAD_X * 2 + CARD_W + 40
     : CARD_W + 48;
 
+  // ── Loading spinner ───────────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div
+        className="flex items-center justify-center"
+        style={{ height: CARD_H + 48 }}
+      >
+        <div className="w-8 h-8 rounded-full border-2 border-ktsa-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
+
+  // ── Empty state ───────────────────────────────────────────────────────
+  if (players.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+        <Trophy size={32} className="text-ktsa-accent/40" />
+        <p className="text-sm text-gray-500">No ranking data yet</p>
+      </div>
+    );
+  }
+
+  // ── Main render ───────────────────────────────────────────────────────
   return (
     <div className="flex flex-col items-center gap-4 w-full">
-      {/* Hint text */}
-      {/* <p className="text-xs text-ktsa-text/40 font-semibold tracking-wide">
-        {opened
-          ? isMobile
-            ? "Tap a card to focus"
-            : "Hover a card to highlight"
-          : isMobile
-            ? "Tap to reveal players"
-            : "Hover to reveal players"}
-      </p> */}
-
       {/* Stack wrapper */}
       <div
         className="relative flex items-center justify-center mx-auto"
@@ -110,7 +154,9 @@ export function TopPlayersStack() {
         }}
       >
         {displayOrder.map((playerIdx, displayIdx) => {
-          const player = topPlayers[playerIdx];
+          const player = players[playerIdx];
+          if (!player) return null;
+
           const isHovered = !isMobile && hoveredIndex === displayIdx;
           const isFocused = isMobile && focusedIndex === displayIdx && opened;
 
@@ -158,11 +204,13 @@ export function TopPlayersStack() {
               onClick={(e) => {
                 e.stopPropagation();
                 if (isMobile && opened) {
-                  setFocusedIndex(focusedIndex === displayIdx ? 1 : displayIdx);
+                  setFocusedIndex(
+                    focusedIndex === displayIdx ? 1 : displayIdx,
+                  );
                 }
               }}
             >
-              {/* Image */}
+              {/* Player photo */}
               <ImageWithFallback
                 src={player.image}
                 alt={player.name}
@@ -172,7 +220,7 @@ export function TopPlayersStack() {
               {/* Gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
-              {/* Player info */}
+              {/* Player info footer */}
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 <div className="flex items-center gap-1 mb-0.5">
                   <span style={{ fontSize: 13 }}>{medalEmoji}</span>
@@ -183,6 +231,12 @@ export function TopPlayersStack() {
                     {player.name}
                   </h3>
                 </div>
+                <p
+                  className="text-ktsa-accent/70 truncate mb-0.5"
+                  style={{ fontSize: isMobile ? 9 : 11 }}
+                >
+                  {player.category}
+                </p>
                 <div className="flex items-center gap-1">
                   <Trophy
                     size={isMobile ? 10 : 12}
@@ -200,18 +254,12 @@ export function TopPlayersStack() {
           );
         })}
 
-        {/* Hint overlay — only when closed, clickable */}
+        {/* Invisible click target when stack is closed */}
         {!opened && (
           <div
-            className="absolute inset-0 flex items-end justify-center pb-3 z-30 cursor-pointer"
+            className="absolute inset-0 z-30 cursor-pointer"
             onClick={() => setOpened(true)}
-          >
-            {/* <div className="bg-ktsa-bg/75 backdrop-blur-sm px-3 py-1 rounded-full border border-ktsa-accent/40">
-              <p className="text-[10px] font-bold text-ktsa-accent">
-                {isMobile ? "Tap to reveal" : "Hover to reveal"}
-              </p>
-            </div> */}
-          </div>
+          />
         )}
       </div>
 

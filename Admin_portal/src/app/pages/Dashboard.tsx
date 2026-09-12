@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import {
   Trophy,
@@ -13,22 +13,67 @@ import {
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
 import { useCMS } from "../context/CMSContext";
+import { getAllTournaments } from "../../services/tournamentService";
+import { getArticles } from "../../services/articlesService";
+import { getSponsors } from "../../services/sponsorService";
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { tournaments, articles, rules, sponsors } = useCMS();
+  const { tournaments: cmsTournaments } = useCMS();
+
+  const [counts, setCounts] = useState({
+    tournaments: 0,
+    articles: 0,
+    sponsors: 0,
+  });
+  const [recentTournaments, setRecentTournaments] = useState<any[]>([]);
+
+  useEffect(() => {
+    // Tournaments
+    getAllTournaments()
+      .then((res: any) => {
+        const tourList: any[] = res?.data?.content ?? res?.data ?? [];
+        setCounts((prev) => ({ ...prev, tournaments: tourList.length }));
+        setRecentTournaments(
+          [...tourList]
+            .sort(
+              (a, b) =>
+                new Date(b.startDate ?? b.createdAt ?? 0).getTime() -
+                new Date(a.startDate ?? a.createdAt ?? 0).getTime(),
+            )
+            .slice(0, 3),
+        );
+      })
+      .catch((e) => console.error("[Dashboard] tournaments error:", e));
+
+    // Articles
+    getArticles()
+      .then((data: any) => {
+        const list: any[] = Array.isArray(data) ? data : data?.data ?? [];
+        setCounts((prev) => ({ ...prev, articles: list.length }));
+      })
+      .catch((e) => console.error("[Dashboard] articles error:", e));
+
+    // Sponsors
+    getSponsors()
+      .then((data: any) => {
+        const list: any[] = Array.isArray(data) ? data : data?.data ?? [];
+        setCounts((prev) => ({ ...prev, sponsors: list.length }));
+      })
+      .catch((e) => console.error("[Dashboard] sponsors error:", e));
+  }, []);
 
   const stats = [
     {
       label: "Tournaments",
-      value: tournaments.length,
+      value: counts.tournaments,
       icon: <Trophy size={24} />,
       gradient: "from-ktsa-primary to-ktsa-accent",
       action: () => navigate("/tournaments"),
     },
     {
       label: "News Articles",
-      value: articles.length,
+      value: counts.articles,
       icon: <Newspaper size={24} />,
       gradient: "from-blue-400 to-cyan-400",
       action: () => navigate("/articles"),
@@ -42,7 +87,7 @@ export const Dashboard: React.FC = () => {
     },
     {
       label: "Sponsors",
-      value: sponsors.length,
+      value: counts.sponsors,
       icon: <Award size={24} />,
       gradient: "from-orange-400 to-yellow-400",
       action: () => navigate("/sponsors"),
@@ -75,8 +120,6 @@ export const Dashboard: React.FC = () => {
       action: () => navigate("/sponsors"),
     },
   ];
-
-  const recentTournaments = tournaments.slice(0, 3);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -192,25 +235,24 @@ export const Dashboard: React.FC = () => {
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
                     <h4 className="font-medium hover:text-ktsa-primary transition-colors">
-                      {tournament.name}
+                      {tournament.tournamentName ?? tournament.name}
                     </h4>
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs border ${getStatusColor(
-                        tournament.status,
+                        (tournament.status ?? "").toLowerCase(),
                       )}`}
                     >
                       {tournament.status}
                     </span>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(tournament.startDate).toLocaleDateString(
-                      "en-US",
-                      {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                      },
-                    )}
+                    {tournament.startDate
+                      ? new Date(tournament.startDate).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })
+                      : "—"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

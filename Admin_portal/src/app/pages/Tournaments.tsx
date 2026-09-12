@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import {
   Plus,
@@ -10,6 +10,7 @@ import {
   Lock,
   LockOpen,
   Download,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "../components/Card";
@@ -202,7 +203,8 @@ export const Tournaments: React.FC = () => {
 
   // All tournaments fetched (respects date filter, paginated client-side for status)
   const [allTournaments, setAllTournaments] = useState<Tournament[]>([]);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deletingTournament, setDeletingTournament] = useState<Tournament | null>(null);
+  const [deleteInProgress, setDeleteInProgress] = useState(false);
   const [loading, setLoading] = useState(false);
   const [exportingId, setExportingId] = useState<string | null>(null);
 
@@ -286,21 +288,24 @@ export const Tournaments: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleDelete = async (id: string) => {
-    if (deleteConfirm === id) {
-      try {
-        await deleteTournamentAPI(id);
-        setAllTournaments((prev) => prev.filter((t) => String(t.id) !== id));
-        toast.success("Tournament deleted successfully!", {
-          duration: 2000,
-        });
-      } catch {
-        toast.error("Failed to delete tournament");
-      }
-      setDeleteConfirm(null);
-    } else {
-      setDeleteConfirm(id);
-      setTimeout(() => setDeleteConfirm(null), 3000);
+  const handleDelete = (tournament: Tournament) => {
+    setDeletingTournament(tournament);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingTournament) return;
+    setDeleteInProgress(true);
+    try {
+      await deleteTournamentAPI(String(deletingTournament.id));
+      setAllTournaments((prev) =>
+        prev.filter((t) => String(t.id) !== String(deletingTournament.id)),
+      );
+      toast.success("Tournament deleted successfully!", { duration: 2000 });
+    } catch {
+      toast.error("Failed to delete tournament");
+    } finally {
+      setDeleteInProgress(false);
+      setDeletingTournament(null);
     }
   };
 
@@ -355,6 +360,7 @@ export const Tournaments: React.FC = () => {
   };
 
   return (
+  <>
     <div className="p-2 lg:p-4 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
@@ -583,28 +589,27 @@ export const Tournaments: React.FC = () => {
                             </button>
                           )}
                           <button
-                            onClick={() => handleDelete(String(tournament.id))}
-                            className={`transition-colors text-sm ${
-                              deleteConfirm === String(tournament.id)
-                                ? "text-destructive font-semibold"
-                                : "text-destructive/70 hover:text-destructive"
-                            }`}
+                            onClick={() => handleDelete(tournament)}
+                            className="text-destructive/70 hover:text-destructive transition-colors text-sm"
                           >
-                            {deleteConfirm === String(tournament.id)
-                              ? "Confirm?"
-                              : "Delete"}
+                            Delete
                           </button>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <button
                           onClick={() =>
-                            handleExport(
-                              String(tournament.id),
-                              tournament.tournamentName,
-                            )
+                            tournament.registrationClosed
+                              ? handleExport(
+                                  String(tournament.id),
+                                  tournament.tournamentName,
+                                )
+                              : undefined
                           }
-                          disabled={exportingId === String(tournament.id)}
+                          disabled={
+                            !tournament.registrationClosed ||
+                            exportingId === String(tournament.id)
+                          }
                           title={
                             tournament.registrationClosed
                               ? "Download Registrations"
@@ -614,7 +619,7 @@ export const Tournaments: React.FC = () => {
                             ${
                               tournament.registrationClosed
                                 ? "border-blue-500/40 text-blue-400 hover:bg-blue-500/10 hover:border-blue-400"
-                                : "border-border text-muted-foreground/40 cursor-not-allowed"
+                                : "border-border text-muted-foreground/40 cursor-not-allowed opacity-40"
                             }
                             ${exportingId === String(tournament.id) ? "opacity-60 cursor-wait" : ""}
                           `}
@@ -710,11 +715,9 @@ export const Tournaments: React.FC = () => {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleDelete(String(tournament.id))}
+                  onClick={() => handleDelete(tournament)}
                 >
-                  {deleteConfirm === String(tournament.id)
-                    ? "Confirm?"
-                    : "Delete"}
+                  Delete
                 </Button>
                 {tournament.status === "COMPLETED" && (
                   <Button
@@ -846,5 +849,80 @@ export const Tournaments: React.FC = () => {
         )}
       </Card>
     </div>
+
+    {/* ── Delete Confirmation Modal ── */}
+    {deletingTournament && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-md">
+
+          {/* Header */}
+          <div className="flex items-start gap-3 p-6 border-b border-border">
+            <div className="rounded-full bg-destructive/10 p-2 mt-0.5 shrink-0">
+              <AlertTriangle size={18} className="text-destructive" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-foreground">
+                Delete Tournament
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                "{deletingTournament!.tournamentName}"
+              </p>
+            </div>
+            <button
+              onClick={() => !deleteInProgress && setDeletingTournament(null)}
+              className="ml-auto text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Body — what will be deleted */}
+          <div className="p-6 space-y-4">
+            <p className="text-sm text-foreground">
+              This action is <span className="font-semibold text-destructive">permanent and cannot be undone</span>.
+              The following data will be permanently deleted:
+            </p>
+            <ul className="space-y-2">
+              {[
+                { label: "Tournament details", desc: "Name, dates, venue, prize pool, category config" },
+                { label: "All match records", desc: "Scores, results, Challonge-synced bracket data" },
+                { label: "All registrations", desc: "Every player and team registered for this tournament" },
+                { label: "Media files", desc: "Tournament banner and payment QR code" },
+              ].map((item) => (
+                <li key={item.label} className="flex items-start gap-2.5">
+                  <span className="mt-1 h-1.5 w-1.5 rounded-full bg-destructive shrink-0" />
+                  <span className="text-sm text-foreground">
+                    <span className="font-medium">{item.label}</span>
+                    <span className="text-muted-foreground"> — {item.desc}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 px-6 pb-6">
+            <Button
+              variant="ghost"
+              className="flex-1"
+              onClick={() => setDeletingTournament(null)}
+              disabled={deleteInProgress}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1"
+              onClick={handleConfirmDelete}
+              disabled={deleteInProgress}
+            >
+              {deleteInProgress ? "Deleting…" : "Yes, Delete"}
+            </Button>
+          </div>
+
+        </div>
+      </div>
+    )}
+  </>
   );
 };

@@ -1,6 +1,6 @@
-import { motion } from "motion/react";
-import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router";
+﻿import { motion } from "motion/react";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router";
 import {
   ArrowLeft,
   Trophy,
@@ -10,10 +10,10 @@ import {
   MapPin,
   ChevronLeft,
   ChevronRight,
-  ExternalLink,
   Search,
   X,
   Shield,
+  Layers,
 } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { WinnerCard } from "../components/ui/WinnerCard";
@@ -23,42 +23,56 @@ import doublePlayer from "../../assets/doubles_avatar.jfif";
 import {
   getTournamentById,
   getMatchesByTournament,
+  getEnabledCategories,
   type MatchResult,
   type TournamentDetail,
 } from "../../services/matchService";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface StandingEntry {
   rank: number;
-  name?: string; // singles
+  name?: string;    // singles
   names?: string[]; // doubles
   image?: string;
   wins: number;
   losses: number;
   matches: number;
+  winRate: number;  // 0–100
+  pointsFor: number; // sum of match scores this player/team scored
   points: number;
   trend: string;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-/** Derive participant standings from completed matches */
+/** Derive participant standings from completed matches.
+ *
+ *  Tiebreaker order:
+ *   1. Wins DESC
+ *   2. Losses ASC
+ *   3. Points For DESC  ← total match score accumulated (tiebreak when W/L equal)
+ *   4. Win-rate DESC
+ *   5. Matches played DESC
+ *   6. Name ASC  (stable alphabetical final tiebreak)
+ */
 function buildStandings(matches: MatchResult[]): StandingEntry[] {
   const map = new Map<
     string,
-    { wins: number; losses: number; matches: number; isTeam: boolean }
+    { wins: number; losses: number; matches: number; pointsFor: number; isTeam: boolean }
   >();
 
   const ensure = (name: string, isTeam: boolean) => {
     if (!map.has(name))
-      map.set(name, { wins: 0, losses: 0, matches: 0, isTeam });
+      map.set(name, { wins: 0, losses: 0, matches: 0, pointsFor: 0, isTeam });
   };
 
   for (const m of matches) {
     if (m.status !== "COMPLETED") continue;
 
     const isTeam = !!m.teamOne;
+    const score1 = m.teamOneScore ?? 0;
+    const score2 = m.teamTwoScore ?? 0;
 
     if (isTeam) {
       const p1 = m.teamOne!;
@@ -67,6 +81,9 @@ function buildStandings(matches: MatchResult[]): StandingEntry[] {
       ensure(p2, true);
       map.get(p1)!.matches++;
       map.get(p2)!.matches++;
+      // Accumulate match scores
+      map.get(p1)!.pointsFor += score1;
+      map.get(p2)!.pointsFor += score2;
       if (m.winnerTeam) {
         const winner = m.winnerTeam;
         const loser = winner === p1 ? p2 : p1;
@@ -81,6 +98,9 @@ function buildStandings(matches: MatchResult[]): StandingEntry[] {
       ensure(p2, false);
       map.get(p1)!.matches++;
       map.get(p2)!.matches++;
+      // Accumulate match scores
+      map.get(p1)!.pointsFor += score1;
+      map.get(p2)!.pointsFor += score2;
       if (m.winnerPlayer) {
         const winner = m.winnerPlayer;
         const loser = winner === p1 ? p2 : p1;
@@ -90,14 +110,26 @@ function buildStandings(matches: MatchResult[]): StandingEntry[] {
     }
   }
 
-  const sorted = [...map.entries()].sort((a, b) => {
-    // Sort by wins desc, then losses asc
-    if (b[1].wins !== a[1].wins) return b[1].wins - a[1].wins;
-    return a[1].losses - b[1].losses;
+  const sorted = [...map.entries()].sort(([nameA, a], [nameB, b]) => {
+    // 1. wins DESC
+    if (b.wins !== a.wins) return b.wins - a.wins;
+    // 2. losses ASC
+    if (a.losses !== b.losses) return a.losses - b.losses;
+    // 3. points for DESC — sum of actual match scores (main tiebreak when W/L equal)
+    if (b.pointsFor !== a.pointsFor) return b.pointsFor - a.pointsFor;
+    // 4. win-rate DESC
+    const rateA = a.matches > 0 ? a.wins / a.matches : 0;
+    const rateB = b.matches > 0 ? b.wins / b.matches : 0;
+    if (rateB !== rateA) return rateB - rateA;
+    // 5. matches played DESC (more active)
+    if (b.matches !== a.matches) return b.matches - a.matches;
+    // 6. alphabetical ASC (stable final tiebreak)
+    return nameA.localeCompare(nameB);
   });
 
   return sorted.map(([name, stat], idx) => {
     const isDoubles = name.includes(" & ") || stat.isTeam;
+    const winRate = stat.matches > 0 ? Math.round((stat.wins / stat.matches) * 100) : 0;
     return {
       rank: idx + 1,
       ...(isDoubles
@@ -106,7 +138,8 @@ function buildStandings(matches: MatchResult[]): StandingEntry[] {
       wins: stat.wins,
       losses: stat.losses,
       matches: stat.matches,
-      // Simple points: 3 per win, 1 per draw (no draw logic here)
+      winRate,
+      pointsFor: stat.pointsFor,
       points: stat.wins * 3,
       trend: "same",
     };
@@ -141,7 +174,7 @@ function formatDate(iso: string) {
 function formatDateRange(start: string, end: string) {
   const s = formatDate(start);
   const e = formatDate(end);
-  return start === end ? s : `${s} – ${e}`;
+  return start === end ? s : `${s} - ${e}`;
 }
 
 function statusBadge(status: string) {
@@ -182,7 +215,7 @@ const rankMeta = {
 
 const podiumOrder = [1, 0, 2]; // 2nd left, 1st centre, 3rd right
 
-// ── Match Card ─────────────────────────────────────────────────────────────────
+// â”€â”€ Match Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function MatchCard({ match }: { match: MatchResult }) {
   const isTeam = !!match.teamOne;
@@ -217,7 +250,7 @@ function MatchCard({ match }: { match: MatchResult }) {
         >
           {s1}
         </span>
-        <span className="text-ktsa-text/30 text-xs">–</span>
+        <span className="text-ktsa-text/30 text-xs">-</span>
         <span
           className={`text-sm font-black tabular-nums ${w2 ? "text-ktsa-accent" : "text-ktsa-text/60"}`}
         >
@@ -247,14 +280,15 @@ function MatchCard({ match }: { match: MatchResult }) {
   );
 }
 
-// ── Main Component ─────────────────────────────────────────────────────────────
+// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export function TournamentResults() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [tournament, setTournament] = useState<TournamentDetail | null>(null);
-  const [matches, setMatches] = useState<MatchResult[]>([]);
+  const [allMatches, setAllMatches] = useState<MatchResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -263,19 +297,56 @@ export function TournamentResults() {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
 
+  // selected category - read from ?category= query param
+  const categoryParam = searchParams.get("category") ?? "ALL";
+  const [selectedCategory, setSelectedCategory] =
+    useState<string>(categoryParam);
+
+  // Sync local state if URL param changes externally
+  useEffect(() => {
+    setSelectedCategory(categoryParam);
+    setSearchQuery("");
+    setCurrentPage(1);
+  }, [categoryParam]);
+
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     Promise.all([getTournamentById(id), getMatchesByTournament(id)])
       .then(([t, m]) => {
         setTournament(t);
-        setMatches(m);
+        setAllMatches(m);
       })
       .catch(() => setError("Failed to load tournament results."))
       .finally(() => setLoading(false));
   }, [id]);
 
-  // ── Derived data ─────────────────────────────────────────────
+  // â”€â”€ Category tabs derived from tournament â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const enabledCategories = tournament ? getEnabledCategories(tournament) : [];
+  const categoryTabs = [
+    { label: "All", value: "ALL" },
+    ...enabledCategories.map((c) => ({ label: c.label, value: c.label })),
+  ];
+
+  // Switch category: update URL param so back/forward works
+  const handleCategorySelect = (value: string) => {
+    setSelectedCategory(value);
+    setSearchQuery("");
+    setCurrentPage(1);
+    if (value === "ALL") {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category: value });
+    }
+  };
+
+  // â”€â”€ Filtered matches for the selected category â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const matches =
+    selectedCategory === "ALL"
+      ? allMatches
+      : allMatches.filter((m) => m.category === selectedCategory);
+
+  // â”€â”€ Derived data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const standings = buildStandings(matches);
   const topThree = standings.slice(0, 3);
 
@@ -296,7 +367,7 @@ export function TournamentResults() {
   const groupedMatches = groupMatches(matches);
   const completedCount = matches.filter((m) => m.status === "COMPLETED").length;
 
-  // ── Loading / Error ──────────────────────────────────────────
+  // â”€â”€ Loading / Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (loading) {
     return (
       <div className="min-h-screen pt-32 flex items-center justify-center bg-ktsa-bg">
@@ -322,9 +393,12 @@ export function TournamentResults() {
     );
   }
 
+  const categoryLabel =
+    selectedCategory === "ALL" ? "Overall" : selectedCategory;
+
   return (
     <div className="min-h-screen bg-ktsa-bg">
-      {/* ── Hero Banner ─────────────────────────────────────────── */}
+      {/* â”€â”€ Hero Banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <section className="relative min-h-[420px] sm:min-h-[480px] overflow-hidden">
         <div className="absolute inset-0">
           {tournament.bannerUrl ? (
@@ -340,20 +414,18 @@ export function TournamentResults() {
           <div className="absolute inset-0 bg-gradient-to-r from-ktsa-accent/5 via-transparent to-ktsa-highlight/5" />
         </div>
 
-        {/* All content starts at pt-24 so it clears the fixed 80px navbar */}
         <div className="relative z-10 w-full max-w-6xl mx-auto px-4 pt-24 pb-8 flex flex-col min-h-[420px] sm:min-h-[480px] gap-8">
           {/* Back button */}
           <button
-            onClick={() => navigate("/tournaments")}
+            onClick={() => navigate(`/tournaments/${id}`)}
             className="flex items-center gap-2 text-ktsa-text/80 hover:text-ktsa-accent transition-colors font-medium text-sm bg-black/40 backdrop-blur-sm self-start px-3 py-1.5 rounded-full"
           >
             <ArrowLeft size={16} />
-            All Tournaments
+            Back to Tournament
           </button>
 
-          {/* Bottom content — badges, title, meta, stats */}
+          {/* Title + meta + stats */}
           <div>
-            {/* Status + format */}
             <div className="flex flex-wrap items-center gap-2 mb-3">
               <span
                 className={`px-3 py-1 rounded-full text-xs font-bold border ${statusBadge(tournament.status)}`}
@@ -365,9 +437,14 @@ export function TournamentResults() {
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-3">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight mb-1">
               {tournament.tournamentName}
             </h1>
+            {selectedCategory !== "ALL" && (
+              <p className="text-ktsa-accent font-bold text-lg mb-3">
+                {selectedCategory}
+              </p>
+            )}
 
             <div className="flex flex-wrap items-center gap-4 text-sm text-ktsa-text/70">
               <span className="flex items-center gap-1.5">
@@ -380,40 +457,58 @@ export function TournamentResults() {
               </span>
             </div>
 
-            {/* Stats strip */}
             <div className="flex flex-wrap gap-4 mt-4">
-              <div className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center">
-                <p className="text-lg font-black text-ktsa-accent">
-                  {matches.length}
-                </p>
-                <p className="text-xs text-ktsa-text/60">Total Matches</p>
-              </div>
-              <div className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center">
-                <p className="text-lg font-black text-ktsa-accent">
-                  {completedCount}
-                </p>
-                <p className="text-xs text-ktsa-text/60">Completed</p>
-              </div>
-              <div className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center">
-                <p className="text-lg font-black text-ktsa-accent">
-                  {standings.length}
-                </p>
-                <p className="text-xs text-ktsa-text/60">Participants</p>
-              </div>
-              {tournament.pricePool > 0 && (
-                <div className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center">
-                  <p className="text-lg font-black text-ktsa-accent">
-                    ₹{tournament.pricePool.toLocaleString("en-IN")}
-                  </p>
-                  <p className="text-xs text-ktsa-text/60">Prize Pool</p>
+              {[
+                { label: "Matches", value: matches.length },
+                { label: "Completed", value: completedCount },
+                { label: "Participants", value: standings.length },
+                ...(tournament.pricePool > 0
+                  ? [
+                      {
+                        label: "Prize Pool",
+                        value: `\u20B9${tournament.pricePool.toLocaleString("en-IN")}`,
+                      },
+                    ]
+                  : []),
+              ].map(({ label, value }) => (
+                <div
+                  key={label}
+                  className="px-4 py-2 bg-ktsa-primary/30 border border-ktsa-accent/20 rounded-xl text-center"
+                >
+                  <p className="text-lg font-black text-ktsa-accent">{value}</p>
+                  <p className="text-xs text-ktsa-text/60">{label}</p>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Only show results when there are completed matches ────── */}
+      {/* â”€â”€ Category Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {categoryTabs.length > 2 && (
+        <section className="sticky top-20 z-30 bg-ktsa-bg/90 backdrop-blur-lg border-b border-ktsa-accent/10 py-3 px-4">
+          <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <Layers size={14} className="text-ktsa-accent/50 flex-shrink-0" />
+            <div className="flex items-center gap-2">
+              {categoryTabs.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => handleCategorySelect(tab.value)}
+                  className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200 ${
+                    selectedCategory === tab.value
+                      ? "bg-ktsa-accent text-ktsa-bg shadow-md shadow-ktsa-accent/30"
+                      : "bg-ktsa-primary/30 text-ktsa-text/70 border border-ktsa-accent/20 hover:border-ktsa-accent/50 hover:text-ktsa-text"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* â”€â”€ Results body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {completedCount === 0 ? (
         <section className="py-20 px-4 text-center">
           <Shield size={48} className="text-ktsa-accent/30 mx-auto mb-4" />
@@ -421,21 +516,28 @@ export function TournamentResults() {
             No results yet
           </h2>
           <p className="text-ktsa-text/50 text-sm">
-            Results will appear here once matches are completed.
+            {selectedCategory === "ALL"
+              ? "Results will appear here once matches are completed."
+              : `No completed matches found for ${selectedCategory}.`}
           </p>
+          {selectedCategory !== "ALL" && (
+            <button
+              onClick={() => handleCategorySelect("ALL")}
+              className="mt-4 px-5 py-2 rounded-full border border-ktsa-accent/30 text-ktsa-accent text-sm font-bold hover:bg-ktsa-accent/10 transition-colors"
+            >
+              View All Categories
+            </button>
+          )}
         </section>
       ) : (
         <>
-          {/* ── Podium + WinnerCard — same layout as Rankings.tsx ────── */}
+          {/* â”€â”€ Podium + WinnerCard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           {topThree.length > 0 && (
             <section className="bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative overflow-hidden py-2">
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 max-w-7xl mx-auto py-8 px-4">
-                {/* Mobile: cube podium */}
                 <div className="sm:hidden flex flex-col items-center py-8">
                   <CubePodium players={topThree} />
                 </div>
-
-                {/* Desktop: animated card towers — 2nd left, 1st centre, 3rd right */}
                 <div className="hidden sm:flex items-end justify-center gap-3 sm:gap-6 h-[420px] w-full">
                   <div className="max-w-full mx-auto relative z-10 sm:max-w-full w-full">
                     <div className="flex items-end justify-center gap-3 sm:gap-6 h-[420px] w-full">
@@ -474,10 +576,7 @@ export function TournamentResults() {
                               initial={{ height: 0 }}
                               whileInView={{ height: cardHeight }}
                               viewport={{ once: true }}
-                              transition={{
-                                duration: 0.8,
-                                ease: "easeOut",
-                              }}
+                              transition={{ duration: 0.8, ease: "easeOut" }}
                               whileHover={{
                                 scale: 1.04,
                                 y: -8,
@@ -533,13 +632,11 @@ export function TournamentResults() {
                     </div>
                   </div>
                 </div>
-
-                {/* Winner card — right column */}
                 <div className="relative lg:top-20 top-0 py-3 px-2">
                   {standings[0] && (
                     <WinnerCard
                       player={standings[0]}
-                      category={tournament.tournamentName}
+                      category={categoryLabel}
                     />
                   )}
                 </div>
@@ -547,9 +644,8 @@ export function TournamentResults() {
             </section>
           )}
 
-          {/* ── Standings Table ───────────────────────────────────────── */}
+          {/* â”€â”€ Standings Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           <section className="max-w-7xl mx-auto px-4 pb-4">
-            {/* Search */}
             <div className="flex justify-end mb-3">
               <div className="relative">
                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
@@ -579,20 +675,18 @@ export function TournamentResults() {
               </div>
             </div>
 
-            {/* Table */}
             <div
               className="border border-ktsa-accent/30 rounded-xl overflow-hidden"
               style={{ boxShadow: "0 8px 40px rgba(0,229,255,0.1)" }}
             >
-              {/* Header */}
-              <div className="grid grid-cols-6 gap-2 px-5 py-3 bg-ktsa-primary/75 border-b border-ktsa-accent/30 font-black text-ktsa-text text-sm">
+              <div className="grid grid-cols-7 gap-2 px-5 py-3 bg-ktsa-primary/75 border-b border-ktsa-accent/30 font-black text-ktsa-text text-sm">
                 <div>Rank</div>
                 <div className="col-span-2">Participant</div>
                 <div className="text-right">Played</div>
                 <div className="text-right">Wins</div>
                 <div className="text-right">Losses</div>
+                <div className="text-right" title="Total match points scored">Pts</div>
               </div>
-
               {paginatedStandings.length === 0 ? (
                 <div className="flex items-center justify-center py-10 text-ktsa-text/50 text-sm">
                   No participants found
@@ -601,16 +695,13 @@ export function TournamentResults() {
                 paginatedStandings.map((entry, index) => {
                   const displayName =
                     entry.name ?? (entry.names ?? []).join(" & ");
-                  const isTop3 = entry.rank <= 3;
                   return (
                     <motion.div
                       key={entry.rank}
                       initial={{ opacity: 0, x: -16 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.04 }}
-                      className={`grid grid-cols-6 gap-2 px-5 py-2.5 border-b border-ktsa-accent/10 hover:bg-ktsa-primary/50 transition-colors group ${
-                        isTop3 ? "bg-ktsa-primary/20" : ""
-                      }`}
+                      className={`grid grid-cols-7 gap-2 px-5 py-2.5 border-b border-ktsa-accent/10 hover:bg-ktsa-primary/50 transition-colors group ${entry.rank <= 3 ? "bg-ktsa-primary/20" : ""}`}
                     >
                       <div className="flex items-center gap-2">
                         {entry.rank === 1 && (
@@ -640,16 +731,17 @@ export function TournamentResults() {
                       <div className="text-right text-red-400/80 font-semibold text-sm flex items-center justify-end">
                         {entry.losses}
                       </div>
+                      <div className="text-right text-ktsa-accent/80 font-semibold text-sm flex items-center justify-end" title="Total match points scored">
+                        {entry.pointsFor}
+                      </div>
                     </motion.div>
                   );
                 })
               )}
             </div>
-
-            {/* Pagination */}
             <div className="flex items-center justify-between px-5 py-2 border border-t-0 border-ktsa-accent/20 rounded-b-xl bg-ktsa-primary/75">
               <div className="text-sm text-ktsa-text font-semibold">
-                Showing {filteredStandings.length === 0 ? 0 : startIdx + 1}–
+                Showing {filteredStandings.length === 0 ? 0 : startIdx + 1}-
                 {Math.min(startIdx + recordsPerPage, filteredStandings.length)}{" "}
                 of {filteredStandings.length}
               </div>
@@ -670,11 +762,7 @@ export function TournamentResults() {
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-7 h-7 rounded font-bold text-sm transition ${
-                        currentPage === page
-                          ? "bg-ktsa-primary text-ktsa-text"
-                          : "border border-ktsa-accent/20 text-ktsa-text hover:bg-ktsa-primary"
-                      }`}
+                      className={`w-7 h-7 rounded font-bold text-sm transition ${currentPage === page ? "bg-ktsa-primary text-ktsa-text" : "border border-ktsa-accent/20 text-ktsa-text hover:bg-ktsa-primary"}`}
                     >
                       {page}
                     </button>
@@ -690,13 +778,17 @@ export function TournamentResults() {
             </div>
           </section>
 
-          {/* ── Match Results by Round ────────────────────────────────── */}
+          {/* â”€â”€ Matches by Round â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           <section className="max-w-7xl mx-auto px-4 pb-16 pt-6">
             <h2 className="text-xl font-black text-ktsa-text mb-6 flex items-center gap-2">
               <Trophy size={20} className="text-ktsa-accent" />
-              Match Results
+              Match Results{" "}
+              {selectedCategory !== "ALL" && (
+                <span className="text-ktsa-accent/60 text-base font-semibold">
+                  - {selectedCategory}
+                </span>
+              )}
             </h2>
-
             {groupedMatches.size === 0 ? (
               <p className="text-ktsa-text/50 text-sm text-center py-8">
                 No match data available.
@@ -705,7 +797,6 @@ export function TournamentResults() {
               <div className="space-y-8">
                 {[...groupedMatches.entries()].map(([round, byStage]) => (
                   <div key={round}>
-                    {/* Round header */}
                     <div className="flex items-center gap-3 mb-4">
                       <div className="h-px flex-1 bg-ktsa-accent/20" />
                       <span className="px-4 py-1 text-xs font-black text-ktsa-accent border border-ktsa-accent/30 rounded-full bg-ktsa-accent/5 tracking-widest uppercase">
@@ -713,12 +804,9 @@ export function TournamentResults() {
                       </span>
                       <div className="h-px flex-1 bg-ktsa-accent/20" />
                     </div>
-
-                    {/* Stages within round */}
                     <div className="space-y-4">
                       {[...byStage.entries()].map(([stage, stageMatches]) => (
                         <div key={stage}>
-                          {/* Stage label (only if not just "UNKNOWN") */}
                           {stage !== "UNKNOWN" && (
                             <p className="text-[10px] font-bold tracking-widest text-ktsa-accent/50 uppercase mb-2 pl-1">
                               {stage.replace(/_/g, " ")}

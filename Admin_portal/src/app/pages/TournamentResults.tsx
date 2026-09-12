@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
+﻿import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router";
 import {
   ArrowLeft,
   Trophy,
@@ -7,13 +7,13 @@ import {
   Award,
   Calendar,
   MapPin,
-  ExternalLink,
   Search,
   X,
   Shield,
   Loader2,
   ChevronLeft,
   ChevronRight,
+  Layers,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "../components/Card";
@@ -24,7 +24,7 @@ import {
   MatchResponseDto,
 } from "../../services/matchService";
 
-// ── Types ──────────────────────────────────────────────────────────────────────
+// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface StandingEntry {
   rank: number;
@@ -32,18 +32,19 @@ interface StandingEntry {
   wins: number;
   losses: number;
   matches: number;
+  pointsFor: number;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function buildStandings(matches: MatchResponseDto[]): StandingEntry[] {
   const map = new Map<
     string,
-    { wins: number; losses: number; matches: number }
+    { wins: number; losses: number; matches: number; pointsFor: number }
   >();
 
   const ensure = (name: string) => {
-    if (!map.has(name)) map.set(name, { wins: 0, losses: 0, matches: 0 });
+    if (!map.has(name)) map.set(name, { wins: 0, losses: 0, matches: 0, pointsFor: 0 });
   };
 
   for (const m of matches) {
@@ -53,10 +54,15 @@ function buildStandings(matches: MatchResponseDto[]): StandingEntry[] {
     const p2 = isTeam ? m.teamTwo : m.playerTwo;
     if (!p1 || !p2) continue;
 
+    const score1 = m.teamOneScore ?? 0;
+    const score2 = m.teamTwoScore ?? 0;
+
     ensure(p1);
     ensure(p2);
     map.get(p1)!.matches++;
     map.get(p2)!.matches++;
+    map.get(p1)!.pointsFor += score1;
+    map.get(p2)!.pointsFor += score2;
 
     const winner = isTeam ? m.winnerTeam : m.winnerPlayer;
     if (winner) {
@@ -67,9 +73,21 @@ function buildStandings(matches: MatchResponseDto[]): StandingEntry[] {
   }
 
   return [...map.entries()]
-    .sort((a, b) => {
-      if (b[1].wins !== a[1].wins) return b[1].wins - a[1].wins;
-      return a[1].losses - b[1].losses;
+    .sort(([nameA, a], [nameB, b]) => {
+      // 1. wins DESC
+      if (b.wins !== a.wins) return b.wins - a.wins;
+      // 2. losses ASC
+      if (a.losses !== b.losses) return a.losses - b.losses;
+      // 3. points for DESC — total match score (tiebreak when W/L equal)
+      if (b.pointsFor !== a.pointsFor) return b.pointsFor - a.pointsFor;
+      // 4. win-rate DESC
+      const rateA = a.matches > 0 ? a.wins / a.matches : 0;
+      const rateB = b.matches > 0 ? b.wins / b.matches : 0;
+      if (rateB !== rateA) return rateB - rateA;
+      // 5. matches played DESC
+      if (b.matches !== a.matches) return b.matches - a.matches;
+      // 6. alphabetical ASC
+      return nameA.localeCompare(nameB);
     })
     .map(([name, stat], idx) => ({ rank: idx + 1, name, ...stat }));
 }
@@ -107,15 +125,15 @@ const rankIcon = (rank: number) => {
   return <span className="text-sm text-muted-foreground">{rank}</span>;
 };
 
-// ── Match Row ──────────────────────────────────────────────────────────────────
+// â”€â”€ Match Row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 function MatchRow({ match }: { match: MatchResponseDto }) {
   const isTeam = !!match.teamOne;
   const p1 = isTeam ? match.teamOne : match.playerOne;
   const p2 = isTeam ? match.teamTwo : match.playerTwo;
   const winner = isTeam ? match.winnerTeam : match.winnerPlayer;
-  const s1 = match.teamOneScore ?? "–";
-  const s2 = match.teamTwoScore ?? "–";
+  const s1 = match.teamOneScore ?? "-";
+  const s2 = match.teamTwoScore ?? "-";
   const w1 = !!winner && winner === p1;
   const w2 = !!winner && winner === p2;
 
@@ -138,7 +156,7 @@ function MatchRow({ match }: { match: MatchResponseDto }) {
         >
           {s1}
         </span>
-        <span className="text-muted-foreground/40 text-xs">–</span>
+        <span className="text-muted-foreground/40 text-xs">-</span>
         <span
           className={`text-sm font-black tabular-nums ${w2 ? "text-ktsa-accent" : "text-muted-foreground"}`}
         >
@@ -166,21 +184,49 @@ function MatchRow({ match }: { match: MatchResponseDto }) {
   );
 }
 
-// ── Main Component ─────────────────────────────────────────────────────────────
+// â”€â”€ Category config (mirrors the tournament entity fields) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+const ALL_CATEGORY_CONFIGS = [
+  { label: "Open Singles", enabledKey: "openSingleEnabled" },
+  { label: "Women's Singles", enabledKey: "womenSingleEnabled" },
+  { label: "Men's Singles", enabledKey: "mensSingleEnabled" },
+  { label: "Under 16", enabledKey: "underSixteenEnabled" },
+  { label: "Above 16", enabledKey: "aboveSixteenEnabled" },
+  { label: "Open Doubles", enabledKey: "openDoubleEnabled" },
+  { label: "Mixed Doubles", enabledKey: "mixedDoubleEnabled" },
+];
+
+function getEnabledCategoryLabels(tournament: any): string[] {
+  return ALL_CATEGORY_CONFIGS.filter((c) => tournament?.[c.enabledKey]).map(
+    (c) => c.label,
+  );
+}
+
+// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export const TournamentResults: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const tournamentId = Number(id);
 
   const [tournament, setTournament] = useState<any>(null);
-  const [matches, setMatches] = useState<MatchResponseDto[]>([]);
+  const [allMatches, setAllMatches] = useState<MatchResponseDto[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // search + pagination for standings
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 10;
+
+  const categoryParam = searchParams.get("category") ?? "ALL";
+  const [selectedCategory, setSelectedCategory] =
+    useState<string>(categoryParam);
+
+  useEffect(() => {
+    setSelectedCategory(categoryParam);
+    setSearchQuery("");
+    setCurrentPage(1);
+  }, [categoryParam]);
 
   useEffect(() => {
     if (!tournamentId) return;
@@ -190,11 +236,19 @@ export const TournamentResults: React.FC = () => {
     ])
       .then(([t, m]) => {
         setTournament(t.data ?? t);
-        setMatches(m);
+        setAllMatches(m);
       })
       .catch(() => toast.error("Failed to load results"))
       .finally(() => setLoading(false));
   }, [tournamentId]);
+
+  const handleCategorySelect = (value: string) => {
+    setSelectedCategory(value);
+    setSearchQuery("");
+    setCurrentPage(1);
+    if (value === "ALL") setSearchParams({});
+    else setSearchParams({ category: value });
+  };
 
   if (loading) {
     return (
@@ -216,7 +270,20 @@ export const TournamentResults: React.FC = () => {
     );
   }
 
-  // ── Derived ──────────────────────────────────────────────────────
+  // â”€â”€ Category tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const enabledLabels = getEnabledCategoryLabels(tournament);
+  const categoryTabs = [
+    { label: "All", value: "ALL" },
+    ...enabledLabels.map((l) => ({ label: l, value: l })),
+  ];
+
+  // â”€â”€ Filtered matches â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const matches =
+    selectedCategory === "ALL"
+      ? allMatches
+      : allMatches.filter((m) => m.category === selectedCategory);
+
+  // â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const standings = buildStandings(matches);
   const completedCount = matches.filter(
     (m) => m.status === "completed" || m.status === "COMPLETED",
@@ -234,9 +301,12 @@ export const TournamentResults: React.FC = () => {
     startIdx + recordsPerPage,
   );
 
+  const categoryLabel =
+    selectedCategory === "ALL" ? "Overall" : selectedCategory;
+
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto">
-      {/* ── Page Header ───────────────────────────────────────────── */}
+      {/* â”€â”€ Page Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="mb-6">
         <button
           onClick={() => navigate(`/tournaments/${id}/matches`)}
@@ -252,7 +322,9 @@ export const TournamentResults: React.FC = () => {
               {tournament.tournamentName ?? tournament.name}
             </h1>
             <p className="text-muted-foreground text-sm">
-              Tournament Results & Standings
+              {selectedCategory === "ALL"
+                ? "Overall Results & Standings"
+                : `${selectedCategory} - Results & Standings`}
             </p>
           </div>
           <Button
@@ -263,7 +335,6 @@ export const TournamentResults: React.FC = () => {
           </Button>
         </div>
 
-        {/* Info strip */}
         <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-muted-foreground">
           {tournament.startDate && (
             <span className="flex items-center gap-1.5">
@@ -283,7 +354,6 @@ export const TournamentResults: React.FC = () => {
           )}
         </div>
 
-        {/* Stats strip */}
         <div className="flex flex-wrap gap-3 mt-4">
           {[
             { label: "Total Matches", value: matches.length },
@@ -301,29 +371,67 @@ export const TournamentResults: React.FC = () => {
         </div>
       </div>
 
-      {/* ── No results yet ────────────────────────────────────────── */}
+      {/* â”€â”€ Category Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {categoryTabs.length > 2 && (
+        <Card className="mb-6 p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Layers size={14} className="text-ktsa-accent" />
+            <span className="text-sm font-bold text-foreground">
+              Sub-Tournaments
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {categoryTabs.map((tab) => (
+              <button
+                key={tab.value}
+                onClick={() => handleCategorySelect(tab.value)}
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  selectedCategory === tab.value
+                    ? "bg-ktsa-accent text-black shadow-md"
+                    : "bg-muted/30 text-muted-foreground border border-border hover:border-ktsa-accent/40 hover:text-foreground"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* â”€â”€ No results yet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {completedCount === 0 ? (
         <Card className="p-12 text-center">
           <Shield size={48} className="mx-auto mb-4 text-muted-foreground" />
           <h3 className="mb-2">No results yet</h3>
           <p className="text-muted-foreground mb-6">
-            Results will appear here once matches are marked as completed.
+            {selectedCategory === "ALL"
+              ? "Results will appear here once matches are marked as completed."
+              : `No completed matches found for ${selectedCategory}.`}
           </p>
+          {selectedCategory !== "ALL" && (
+            <Button
+              variant="ghost"
+              onClick={() => handleCategorySelect("ALL")}
+              className="mb-3"
+            >
+              View All Categories
+            </Button>
+          )}
           <Button onClick={() => navigate(`/tournaments/${id}/matches`)}>
             Go to Matches
           </Button>
         </Card>
       ) : (
         <div className="space-y-6">
-          {/* ── Podium (top 3) ──────────────────────────────────── */}
+          {/* â”€â”€ Podium â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           {standings.length >= 1 && (
             <Card>
               <h2 className="mb-5 flex items-center gap-2 text-base font-bold">
                 <Trophy size={18} className="text-ktsa-accent" />
-                Top Finishers
+                Top Finishers -{" "}
+                <span className="text-ktsa-accent">{categoryLabel}</span>
               </h2>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                {/* Render 2nd, 1st, 3rd for podium visual order */}
                 {[standings[1], standings[0], standings[2]]
                   .filter(Boolean)
                   .map((entry) => {
@@ -347,11 +455,7 @@ export const TournamentResults: React.FC = () => {
                     return (
                       <div
                         key={entry.rank}
-                        className={`flex-1 max-w-xs mx-auto sm:mx-0 border-2 rounded-2xl p-5 text-center shadow-lg ${
-                          borderColors[entry.rank]
-                        } ${bgColors[entry.rank]} ${
-                          isFirst ? "sm:-mt-3 sm:scale-105" : ""
-                        } transition-all`}
+                        className={`flex-1 max-w-xs mx-auto sm:mx-0 border-2 rounded-2xl p-5 text-center shadow-lg ${borderColors[entry.rank]} ${bgColors[entry.rank]} ${isFirst ? "sm:-mt-3 sm:scale-105" : ""} transition-all`}
                       >
                         <div className="flex justify-center mb-2">
                           {medals[entry.rank]}
@@ -390,13 +494,17 @@ export const TournamentResults: React.FC = () => {
             </Card>
           )}
 
-          {/* ── Full Standings Table ─────────────────────────────── */}
+          {/* â”€â”€ Standings Table â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           <Card className="overflow-hidden p-0">
-            {/* Search bar */}
             <div className="flex items-center justify-between p-4 border-b border-border">
               <h2 className="font-bold text-base flex items-center gap-2">
                 <Shield size={16} className="text-ktsa-accent" />
-                Full Standings
+                Standings{" "}
+                {selectedCategory !== "ALL" && (
+                  <span className="text-ktsa-accent/60 text-sm font-medium">
+                    - {selectedCategory}
+                  </span>
+                )}
               </h2>
               <div className="relative">
                 <Search
@@ -427,13 +535,13 @@ export const TournamentResults: React.FC = () => {
               </div>
             </div>
 
-            {/* Table header */}
-            <div className="grid grid-cols-6 gap-2 px-5 py-2.5 bg-muted/20 border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            <div className="grid grid-cols-7 gap-2 px-5 py-2.5 bg-muted/20 border-b border-border text-xs font-bold text-muted-foreground uppercase tracking-wider">
               <div>Rank</div>
               <div className="col-span-2">Participant</div>
               <div className="text-right">Played</div>
               <div className="text-right">Wins</div>
               <div className="text-right">Losses</div>
+              <div className="text-right" title="Total match points scored">Pts</div>
             </div>
 
             {paginatedStandings.length === 0 ? (
@@ -441,12 +549,10 @@ export const TournamentResults: React.FC = () => {
                 No participants found
               </div>
             ) : (
-              paginatedStandings.map((entry, idx) => (
+              paginatedStandings.map((entry) => (
                 <div
                   key={entry.rank}
-                  className={`grid grid-cols-6 gap-2 px-5 py-2.5 border-b border-border hover:bg-muted/10 transition-colors ${
-                    entry.rank <= 3 ? "bg-muted/10" : ""
-                  }`}
+                  className={`grid grid-cols-7 gap-2 px-5 py-2.5 border-b border-border hover:bg-muted/10 transition-colors ${entry.rank <= 3 ? "bg-muted/10" : ""}`}
                 >
                   <div className="flex items-center gap-1.5">
                     {rankIcon(entry.rank)}
@@ -463,15 +569,17 @@ export const TournamentResults: React.FC = () => {
                   <div className="text-right text-sm text-red-400/70 flex items-center justify-end">
                     {entry.losses}
                   </div>
+                  <div className="text-right text-sm font-semibold text-ktsa-accent/80 flex items-center justify-end" title="Total match points scored">
+                    {entry.pointsFor}
+                  </div>
                 </div>
               ))
             )}
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-5 py-2.5 border-t border-border bg-muted/10">
                 <p className="text-xs text-muted-foreground">
-                  {filteredStandings.length === 0 ? 0 : startIdx + 1}–
+                  {filteredStandings.length === 0 ? 0 : startIdx + 1}-
                   {Math.min(
                     startIdx + recordsPerPage,
                     filteredStandings.length,
@@ -482,7 +590,7 @@ export const TournamentResults: React.FC = () => {
                   <button
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((p) => p - 1)}
-                    className="w-8 h-8 flex items-center justify-center rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground disabled:opacity-40 transition-colors"
+                    className="w-8 h-8 flex items-center justify-center rounded border border-border text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
                   >
                     <ChevronLeft size={14} />
                   </button>
@@ -491,11 +599,7 @@ export const TournamentResults: React.FC = () => {
                       <button
                         key={p}
                         onClick={() => setCurrentPage(p)}
-                        className={`w-7 h-7 rounded text-xs font-medium transition-colors ${
-                          p === currentPage
-                            ? "bg-ktsa-accent/15 border border-ktsa-accent text-ktsa-accent"
-                            : "border border-border text-muted-foreground hover:text-foreground"
-                        }`}
+                        className={`w-7 h-7 rounded text-xs font-medium transition-colors ${p === currentPage ? "bg-ktsa-accent/15 border border-ktsa-accent text-ktsa-accent" : "border border-border text-muted-foreground hover:text-foreground"}`}
                       >
                         {p}
                       </button>
@@ -504,7 +608,7 @@ export const TournamentResults: React.FC = () => {
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((p) => p + 1)}
-                    className="w-8 h-8 flex items-center justify-center rounded border border-border text-muted-foreground hover:text-foreground hover:border-foreground disabled:opacity-40 transition-colors"
+                    className="w-8 h-8 flex items-center justify-center rounded border border-border text-muted-foreground hover:text-foreground disabled:opacity-40 transition-colors"
                   >
                     <ChevronRight size={14} />
                   </button>
@@ -513,11 +617,16 @@ export const TournamentResults: React.FC = () => {
             )}
           </Card>
 
-          {/* ── Match Results by Round ───────────────────────────── */}
+          {/* â”€â”€ Match Results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
           <Card>
             <h2 className="font-bold text-base mb-5 flex items-center gap-2">
               <Trophy size={16} className="text-ktsa-accent" />
-              Match Results
+              Match Results{" "}
+              {selectedCategory !== "ALL" && (
+                <span className="text-ktsa-accent/60 text-sm font-medium">
+                  - {selectedCategory}
+                </span>
+              )}
             </h2>
 
             {groupedMatches.size === 0 ? (
@@ -528,7 +637,6 @@ export const TournamentResults: React.FC = () => {
               <div className="space-y-6">
                 {[...groupedMatches.entries()].map(([round, byStage]) => (
                   <div key={round}>
-                    {/* Round divider */}
                     <div className="flex items-center gap-3 mb-3">
                       <div className="h-px flex-1 bg-border" />
                       <span className="px-3 py-0.5 text-xs font-black text-ktsa-accent border border-ktsa-accent/30 rounded-full bg-ktsa-accent/5 uppercase tracking-widest">
@@ -536,7 +644,6 @@ export const TournamentResults: React.FC = () => {
                       </span>
                       <div className="h-px flex-1 bg-border" />
                     </div>
-
                     <div className="space-y-3">
                       {[...byStage.entries()].map(([stage, stageMatches]) => (
                         <div key={stage}>

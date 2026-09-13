@@ -788,18 +788,19 @@ const formatStage = (stage: string) =>
 
 interface CategoryConfig {
   label: string;
+  categoryKey: string;   // canonical key stored in DB: e.g. "MENS_SINGLES"
   challongeUrlKey: string;
   doubles: boolean;
 }
 
 const ALL_CATEGORY_CONFIGS: CategoryConfig[] = [
-  { label: "Open Singles",    challongeUrlKey: "openSingleChallongeUrl", doubles: false },
-  { label: "Women's Singles", challongeUrlKey: "womenSingleChallongeUrl", doubles: false },
-  { label: "Men's Singles",   challongeUrlKey: "mensSingleChallongeUrl", doubles: false },
-  { label: "Under 16",        challongeUrlKey: "underSixteenChallongeUrl", doubles: false },
-  { label: "Above 16",        challongeUrlKey: "aboveSixteenChallongeUrl", doubles: false },
-  { label: "Open Doubles",    challongeUrlKey: "openDoubleChallongeUrl", doubles: true  },
-  { label: "Mixed Doubles",   challongeUrlKey: "mixedDoubleChallongeUrl", doubles: true  },
+  { label: "Open Singles",    categoryKey: "MENS_SINGLES",   challongeUrlKey: "openSingleChallongeUrl",   doubles: false },
+  { label: "Women's Singles", categoryKey: "WOMENS_SINGLES", challongeUrlKey: "womenSingleChallongeUrl",  doubles: false },
+  { label: "Men's Singles",   categoryKey: "MENS_SINGLES",   challongeUrlKey: "mensSingleChallongeUrl",   doubles: false },
+  { label: "Under 16",        categoryKey: "UNDER_16",       challongeUrlKey: "underSixteenChallongeUrl", doubles: false },
+  { label: "Above 16",        categoryKey: "ABOVE_16",       challongeUrlKey: "aboveSixteenChallongeUrl", doubles: false },
+  { label: "Open Doubles",    categoryKey: "OPEN_DOUBLES",   challongeUrlKey: "openDoubleChallongeUrl",   doubles: true  },
+  { label: "Mixed Doubles",   categoryKey: "MIXED_DOUBLES",  challongeUrlKey: "mixedDoubleChallongeUrl",  doubles: true  },
 ];
 
 // enabledKey maps label â†’ the Boolean enabled field on the tournament
@@ -845,7 +846,7 @@ export const TournamentMatches: React.FC = () => {
   useEffect(() => {
     if (!tournamentId || !selectedCategory) return;
     setMatchesLoading(true);
-    getMatchesByTournament(tournamentId, selectedCategory.label)
+    getMatchesByTournament(tournamentId, selectedCategory.categoryKey)
       .then(setMatches)
       .catch(() => toast.error("Failed to load matches"))
       .finally(() => setMatchesLoading(false));
@@ -865,10 +866,10 @@ export const TournamentMatches: React.FC = () => {
       const result = await syncCategoryFromChallonge(
         tournamentId,
         challongeUrl,
-        selectedCategory.label,
+        selectedCategory.categoryKey,
       );
       setSyncResult(result);
-      const refreshed = await getMatchesByTournament(tournamentId, selectedCategory.label);
+      const refreshed = await getMatchesByTournament(tournamentId, selectedCategory.categoryKey);
       setMatches(refreshed);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to sync from Challonge");
@@ -1167,7 +1168,7 @@ export const TournamentMatches: React.FC = () => {
       {showCreateModal && (
         <CreateMatchModal
           tournamentId={tournamentId}
-          category={selectedCategory.label}
+          category={selectedCategory.categoryKey}
           onClose={() => setShowCreateModal(false)}
           onCreated={(m) => {
             setMatches((prev) => [m, ...prev]);

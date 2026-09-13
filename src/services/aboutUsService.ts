@@ -1,12 +1,14 @@
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL;
+const isMissingBaseUrl = !API_BASE_URL || API_BASE_URL === "undefined";
 
 /**
  * Fetch About Us content from the backend (reads from S3).
  * Returns null if content has not been saved yet.
  */
 export const getAboutUsContent = async (): Promise<any | null> => {
+  if (isMissingBaseUrl) return null;
   try {
     const response = await axios.get(`${API_BASE_URL}/api/about-us/content`);
     return response.data ?? null;
@@ -15,6 +17,6 @@ export const getAboutUsContent = async (): Promise<any | null> => {
     if (error?.response?.status === 204 || error?.response?.status === 404) {
       return null;
     }
-    throw error;
+    return null;
   }
 };

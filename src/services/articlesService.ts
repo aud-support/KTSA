@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL;
+const isMissingBaseUrl = !API_BASE_URL || API_BASE_URL === "undefined";
 
 export interface ArticleLink {
   label: string;
@@ -21,9 +22,14 @@ export interface NewsArticle {
 }
 
 export const getArticles = async (): Promise<NewsArticle[]> => {
-  const response = await axios.get<NewsArticle[]>(
-    `${API_BASE_URL}/api/homepage/articles`,
-  );
-  const data = (response.data as any)?.data ?? response.data;
-  return Array.isArray(data) ? data : [];
+  if (isMissingBaseUrl) return [];
+  try {
+    const response = await axios.get<NewsArticle[]>(
+      `${API_BASE_URL}/api/homepage/articles`,
+    );
+    const data = (response.data as any)?.data ?? response.data;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
 };

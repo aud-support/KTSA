@@ -10,8 +10,10 @@ export interface Sponsor {
 
 export const getSponsors = async (): Promise<Sponsor[]> => {
   try {
+    if (!BASE || BASE.includes("undefined")) return [];
     const r = await axios.get<Sponsor[]>(BASE);
-    return r.data ?? [];
+    const data = (r.data as any)?.data ?? r.data;
+    return Array.isArray(data) ? data : [];
   } catch {
     return [];
   }

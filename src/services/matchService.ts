@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL;
+const isMissingBaseUrl = !API_BASE_URL || API_BASE_URL === "undefined";
 
 export interface MatchResult {
   id: number;
@@ -76,6 +77,7 @@ export function getEnabledCategories(t: TournamentDetail) {
 export const getTournamentById = async (
   id: string | number,
 ): Promise<TournamentDetail> => {
+  if (isMissingBaseUrl) throw new Error("Backend URL not configured");
   const response = await axios.get(`${API_BASE_URL}/api/tournament/${id}`);
   return response.data?.data ?? response.data;
 };
@@ -88,10 +90,15 @@ export const getMatchesByTournament = async (
   tournamentId: string | number,
   category?: string,
 ): Promise<MatchResult[]> => {
-  const url = category
-    ? `${API_BASE_URL}/api/matches/${tournamentId}?category=${encodeURIComponent(category)}`
-    : `${API_BASE_URL}/api/matches/${tournamentId}`;
-  const response = await axios.get(url);
-  const data = response.data?.data ?? response.data;
-  return Array.isArray(data) ? data : [];
+  if (isMissingBaseUrl) return [];
+  try {
+    const url = category
+      ? `${API_BASE_URL}/api/matches/${tournamentId}?category=${encodeURIComponent(category)}`
+      : `${API_BASE_URL}/api/matches/${tournamentId}`;
+    const response = await axios.get(url);
+    const data = response.data?.data ?? response.data;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
 };

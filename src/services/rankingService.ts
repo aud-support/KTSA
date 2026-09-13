@@ -2,6 +2,9 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL;
 
+/** Returns true when the env var is missing so we skip the request */
+const isMissingBaseUrl = !API_BASE_URL || API_BASE_URL === "undefined";
+
 export type RankingCategory =
   | "MENS_SINGLES"
   | "WOMENS_SINGLES"
@@ -23,12 +26,18 @@ export interface RankingResponse {
 }
 
 export const getAllRankings = async (): Promise<RankingResponse[]> => {
-  const response = await axios.get(`${API_BASE_URL}/api/rankings`);
-  const data = response.data?.data ?? response.data;
-  return Array.isArray(data) ? data : [];
+  if (isMissingBaseUrl) return [];
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/rankings`);
+    const data = response.data?.data ?? response.data;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
 };
 
-export const getRankingByUserId = async (userId: number): Promise<RankingResponse> => {
+export const getRankingByUserId = async (userId: number): Promise<RankingResponse | null> => {
+  if (isMissingBaseUrl) return null;
   const response = await axios.get(`${API_BASE_URL}/api/rankings/user/${userId}`);
   return response.data?.data ?? response.data;
 };
@@ -40,7 +49,12 @@ export const getRankingByUserId = async (userId: number): Promise<RankingRespons
  *   index 2 — #1 Open Doubles
  */
 export const getTopSpotlightPlayers = async (): Promise<RankingResponse[]> => {
-  const response = await axios.get(`${API_BASE_URL}/api/rankings/top`);
-  const data = response.data?.data ?? response.data;
-  return Array.isArray(data) ? data : [];
+  if (isMissingBaseUrl) return [];
+  try {
+    const response = await axios.get(`${API_BASE_URL}/api/rankings/top`);
+    const data = response.data?.data ?? response.data;
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
 };

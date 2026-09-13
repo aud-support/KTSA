@@ -159,16 +159,16 @@ export function About() {
     cms?.[key] ?? fallback;
 
   // Dynamic arrays — use CMS data when available, else the hardcoded arrays
-  const dynamicTimeline: typeof timeline = cms?.timeline ?? timeline;
+  const dynamicTimeline: typeof timeline = Array.isArray(cms?.timeline) ? cms.timeline : timeline;
   const dynamicAchievements: { icon: any; title: string; description: string }[] =
-    cms?.achievements
+    Array.isArray(cms?.achievements)
       ? cms.achievements.map((a: any, i: number) => ({
           icon: [Trophy, Users, Award, Star][i % 4],
           title: a.title,
           description: a.description,
         }))
       : achievements;
-  const dynamicProvides: typeof ktsakProvides = cms?.provides
+  const dynamicProvides: typeof ktsakProvides = Array.isArray(cms?.provides)
     ? cms.provides.map((p: any, i: number) => ({
         icon: [Trophy, Users, Globe, MapPin, Award, Star][i % 6],
         title: p.title,

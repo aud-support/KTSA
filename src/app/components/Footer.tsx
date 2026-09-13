@@ -49,7 +49,7 @@ export function Footer() {
 
   // Quick links: use CMS array if available, else defaults
   const quickLinks: { label: string; path: string }[] =
-    cms?.quickLinks ?? DEFAULTS.quickLinks;
+    Array.isArray(cms?.quickLinks) ? cms.quickLinks : DEFAULTS.quickLinks;
 
   return (
     <footer

@@ -1261,7 +1261,8 @@ export function Home() {
 
           {/* Infinite scrolling video track */}
           {(() => {
-            const urls: string[] = homepageContent?.videoUrls ?? [];
+            const raw = homepageContent?.videoUrls;
+            const urls: string[] = Array.isArray(raw) ? raw : [];
             if (urls.length === 0) return null;
             return <InfiniteVideoCarousel urls={urls} />;
           })()}

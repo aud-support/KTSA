@@ -17,5 +17,6 @@ export const getServices = async (): Promise<Service[]> => {
   const response = await axios.get<Service[]>(
     `${API_BASE_URL}/api/homepage/services`,
   );
-  return response.data;
+  const data = (response.data as any)?.data ?? response.data;
+  return Array.isArray(data) ? data : [];
 };

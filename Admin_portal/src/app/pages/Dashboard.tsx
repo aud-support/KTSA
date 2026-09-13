@@ -9,6 +9,7 @@ import {
   Pencil,
   Home,
   Award as SponsorIcon,
+  Users,
 } from "lucide-react";
 import { Card } from "../components/Card";
 import { Button } from "../components/Button";
@@ -119,6 +120,12 @@ export const Dashboard: React.FC = () => {
       icon: <SponsorIcon size={20} />,
       action: () => navigate("/sponsors"),
     },
+    {
+      label: "Import Players",
+      description: "Bulk create players via Excel",
+      icon: <Users size={20} />,
+      action: () => navigate("/bulk-import"),
+    },
   ];
 
   const getStatusColor = (status: string) => {
@@ -191,7 +198,7 @@ export const Dashboard: React.FC = () => {
         <h3 className="mb-4 uppercase text-sm text-muted-foreground tracking-wider">
           Quick Actions
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {quickActions.map((action) => (
             <button
               key={action.label}

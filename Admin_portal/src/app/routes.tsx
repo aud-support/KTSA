@@ -15,6 +15,7 @@ import { Articles } from "./pages/Articles";
 import { Services } from "./pages/Services";
 import { Sponsors } from "./pages/Sponsors";
 import { FooterSocial } from "./pages/FooterSocial";
+import { BulkImport } from "./pages/BulkImport";
 import { NotFound } from "./pages/NotFound";
 
 const ProtectedLayout = () => (
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
       { path: "services", Component: Services },
       { path: "sponsors", Component: Sponsors },
       { path: "footer-social", Component: FooterSocial },
+      { path: "bulk-import", Component: BulkImport },
       { path: "*", Component: NotFound },
     ],
   },

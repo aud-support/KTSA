@@ -1,25 +1,107 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router";
-import { Menu, X, Trophy } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { motion } from "motion/react";
 import logo from "../../assets/logo.png";
-import emblem from "../../assets/emblem.jpg";
+import ProfileDropdown from "./ui/ProfileDropdown";
+import { toast } from "sonner";
 
-export function Navbar() {
+interface UserProfile {
+  name: string;
+  email: string;
+  profilePictureUrl?: string;
+}
+
+export function Navbar({
+  onLoginClick,
+  onSignupClick,
+  onProfileClick,
+  onSettingsClick,
+  onMatchesClick,
+  onTeamsClick,
+}: {
+  onLoginClick: () => void;
+  onSignupClick: () => void;
+  onProfileClick: () => void;
+  onSettingsClick: () => void;
+  onMatchesClick: () => void;
+  onTeamsClick: () => void;
+}) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const location = useLocation();
 
+  // ─── Fetch full user profile from API (includes profilePictureUrl) ──────────
+  const fetchUserProfile = async () => {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
+
+    if (!token || !userId) {
+      setUser(null);
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_BASE_URL}/api/users/${userId}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      if (!res.ok) {
+        setUser(null);
+        return;
+      }
+      const json = await res.json();
+      const data = json.data ?? json;
+      setUser({
+        name: data.name,
+        email: data.email,
+        profilePictureUrl: data.profilePictureUrl ?? undefined,
+      });
+    } catch {
+      // API failed — fall back to localStorage basics
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    }
+  };
+
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+    fetchUserProfile();
+
+    // Re-fetch on login / profile update / logout events
+    window.addEventListener("storage", fetchUserProfile);
+    window.addEventListener("auth-change", fetchUserProfile);
+
+    return () => {
+      window.removeEventListener("storage", fetchUserProfile);
+      window.removeEventListener("auth-change", fetchUserProfile);
     };
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("userId");
+    setUser(null);
+    window.dispatchEvent(new Event("auth-change"));
+    // toast.success("You've been logged out successfully.")
+  };
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const menuRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -32,10 +114,11 @@ export function Navbar() {
 
   const navLinks = [
     { name: "Home", path: "/" },
+    { name: "Tournaments", path: "/tournaments" },
     { name: "Rankings", path: "/rankings" },
+    { name: "Services", path: "/services" },
     { name: "About", path: "/about" },
     { name: "News", path: "/news" },
-    // { name: "Gallery", path: "/gallery" },
   ];
 
   return (
@@ -52,7 +135,6 @@ export function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="relative">
-              {/* <Trophy className="w-10 h-10 text-ktsa-accent group-hover:text-ktsa-highlight transition-colors duration-300" /> */}
               <img src={logo} className="w-14 h-14 rounded-4xl" alt="logo" />
             </div>
             <div>
@@ -71,9 +153,6 @@ export function Navbar() {
               <Link
                 key={link.path}
                 to={link.path}
-                // className={`relative text-ktsa-text hover:text-ktsa-accent transition-colors duration-300 font-medium ${
-                //   location.pathname === link.path ? "text-ktsa-primary" : ""
-                // }`}
                 className={`relative transition-colors duration-300 font-medium ${
                   location.pathname === link.path
                     ? "text-ktsa-primary"
@@ -90,6 +169,33 @@ export function Navbar() {
                 )}
               </Link>
             ))}
+
+            {/* ── Auth Section: show profile OR login+signup ── */}
+            {user ? (
+              <ProfileDropdown
+                user={user}
+                onLogout={handleLogout}
+                onProfileClick={onProfileClick}
+                onSettingsClick={onSettingsClick}
+                onMatchesClick={onMatchesClick}
+                onTeamsClick={onTeamsClick}
+              />
+            ) : (
+              <>
+                <button
+                  onClick={onLoginClick}
+                  className="px-4 py-2 rounded-lg bg-transparent border border-ktsa-accent text-ktsa-primary/70 font-bold hover:bg-ktsa-accent hover:text-ktsa-text transition-all duration-300"
+                > 
+                  Log In
+                </button>
+                <button
+                  onClick={onSignupClick}
+                  className="px-5 py-2 rounded-lg bg-ktsa-primary/70 text-ktsa-text font-bold hover:bg-ktsa-accent transition-all duration-300"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -107,20 +213,98 @@ export function Navbar() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="md:hidden py-4 border-t border-ktsa-accent/20 bg-ktsa-bg backdrop-blur-lg"
+            className="md:hidden py-4 border-t border-ktsa-accent/20 bg-ktsa-bg backdrop-blur-lg "
           >
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className={`block py-3 text-ktsa-accent hover:text-white transition-colors ${
-                  location.pathname === link.path ? "text-white" : ""
+                className={`block py-3 text-ktsa-accent font-bold transition-colors ${
+                  location.pathname === link.path ? "text-ktsa-primary" : "r" 
                 }`}
               >
                 {link.name}
               </Link>
             ))}
+
+            {/* Mobile Auth Section */}
+            {user ? (
+              <>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onProfileClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  My Profile
+                </button>
+
+                {/* My Matches */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onMatchesClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  My Matches
+                </button>
+
+                {/* My Teams */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onTeamsClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  My Teams
+                </button>
+
+                {/* Settings */}
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onSettingsClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  Settings
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="block mt-3 py-3 text-center bg-red-500/20 border border-red-500/40 text-red-400 font-bold rounded-lg w-full"
+                >
+                  Log Out
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onLoginClick();
+                  }}
+                  className="block mt-3 py-3 text-center border border-ktsa-accent text-ktsa-primary/70 font-bold rounded-lg w-full"
+                >
+                  Log In
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onSignupClick();
+                  }}
+                  className="block mt-3 py-3 text-center bg-ktsa-primary/70 font-bold text-ktsa-text rounded-lg w-full"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
           </motion.div>
         )}
       </div>

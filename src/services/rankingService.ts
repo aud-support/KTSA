@@ -24,12 +24,13 @@ export interface RankingResponse {
 
 export const getAllRankings = async (): Promise<RankingResponse[]> => {
   const response = await axios.get(`${API_BASE_URL}/api/rankings`);
-  return response.data;
+  const data = response.data?.data ?? response.data;
+  return Array.isArray(data) ? data : [];
 };
 
 export const getRankingByUserId = async (userId: number): Promise<RankingResponse> => {
   const response = await axios.get(`${API_BASE_URL}/api/rankings/user/${userId}`);
-  return response.data;
+  return response.data?.data ?? response.data;
 };
 
 /**
@@ -40,5 +41,6 @@ export const getRankingByUserId = async (userId: number): Promise<RankingRespons
  */
 export const getTopSpotlightPlayers = async (): Promise<RankingResponse[]> => {
   const response = await axios.get(`${API_BASE_URL}/api/rankings/top`);
-  return response.data;
+  const data = response.data?.data ?? response.data;
+  return Array.isArray(data) ? data : [];
 };

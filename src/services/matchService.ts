@@ -92,5 +92,6 @@ export const getMatchesByTournament = async (
     ? `${API_BASE_URL}/api/matches/${tournamentId}?category=${encodeURIComponent(category)}`
     : `${API_BASE_URL}/api/matches/${tournamentId}`;
   const response = await axios.get(url);
-  return response.data?.data ?? response.data;
+  const data = response.data?.data ?? response.data;
+  return Array.isArray(data) ? data : [];
 };

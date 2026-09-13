@@ -24,5 +24,6 @@ export const getArticles = async (): Promise<NewsArticle[]> => {
   const response = await axios.get<NewsArticle[]>(
     `${API_BASE_URL}/api/homepage/articles`,
   );
-  return response.data;
+  const data = (response.data as any)?.data ?? response.data;
+  return Array.isArray(data) ? data : [];
 };

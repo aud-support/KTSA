@@ -64,6 +64,45 @@ export const ALL_CATEGORIES = [
   { label: "Mixed Doubles",   enabledKey: "mixedDoubleEnabled",   feeKey: "mixedDoubleFee"  },
 ] as const;
 
+/**
+ * Maps every known backend category string → the display label used in the frontend.
+ * The backend may store categories as enum-style strings (e.g. "MENS_SINGLES") or
+ * as human-readable strings (e.g. "Men's Singles", "Mens Singles").
+ * All comparisons should go through normaliseCategoryLabel().
+ */
+const CATEGORY_NORMALISE_MAP: Record<string, string> = {
+  // enum-style (what the backend currently returns)
+  mens_singles:   "Men's Singles",
+  womens_singles: "Women's Singles",
+  open_singles:   "Open Singles",
+  open_doubles:   "Open Doubles",
+  mixed_doubles:  "Mixed Doubles",
+  under_16:       "Under 16",
+  above_16:       "Above 16",
+  under16:        "Under 16",
+  above16:        "Above 16",
+  // variations without apostrophe
+  "mens singles":   "Men's Singles",
+  "womens singles": "Women's Singles",
+  "open singles":   "Open Singles",
+  "open doubles":   "Open Doubles",
+  "mixed doubles":  "Mixed Doubles",
+  // already-correct labels (lowercase) — map to themselves
+  "men's singles":   "Men's Singles",
+  "women's singles": "Women's Singles",
+};
+
+/**
+ * Normalises any category string (from backend or URL param) to the
+ * canonical frontend display label.  Returns the original value if
+ * no mapping exists, so unknown categories still pass through.
+ */
+export function normaliseCategoryLabel(raw: string | null | undefined): string {
+  if (!raw) return "";
+  const key = raw.trim().toLowerCase().replace(/-/g, "_");
+  return CATEGORY_NORMALISE_MAP[key] ?? raw.trim();
+}
+
 /** Returns only the categories that are enabled on a tournament */
 export function getEnabledCategories(t: TournamentDetail) {
   return ALL_CATEGORIES.filter(

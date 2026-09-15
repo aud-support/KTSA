@@ -24,6 +24,7 @@ import {
   getTournamentById,
   getMatchesByTournament,
   getEnabledCategories,
+  normaliseCategoryLabel,
   type MatchResult,
   type TournamentDetail,
 } from "../../services/matchService";
@@ -32,13 +33,13 @@ import {
 
 interface StandingEntry {
   rank: number;
-  name?: string;    // singles
+  name?: string; // singles
   names?: string[]; // doubles
   image?: string;
   wins: number;
   losses: number;
   matches: number;
-  winRate: number;  // 0–100
+  winRate: number; // 0–100
   pointsFor: number; // sum of match scores this player/team scored
   points: number;
   trend: string;
@@ -59,7 +60,13 @@ interface StandingEntry {
 function buildStandings(matches: MatchResult[]): StandingEntry[] {
   const map = new Map<
     string,
-    { wins: number; losses: number; matches: number; pointsFor: number; isTeam: boolean }
+    {
+      wins: number;
+      losses: number;
+      matches: number;
+      pointsFor: number;
+      isTeam: boolean;
+    }
   >();
 
   const ensure = (name: string, isTeam: boolean) => {
@@ -68,7 +75,14 @@ function buildStandings(matches: MatchResult[]): StandingEntry[] {
   };
 
   for (const m of matches) {
-    if (m.status !== "COMPLETED") continue;
+<<<<<<< HEAD
+    if (m.status?.toLowerCase() !== "completed") continue;
+=======
+    // Accept both "COMPLETED" (Challonge-synced) and "completed" (manually set)
+    // if (m.status?.toLowerCase() !== "completed") continue;
+
+   if (m.status?.toLowerCase() !== "completed") continue;
+>>>>>>> 3d7883c43df8905df22513d2b755990b39311c60
 
     const isTeam = !!m.teamOne;
     const score1 = m.teamOneScore ?? 0;
@@ -129,7 +143,8 @@ function buildStandings(matches: MatchResult[]): StandingEntry[] {
 
   return sorted.map(([name, stat], idx) => {
     const isDoubles = name.includes(" & ") || stat.isTeam;
-    const winRate = stat.matches > 0 ? Math.round((stat.wins / stat.matches) * 100) : 0;
+    const winRate =
+      stat.matches > 0 ? Math.round((stat.wins / stat.matches) * 100) : 0;
     return {
       rank: idx + 1,
       ...(isDoubles
@@ -344,8 +359,17 @@ export function TournamentResults() {
   const matches =
     selectedCategory === "ALL"
       ? allMatches
-      : allMatches.filter((m) => m.category === selectedCategory);
+      : allMatches.filter(
+<<<<<<< HEAD
+          (m) => normaliseCategoryLabel(m.category) === selectedCategory,
+        );
+=======
+          (m) =>
+            m.category?.trim().toLowerCase() ===
+            selectedCategory.trim().toLowerCase(),
+        );
 
+>>>>>>> 3d7883c43df8905df22513d2b755990b39311c60
   // â”€â”€ Derived data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const standings = buildStandings(matches);
   const topThree = standings.slice(0, 3);
@@ -365,7 +389,9 @@ export function TournamentResults() {
   );
 
   const groupedMatches = groupMatches(matches);
-  const completedCount = matches.filter((m) => m.status === "COMPLETED").length;
+  const completedCount = matches.filter(
+    (m) => m.status?.toLowerCase() === "completed",
+  ).length;
 
   // â”€â”€ Loading / Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (loading) {
@@ -685,7 +711,9 @@ export function TournamentResults() {
                 <div className="text-right">Played</div>
                 <div className="text-right">Wins</div>
                 <div className="text-right">Losses</div>
-                <div className="text-right" title="Total match points scored">Pts</div>
+                <div className="text-right" title="Total match points scored">
+                  Pts
+                </div>
               </div>
               {paginatedStandings.length === 0 ? (
                 <div className="flex items-center justify-center py-10 text-ktsa-text/50 text-sm">
@@ -731,7 +759,10 @@ export function TournamentResults() {
                       <div className="text-right text-red-400/80 font-semibold text-sm flex items-center justify-end">
                         {entry.losses}
                       </div>
-                      <div className="text-right text-ktsa-accent/80 font-semibold text-sm flex items-center justify-end" title="Total match points scored">
+                      <div
+                        className="text-right text-ktsa-accent/80 font-semibold text-sm flex items-center justify-end"
+                        title="Total match points scored"
+                      >
                         {entry.pointsFor}
                       </div>
                     </motion.div>

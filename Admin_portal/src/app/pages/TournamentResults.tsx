@@ -21,6 +21,7 @@ import { Button } from "../components/Button";
 import { getTournamentById } from "../../services/tournamentService";
 import {
   getMatchesByTournament,
+  normaliseCategoryLabel,
   MatchResponseDto,
 } from "../../services/matchService";
 
@@ -44,11 +45,12 @@ function buildStandings(matches: MatchResponseDto[]): StandingEntry[] {
   >();
 
   const ensure = (name: string) => {
-    if (!map.has(name)) map.set(name, { wins: 0, losses: 0, matches: 0, pointsFor: 0 });
+    if (!map.has(name))
+      map.set(name, { wins: 0, losses: 0, matches: 0, pointsFor: 0 });
   };
 
   for (const m of matches) {
-    if (m.status !== "completed" && m.status !== "COMPLETED") continue;
+    if (m.status?.toLowerCase() !== "completed") continue;
     const isTeam = !!m.teamOne;
     const p1 = isTeam ? m.teamOne : m.playerOne;
     const p2 = isTeam ? m.teamTwo : m.playerTwo;
@@ -281,12 +283,20 @@ export const TournamentResults: React.FC = () => {
   const matches =
     selectedCategory === "ALL"
       ? allMatches
-      : allMatches.filter((m) => m.category === selectedCategory);
+      : allMatches.filter(
+<<<<<<< HEAD
+          (m) => normaliseCategoryLabel(m.category) === selectedCategory,
+=======
+          (m) =>
+            m.category?.trim().toLowerCase() ===
+            selectedCategory.trim().toLowerCase(),
+>>>>>>> 3d7883c43df8905df22513d2b755990b39311c60
+        );
 
   // â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const standings = buildStandings(matches);
   const completedCount = matches.filter(
-    (m) => m.status === "completed" || m.status === "COMPLETED",
+    (m) => m.status?.toLowerCase() === "completed",
   ).length;
   const groupedMatches = groupMatches(matches);
 
@@ -541,7 +551,9 @@ export const TournamentResults: React.FC = () => {
               <div className="text-right">Played</div>
               <div className="text-right">Wins</div>
               <div className="text-right">Losses</div>
-              <div className="text-right" title="Total match points scored">Pts</div>
+              <div className="text-right" title="Total match points scored">
+                Pts
+              </div>
             </div>
 
             {paginatedStandings.length === 0 ? (
@@ -569,7 +581,10 @@ export const TournamentResults: React.FC = () => {
                   <div className="text-right text-sm text-red-400/70 flex items-center justify-end">
                     {entry.losses}
                   </div>
-                  <div className="text-right text-sm font-semibold text-ktsa-accent/80 flex items-center justify-end" title="Total match points scored">
+                  <div
+                    className="text-right text-sm font-semibold text-ktsa-accent/80 flex items-center justify-end"
+                    title="Total match points scored"
+                  >
                     {entry.pointsFor}
                   </div>
                 </div>

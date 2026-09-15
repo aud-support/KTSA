@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle2, Zap, Trophy, Users, X, Phone, Mail } from "lu
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { getServices, Service } from "../../services/servicesService";
 import { defaultServices } from "../data/servicesData";
+import { getPageBanner, PageBanner } from "../../services/pageBannerService";
 
 // Map icon names to Lucide components
 const iconMap: Record<string, React.ReactNode> = {
@@ -150,6 +151,11 @@ export function Services() {
   const [loading, setLoading] = useState(true);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [banner, setBanner] = useState<PageBanner | null>(null);
+
+  useEffect(() => {
+    getPageBanner("services").then((data) => { if (data) setBanner(data); }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -189,7 +195,7 @@ export function Services() {
       <section className="relative h-[calc(38vh+5rem)] min-h-[320px] flex items-end justify-center overflow-hidden">
         <div className="absolute inset-0">
           <ImageWithFallback
-            src="https://images.unsplash.com/photo-1552664730-d307ca884978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMHNlcnZpY2VzfGVufDB8fHx8MTc3NDkzODUwMnww&ixlib=rb-4.1.0&q=80&w=1080"
+            src={banner?.heroBannerUrl || "https://images.unsplash.com/photo-1552664730-d307ca884978?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxidXNpbmVzcyUyMHNlcnZpY2VzfGVufDB8fHx8MTc3NDkzODUwMnww&ixlib=rb-4.1.0&q=80&w=1080"}
             alt="Services hero"
             className="w-full h-full object-cover"
           />
@@ -204,12 +210,11 @@ export function Services() {
           >
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-3">
               <span className="bg-gradient-to-r from-ktsa-accent to-ktsa-primary bg-clip-text text-transparent">
-                Our{" "}
+                {banner?.heroTitle || "Our Services"}
               </span>
-              Services
             </h1>
             <p className="text-sm md:text-base text-ktsa-text/80 font-semibold">
-              Comprehensive offerings to support the foosball community
+              {banner?.heroSubtitle || "Comprehensive offerings to support the foosball community"}
             </p>
           </motion.div>
         </div>

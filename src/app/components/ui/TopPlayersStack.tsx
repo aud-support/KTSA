@@ -165,8 +165,7 @@ export function TopPlayersStack() {
           const translateY = isHovered || isFocused ? -18 : 0;
           const zIndex = getZIndex(displayIdx);
 
-          const medalEmoji =
-            player.rank === 1 ? "🥇" : player.rank === 2 ? "🥈" : "🥉";
+
 
           const borderColor =
             isHovered || isFocused
@@ -223,7 +222,7 @@ export function TopPlayersStack() {
               {/* Player info footer */}
               <div className="absolute bottom-0 left-0 right-0 p-3">
                 <div className="flex items-center gap-1 mb-0.5">
-                  <span style={{ fontSize: 13 }}>{medalEmoji}</span>
+                  <span style={{ fontSize: 13 }}>🥇</span>
                   <h3
                     className="font-black text-white leading-tight truncate"
                     style={{ fontSize: isMobile ? 11 : 14 }}
@@ -240,10 +239,10 @@ export function TopPlayersStack() {
                 <div className="flex items-center gap-1">
                   <Trophy
                     size={isMobile ? 10 : 12}
-                    className="text-ktsa-accent"
+                    className="text-yellow-400"
                   />
                   <span
-                    className="font-bold text-ktsa-accent"
+                    className="font-bold text-yellow-400"
                     style={{ fontSize: isMobile ? 10 : 12 }}
                   >
                     {player.points} pts

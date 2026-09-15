@@ -1,4 +1,4 @@
-﻿import { motion } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router";
 import {
@@ -75,14 +75,11 @@ function buildStandings(matches: MatchResult[]): StandingEntry[] {
   };
 
   for (const m of matches) {
-<<<<<<< HEAD
     if (m.status?.toLowerCase() !== "completed") continue;
-=======
     // Accept both "COMPLETED" (Challonge-synced) and "completed" (manually set)
     // if (m.status?.toLowerCase() !== "completed") continue;
 
    if (m.status?.toLowerCase() !== "completed") continue;
->>>>>>> 3d7883c43df8905df22513d2b755990b39311c60
 
     const isTeam = !!m.teamOne;
     const score1 = m.teamOneScore ?? 0;
@@ -360,16 +357,12 @@ export function TournamentResults() {
     selectedCategory === "ALL"
       ? allMatches
       : allMatches.filter(
-<<<<<<< HEAD
           (m) => normaliseCategoryLabel(m.category) === selectedCategory,
         );
-=======
           (m) =>
             m.category?.trim().toLowerCase() ===
             selectedCategory.trim().toLowerCase(),
         );
-
->>>>>>> 3d7883c43df8905df22513d2b755990b39311c60
   // â”€â”€ Derived data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const standings = buildStandings(matches);
   const topThree = standings.slice(0, 3);

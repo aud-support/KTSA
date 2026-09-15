@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router";
 import {
   ArrowLeft,
@@ -284,13 +284,10 @@ export const TournamentResults: React.FC = () => {
     selectedCategory === "ALL"
       ? allMatches
       : allMatches.filter(
-<<<<<<< HEAD
           (m) => normaliseCategoryLabel(m.category) === selectedCategory,
-=======
           (m) =>
             m.category?.trim().toLowerCase() ===
             selectedCategory.trim().toLowerCase(),
->>>>>>> 3d7883c43df8905df22513d2b755990b39311c60
         );
 
   // â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

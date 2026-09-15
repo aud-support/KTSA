@@ -59,7 +59,13 @@ interface StandingEntry {
 function buildStandings(matches: MatchResult[]): StandingEntry[] {
   const map = new Map<
     string,
-    { wins: number; losses: number; matches: number; pointsFor: number; isTeam: boolean }
+    {
+      wins: number;
+      losses: number;
+      matches: number;
+      pointsFor: number;
+      isTeam: boolean;
+    }
   >();
 
   const ensure = (name: string, isTeam: boolean) => {
@@ -68,7 +74,10 @@ function buildStandings(matches: MatchResult[]): StandingEntry[] {
   };
 
   for (const m of matches) {
-    if (m.status !== "COMPLETED") continue;
+    // Accept both "COMPLETED" (Challonge-synced) and "completed" (manually set)
+    // if (m.status?.toLowerCase() !== "completed") continue;
+
+   if (m.status?.toLowerCase() !== "completed") continue;
 
     const isTeam = !!m.teamOne;
     const score1 = m.teamOneScore ?? 0;
@@ -129,7 +138,8 @@ function buildStandings(matches: MatchResult[]): StandingEntry[] {
 
   return sorted.map(([name, stat], idx) => {
     const isDoubles = name.includes(" & ") || stat.isTeam;
-    const winRate = stat.matches > 0 ? Math.round((stat.wins / stat.matches) * 100) : 0;
+    const winRate =
+      stat.matches > 0 ? Math.round((stat.wins / stat.matches) * 100) : 0;
     return {
       rank: idx + 1,
       ...(isDoubles
@@ -344,7 +354,11 @@ export function TournamentResults() {
   const matches =
     selectedCategory === "ALL"
       ? allMatches
-      : allMatches.filter((m) => m.category === selectedCategory);
+      : allMatches.filter(
+          (m) =>
+            m.category?.trim().toLowerCase() ===
+            selectedCategory.trim().toLowerCase(),
+        );
 
   // â”€â”€ Derived data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const standings = buildStandings(matches);
@@ -365,7 +379,9 @@ export function TournamentResults() {
   );
 
   const groupedMatches = groupMatches(matches);
-  const completedCount = matches.filter((m) => m.status === "COMPLETED").length;
+  const completedCount = matches.filter(
+    (m) => m.status?.toLowerCase() === "completed",
+  ).length;
 
   // â”€â”€ Loading / Error â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   if (loading) {

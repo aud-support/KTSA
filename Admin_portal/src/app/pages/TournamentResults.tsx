@@ -48,7 +48,7 @@ function buildStandings(matches: MatchResponseDto[]): StandingEntry[] {
   };
 
   for (const m of matches) {
-    if (m.status !== "completed" && m.status !== "COMPLETED") continue;
+    if (m.status?.toLowerCase() !== "completed") continue;
     const isTeam = !!m.teamOne;
     const p1 = isTeam ? m.teamOne : m.playerOne;
     const p2 = isTeam ? m.teamTwo : m.playerTwo;
@@ -281,12 +281,16 @@ export const TournamentResults: React.FC = () => {
   const matches =
     selectedCategory === "ALL"
       ? allMatches
-      : allMatches.filter((m) => m.category === selectedCategory);
+      : allMatches.filter(
+          (m) =>
+            m.category?.trim().toLowerCase() ===
+            selectedCategory.trim().toLowerCase(),
+        );
 
   // â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const standings = buildStandings(matches);
   const completedCount = matches.filter(
-    (m) => m.status === "completed" || m.status === "COMPLETED",
+    (m) => m.status?.toLowerCase() === "completed",
   ).length;
   const groupedMatches = groupMatches(matches);
 

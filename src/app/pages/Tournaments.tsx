@@ -14,6 +14,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import RegistrationModal from "../components/ui/RegistrationModal";
+import { useModal } from "../contexts/ModalContext";
 import {
   useTournaments,
   useAvailableYears,
@@ -413,6 +414,7 @@ function TournamentCard({
 }) {
   const [modalType, setModalType] = useState<"register" | null>(null);
   const navigate = useNavigate();
+  const { openLogin, openSignup } = useModal();
   const { label, cls } = statusMeta(tournament.status);
   const canRegister = isRegistrationOpen(tournament);
 
@@ -527,6 +529,8 @@ function TournamentCard({
         <RegistrationModal
           tournament={modalShape}
           onClose={() => setModalType(null)}
+          onLoginClick={() => { setModalType(null); openLogin(); }}
+          onSignupClick={() => { setModalType(null); openSignup(); }}
         />
       )}
     </>

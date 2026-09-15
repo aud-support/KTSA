@@ -18,6 +18,7 @@ import {
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import RegistrationModal from "../components/ui/RegistrationModal";
 import { type ApiTournament } from "../components/Tournamentsections";
+import { useModal } from "../contexts/ModalContext";
 import {
   getTournamentById,
   getMatchesByTournament,
@@ -168,6 +169,7 @@ function SubTournamentCard({
 export function TournamentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { openLogin, openSignup } = useModal();
 
   // Use TDetail (full type with all category fields) fetched via matchService
   const [tournament, setTournament] = useState<TDetail | null>(null);
@@ -479,7 +481,12 @@ export function TournamentDetail() {
       </div>
 
       {registerOpen && (
-        <RegistrationModal tournament={modalShape} onClose={() => setRegisterOpen(false)} />
+        <RegistrationModal
+          tournament={modalShape}
+          onClose={() => setRegisterOpen(false)}
+          onLoginClick={() => { setRegisterOpen(false); openLogin(); }}
+          onSignupClick={() => { setRegisterOpen(false); openSignup(); }}
+        />
       )}
       {lightboxOpen && tournament.bannerUrl && (
         <Lightbox src={tournament.bannerUrl} alt={tournament.tournamentName} onClose={() => setLightboxOpen(false)} />

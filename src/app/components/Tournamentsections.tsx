@@ -14,6 +14,7 @@ import { Link } from "react-router";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import RegistrationModal from "../components/ui/RegistrationModal";
 import TournamentDetailsModal from "../components/ui/TournamentDetailsModal";
+import { useModal } from "../contexts/ModalContext";
 
 // ─── API Types (matches your backend response exactly) ────────────────────────
 
@@ -542,6 +543,7 @@ function FeaturedTournament({ tournament }: { tournament: ApiTournament }) {
   const [modalType, setModalType] = useState<"register" | "details" | null>(
     null,
   );
+  const { openLogin, openSignup } = useModal();
   const { label, cls } = statusMeta(tournament.status);
   const categories = getCategories(tournament);
   const registrationOpen = tournament.status === "UPCOMING" && !expired;
@@ -778,6 +780,8 @@ function FeaturedTournament({ tournament }: { tournament: ApiTournament }) {
         <RegistrationModal
           tournament={modalShape}
           onClose={() => setModalType(null)}
+          onLoginClick={() => { setModalType(null); openLogin(); }}
+          onSignupClick={() => { setModalType(null); openSignup(); }}
         />
       )}
       {modalType === "details" && (
@@ -802,6 +806,7 @@ function EventCard({
   const [modalType, setModalType] = useState<"register" | "details" | null>(
     null,
   );
+  const { openLogin, openSignup } = useModal();
   const categories = getCategories(tournament);
   // Hide register button if countdown has expired for an upcoming tournament
   const { expired } = useCountdown(
@@ -953,6 +958,8 @@ function EventCard({
         <RegistrationModal
           tournament={modalShape}
           onClose={() => setModalType(null)}
+          onLoginClick={() => { setModalType(null); openLogin(); }}
+          onSignupClick={() => { setModalType(null); openSignup(); }}
         />
       )}
       {modalType === "details" && (

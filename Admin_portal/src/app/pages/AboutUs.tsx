@@ -11,6 +11,7 @@ import {
   UploadCloud,
   FileText,
   X,
+  Image,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Card } from "../components/Card";
@@ -37,6 +38,10 @@ interface ProvidesItem {
 }
 
 interface AboutData {
+  // Hero Banner
+  heroBannerUrl: string;
+  heroTitle: string;
+  heroSubtitle: string;
   // The Story Behind KTSA
   storyContent: string;        // full story, blank-line separated paragraphs
   // Founder
@@ -68,6 +73,9 @@ interface AboutData {
 // ── Default data (mirrors current frontend content) ──────────────────────────
 
 const defaultData: AboutData = {
+  heroBannerUrl: "",
+  heroTitle: "",
+  heroSubtitle: "",
   storyContent: `The Karnataka Table Soccer Association (KTSA) was founded on a simple belief — that foosball deserves the same structure, recognition, and competitive opportunity as any mainstream sport.
 
 Established in 2018 by Sayeed Ahmed Shariff and a committed group of players in Bengaluru, KTSA was created to build a more organized future for foosball in Karnataka. From participation and community-building in its early years to structured tournaments, rankings, and competitive pathways, KTSA has steadily worked to give the sport the foundation it needed to grow with purpose.
@@ -185,8 +193,10 @@ export const AboutUs: React.FC = () => {
   const [data, setData] = useState<AboutData>(defaultData);
   const [saved, setSaved] = useState<AboutData>(defaultData);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
   const [rulebookFile, setRulebookFile] = useState<File | null>(null);
   const rulebookInputRef = useRef<HTMLInputElement>(null);
+  const bannerImageInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
 
   // ── Load existing content on mount ──────────────────────────────────────
@@ -261,9 +271,10 @@ export const AboutUs: React.FC = () => {
       setLoading(true);
       // Strip image URL from payload — backend handles both files separately
       const { whoWeAreImageUrl, ...dataWithoutImage } = data;
-      await saveAboutUsContent(dataWithoutImage, imageFile, rulebookFile);
+      await saveAboutUsContent(dataWithoutImage, imageFile, rulebookFile, bannerImageFile);
       setSaved(data);
       setImageFile(null);
+      setBannerImageFile(null);
       setRulebookFile(null);
       toast.success("About Us page updated successfully!");
     } catch (error) {
@@ -277,6 +288,7 @@ export const AboutUs: React.FC = () => {
   const handleReset = () => {
     setData(saved);
     setImageFile(null);
+    setBannerImageFile(null);
     setRulebookFile(null);
   };
 
@@ -289,6 +301,90 @@ export const AboutUs: React.FC = () => {
           Manage all content on the About Us page — story, team, vision, journey, services and achievements.
         </p>
       </div>
+
+      {/* ── 0. Hero Banner ── */}
+      <Section title="Hero Banner">
+        <Input
+          label="Page Title"
+          name="heroTitle"
+          value={data.heroTitle}
+          onChange={(e) => set("heroTitle", e.target.value)}
+          placeholder="e.g. About KTSA"
+        />
+        <Input
+          label="Page Subtitle"
+          name="heroSubtitle"
+          value={data.heroSubtitle}
+          onChange={(e) => set("heroSubtitle", e.target.value)}
+          placeholder="e.g. Building Karnataka's premier table soccer community"
+        />
+
+        {/* Banner image upload */}
+        <div>
+          <label className="block text-sm font-medium mb-2">Banner Image</label>
+          {bannerImageFile ? (
+            <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-ktsa-primary/40 bg-ktsa-primary/5">
+              <Image size={18} className="text-ktsa-primary flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{bannerImageFile.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {(bannerImageFile.size / 1024).toFixed(0)} KB — will be uploaded on save
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setBannerImageFile(null);
+                  if (bannerImageInputRef.current) bannerImageInputRef.current.value = "";
+                }}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ) : data.heroBannerUrl ? (
+            <div className="space-y-2">
+              <img
+                src={data.heroBannerUrl}
+                alt="Current banner"
+                className="w-full max-h-40 object-cover rounded-lg border border-border"
+              />
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-muted-foreground flex-1 truncate">Current: {data.heroBannerUrl}</p>
+                <button
+                  type="button"
+                  onClick={() => bannerImageInputRef.current?.click()}
+                  className="px-3 py-1.5 text-xs rounded-lg border border-border text-muted-foreground hover:text-foreground hover:border-ktsa-primary/50 transition-colors whitespace-nowrap"
+                >
+                  Replace
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => bannerImageInputRef.current?.click()}
+              className="w-full rounded-xl border-2 border-dashed border-border hover:border-ktsa-primary transition-all bg-card px-6 py-8 flex flex-col items-center justify-center text-center group"
+            >
+              <div className="rounded-full p-3 bg-muted mb-3 group-hover:scale-105 transition">
+                <UploadCloud size={22} />
+              </div>
+              <p className="text-sm font-medium">Upload Banner Image</p>
+              <p className="text-xs text-muted-foreground mt-1">Click to select an image file</p>
+            </button>
+          )}
+          <input
+            ref={bannerImageInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) setBannerImageFile(file);
+            }}
+          />
+        </div>
+      </Section>
 
       {/* ── 1. The Story Behind KTSA ── */}
       <Section title="The Story Behind KTSA">

@@ -20,14 +20,18 @@ export const saveAboutUsContent = async (
   data: any,
   image: File | null,
   rulebook?: File | null,
+  bannerImage?: File | null,
 ): Promise<void> => {
   const formData = new FormData();
 
-  // Attach JSON payload as a Blob so Spring can deserialize it as @RequestPart
   formData.append(
     "data",
     new Blob([JSON.stringify(data)], { type: "application/json" }),
   );
+
+  if (bannerImage) {
+    formData.append("bannerImage", bannerImage);
+  }
 
   if (image) {
     formData.append("image", image);

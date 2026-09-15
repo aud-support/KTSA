@@ -44,7 +44,6 @@ export const Services: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchServices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

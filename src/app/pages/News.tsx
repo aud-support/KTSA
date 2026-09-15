@@ -5,6 +5,7 @@ import { useNavigate } from "react-router";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { getArticles, NewsArticle } from "../../services/articlesService";
 import { newsArticles as staticArticles } from "../data/newsData";
+import { getPageBanner, PageBanner } from "../../services/pageBannerService";
 
 const categories = ["All", "Global", "KTSA", "Events"];
 
@@ -25,7 +26,12 @@ export function News() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [banner, setBanner] = useState<PageBanner | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    getPageBanner("news").then((data) => { if (data) setBanner(data); }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     getArticles()
@@ -53,7 +59,7 @@ export function News() {
       <section className="relative h-[38vh] min-h-[220px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <ImageWithFallback
-            src="https://png.pngtree.com/thumb_back/fh260/background/20230702/pngtree-intense-close-up-of-3d-rendered-foosball-table-game-image_3738127.jpg"
+            src={banner?.heroBannerUrl || "https://png.pngtree.com/thumb_back/fh260/background/20230702/pngtree-intense-close-up-of-3d-rendered-foosball-table-game-image_3738127.jpg"}
             alt="News hero"
             className="w-full h-full object-cover"
           />
@@ -68,12 +74,11 @@ export function News() {
           >
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-3">
               <span className="bg-gradient-to-r from-ktsa-accent to-ktsa-primary bg-clip-text text-transparent">
-                News &{" "}
+                {banner?.heroTitle || "News & Updates"}
               </span>
-              Updates
             </h1>
             <p className="text-sm md:text-base text-ktsa-text/80 font-semibold">
-              Stay informed with the latest from KTSA
+              {banner?.heroSubtitle || "Stay informed with the latest from KTSA"}
             </p>
           </motion.div>
         </div>

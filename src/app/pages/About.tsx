@@ -201,7 +201,7 @@ export function About() {
       <section className="relative h-[38vh] min-h-[220px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0">
           <ImageWithFallback
-            src="https://plus.unsplash.com/premium_photo-1726826641348-8a16a70263ce?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            src={cms?.heroBannerUrl || "https://plus.unsplash.com/premium_photo-1726826641348-8a16a70263ce?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
             alt="Team"
             className="w-full h-full object-cover"
           />
@@ -218,13 +218,10 @@ export function About() {
               EST. 2018
             </span>
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-3">
-              About{" "}
-              <span className="bg-gradient-to-r from-ktsa-accent to-ktsa-highlight bg-clip-text text-transparent">
-                KTSA
-              </span>
+              {t("heroTitle", "About KTSA")}
             </h1>
             <p className="text-sm md:text-base text-white font-semibold">
-              Building Karnataka's premier table soccer community
+              {t("heroSubtitle", "Building Karnataka's premier table soccer community")}
             </p>
           </motion.div>
         </div>

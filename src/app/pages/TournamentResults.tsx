@@ -24,6 +24,7 @@ import {
   getTournamentById,
   getMatchesByTournament,
   getEnabledCategories,
+  toLabelFormat,
   type MatchResult,
   type TournamentDetail,
 } from "../../services/matchService";
@@ -355,9 +356,7 @@ export function TournamentResults() {
     selectedCategory === "ALL"
       ? allMatches
       : allMatches.filter(
-          (m) =>
-            m.category?.trim().toLowerCase() ===
-            selectedCategory.trim().toLowerCase(),
+          (m) => m.category === toLabelFormat(selectedCategory),
         );
 
   // â”€â”€ Derived data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

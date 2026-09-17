@@ -18,7 +18,7 @@ export interface MatchResult {
   winnerPlayer: string | null;
   roundNumber: number;
   tournamentId: number;
-  /** Category / sub-tournament label this match belongs to */
+  /** Category exactly as stored in the backend e.g. "OPEN_SINGLE", "MENS_SINGLES" */
   category: string | null;
 }
 
@@ -36,7 +36,6 @@ export interface TournamentDetail {
   pricePool: number;
   registrationClosed: boolean;
   challongeUrl: string | null;
-  // ── Category flags + fees (all 7 sub-tournament types) ──
   openSingleEnabled: boolean;
   openSingleFee: number;
   openDoubleEnabled: boolean;
@@ -53,16 +52,39 @@ export interface TournamentDetail {
   aboveSixteenFee: number;
 }
 
-/** All category definitions — label must match the string stored in Matches.category */
+/**
+ * All category definitions.
+ * `label`      — display name shown in the UI tabs
+ * `backendKey` — the exact string the backend stores in Matches.category
+ * `enabledKey` — the boolean field on TournamentDetail that enables this category
+ * `feeKey`     — the fee field on TournamentDetail for this category
+ */
 export const ALL_CATEGORIES = [
-  { label: "Open Singles",    enabledKey: "openSingleEnabled",    feeKey: "openSingleFee"   },
-  { label: "Women's Singles", enabledKey: "womenSingleEnabled",   feeKey: "womenSingleFee"  },
-  { label: "Men's Singles",   enabledKey: "mensSingleEnabled",    feeKey: "mensSingleFee"   },
-  { label: "Under 16",        enabledKey: "underSixteenEnabled",  feeKey: "underSixteenFee" },
-  { label: "Above 16",        enabledKey: "aboveSixteenEnabled",  feeKey: "aboveSixteenFee" },
-  { label: "Open Doubles",    enabledKey: "openDoubleEnabled",    feeKey: "openDoubleFee"   },
-  { label: "Mixed Doubles",   enabledKey: "mixedDoubleEnabled",   feeKey: "mixedDoubleFee"  },
+  { label: "Open Singles",    backendKey: "OPEN_SINGLE",    enabledKey: "openSingleEnabled",    feeKey: "openSingleFee"   },
+  { label: "Women's Singles", backendKey: "WOMENS_SINGLES", enabledKey: "womenSingleEnabled",   feeKey: "womenSingleFee"  },
+  { label: "Men's Singles",   backendKey: "MENS_SINGLES",   enabledKey: "mensSingleEnabled",    feeKey: "mensSingleFee"   },
+  { label: "Under 16",        backendKey: "UNDER_16",        enabledKey: "underSixteenEnabled",  feeKey: "underSixteenFee" },
+  { label: "Above 16",        backendKey: "ABOVE_16",        enabledKey: "aboveSixteenEnabled",  feeKey: "aboveSixteenFee" },
+  { label: "Open Doubles",    backendKey: "OPEN_DOUBLE",    enabledKey: "openDoubleEnabled",    feeKey: "openDoubleFee"   },
+  { label: "Mixed Doubles",   backendKey: "MIXED_DOUBLES",  enabledKey: "mixedDoubleEnabled",   feeKey: "mixedDoubleFee"  },
 ] as const;
+
+/**
+ * Converts a UI display label to the backend key stored in Matches.category.
+ *
+ * Example:  "Open Singles"    → "OPEN_SINGLE"
+ *           "Men's Singles"   → "MENS_SINGLES"
+ *           "Mixed Doubles"   → "MIXED_DOUBLES"
+ *
+ * If no mapping is found the original value is returned unchanged so unknown
+ * categories still get through.
+ */
+export function toLabelFormat(displayLabel: string): string {
+  const found = ALL_CATEGORIES.find(
+    (c) => c.label.toLowerCase() === displayLabel.trim().toLowerCase(),
+  );
+  return found ? found.backendKey : displayLabel;
+}
 
 /** Returns only the categories that are enabled on a tournament */
 export function getEnabledCategories(t: TournamentDetail) {
@@ -84,7 +106,8 @@ export const getTournamentById = async (
 
 /**
  * Fetch matches for a tournament, optionally scoped to a single category.
- * Backend: GET /api/matches/{tournamentId}?category=Open+Singles
+ * The category param must be the backend key e.g. "OPEN_SINGLE".
+ * Use toLabelFormat() to convert a display label before passing it here.
  */
 export const getMatchesByTournament = async (
   tournamentId: string | number,

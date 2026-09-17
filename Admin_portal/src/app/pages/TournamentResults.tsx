@@ -21,6 +21,7 @@ import { Button } from "../components/Button";
 import { getTournamentById } from "../../services/tournamentService";
 import {
   getMatchesByTournament,
+  toLabelFormat,
   MatchResponseDto,
 } from "../../services/matchService";
 
@@ -282,9 +283,7 @@ export const TournamentResults: React.FC = () => {
     selectedCategory === "ALL"
       ? allMatches
       : allMatches.filter(
-          (m) =>
-            m.category?.trim().toLowerCase() ===
-            selectedCategory.trim().toLowerCase(),
+          (m) => m.category === toLabelFormat(selectedCategory),
         );
 
   // â”€â”€ Derived â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

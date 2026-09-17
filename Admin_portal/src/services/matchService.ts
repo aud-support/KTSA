@@ -8,6 +8,29 @@ function authHeader(): { Authorization: string } | Record<string, never> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+/**
+ * Maps a UI display label to the backend category key stored in Matches.category.
+ *
+ * Example:  "Open Singles"  → "OPEN_SINGLE"
+ *           "Men's Singles" → "MENS_SINGLES"
+ *           "Mixed Doubles" → "MIXED_DOUBLES"
+ *
+ * If no mapping exists the original value is returned unchanged.
+ */
+const CATEGORY_LABEL_TO_BACKEND: Record<string, string> = {
+  "open singles":    "OPEN_SINGLE",
+  "women's singles": "WOMENS_SINGLES",
+  "men's singles":   "MENS_SINGLES",
+  "under 16":        "UNDER_16",
+  "above 16":        "ABOVE_16",
+  "open doubles":    "OPEN_DOUBLE",
+  "mixed doubles":   "MIXED_DOUBLES",
+};
+
+export function toLabelFormat(displayLabel: string): string {
+  return CATEGORY_LABEL_TO_BACKEND[displayLabel.trim().toLowerCase()] ?? displayLabel;
+}
+
 export interface MatchResponseDto {
   id: number;
   stage: string;

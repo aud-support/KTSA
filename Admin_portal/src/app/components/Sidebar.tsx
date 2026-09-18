@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   Zap,
   LogOut,
+  Images,
 } from "lucide-react";
 import { cn } from "../lib/utils";
 import { Button } from "./Button";
@@ -77,6 +78,12 @@ const navItems: NavItem[] = [
     path: "/articles",
     icon: <Newspaper size={20} />,
     gradient: "linear-gradient(135deg, #2dd4bf 0%, #06b6d4 100%)",
+  },
+  {
+    label: "Gallery",
+    path: "/gallery",
+    icon: <Images size={20} />,
+    gradient: "linear-gradient(135deg, #818cf8 0%, #6366f1 100%)",
   },
   {
     label: "Sponsors",

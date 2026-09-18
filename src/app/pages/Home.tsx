@@ -10,6 +10,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import { TopPlayersStack } from "../components/ui/TopPlayersStack";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { useEffect, useState, useRef, useCallback } from "react";
@@ -29,6 +30,8 @@ import trophy from "../../assets/trophy.JPG";
 import { TournamentSection } from "../components/Tournamentsections";
 import { getHomepageContent } from "../../services/homepageService";
 import { SponsorsSection } from "../components/SponsorsSection";
+import { getArticles } from "../../services/articlesService";
+import type { NewsArticle } from "../../services/articlesService";
 
 type Tournament = {
   id: number;
@@ -148,31 +151,43 @@ const trainingAndDevelopment = [
     ),
   },
 ];
-const newsArticles = [
+const STATIC_NEWS_FALLBACK = [
   {
-    id: 1,
+    id: "1",
     title: "KTSA Officially Launched",
-    date: "April 25, 2026",
+    publishedDate: "2026-04-25",
     category: "KTSA",
-    image: trophy,
+    imageUrl: trophy,
+    excerpt: "",
+    content: "",
+    author: "KTSA Admin",
+    featured: true,
   },
   {
-    id: 2,
+    id: "2",
     title: "Bengaluru Open",
-    date: "May, 2026, Bengaluru",
+    publishedDate: "2026-05-01",
     category: "Events",
-    image:
+    imageUrl:
       "https://images.unsplash.com/photo-1751916856395-3dd0c4fe49e2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmb29zYmFsbCUyMHRvdXJuYW1lbnQlMjBjb21wZXRpdGl2ZSUyMHNwb3J0c3xlbnwxfHx8fDE3NzQ5MzgyOTh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+    excerpt: "",
+    content: "",
+    author: "KTSA Admin",
+    featured: false,
   },
   {
-    id: 3,
+    id: "3",
     title: "Karnataka Open",
-    date: "25th April, 2026, Bengaluru",
+    publishedDate: "2026-04-25",
     category: "Events",
-    image:
+    imageUrl:
       "https://images.unsplash.com/photo-1746396887626-6bd54c6b2181?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm91cCUyMGF0aGxldGVzJTIwY2VsZWJyYXRpbmclMjB2aWN0b3J5fGVufDF8fHx8MTc3NDkzODMwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+    excerpt: "",
+    content: "",
+    author: "KTSA Admin",
+    featured: false,
   },
-];
+] satisfies NewsArticle[];
 
 const galleryImages = [image1, image2, image3];
 
@@ -608,8 +623,10 @@ function InfiniteVideoCarousel({ urls }: { urls: string[] }) {
 }
 
 export function Home() {
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
   const [homepageContent, setHomepageContent] = useState<any>(null);
+  const [newsArticles, setNewsArticles] = useState<NewsArticle[]>(STATIC_NEWS_FALLBACK);
 
   useEffect(() => {
     const fetchHomepageContent = async () => {
@@ -620,8 +637,23 @@ export function Home() {
         console.error("Failed to load homepage content", error);
       }
     };
-
     fetchHomepageContent();
+  }, []);
+
+  useEffect(() => {
+    getArticles()
+      .then((data) => {
+        if (data.length > 0) {
+          // Sort: featured first, then by date desc, show top 3
+          const sorted = [...data].sort((a, b) => {
+            if (a.featured && !b.featured) return -1;
+            if (!a.featured && b.featured) return 1;
+            return new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime();
+          });
+          setNewsArticles(sorted.slice(0, 3));
+        }
+      })
+      .catch(() => { /* keep fallback */ });
   }, []);
 
   useEffect(() => {
@@ -1290,9 +1322,6 @@ export function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              {/* <span className="inline-block px-5 py-1.5 bg-ktsa-accent/10 border border-ktsa-accent/30 rounded-full text-ktsa-accent font-bold text-xs tracking-wider mb-4">
-                STAY UPDATED
-              </span> */}
               <h2 className="text-2xl md:text-4xl font-black text-ktsa-text mb-3">
                 <span className="text-ktsa-accent">Latest </span>
                 News
@@ -1311,12 +1340,13 @@ export function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
                 whileHover={{ y: -8 }}
+                onClick={() => navigate(`/news/${article.id}`)}
                 className="bg-gradient-to-br from-ktsa-primary/40 to-ktsa-secondary/30 rounded-2xl overflow-hidden backdrop-blur-sm border border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-300 group cursor-pointer"
                 style={{ boxShadow: "0 8px 30px rgba(0,229,255,0.12)" }}
               >
                 <div className="relative h-44 overflow-hidden">
                   <ImageWithFallback
-                    src={article.image}
+                    src={article.imageUrl ?? ""}
                     alt={article.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
@@ -1325,14 +1355,30 @@ export function Home() {
                       {article.category}
                     </span>
                   </div>
+                  {article.featured && (
+                    <div className="absolute top-3 right-3">
+                      <span className="px-2 py-1 bg-yellow-500/90 text-ktsa-bg text-xs font-bold rounded-full">
+                        Featured
+                      </span>
+                    </div>
+                  )}
                 </div>
                 <div className="p-5">
                   <p className="text-ktsa-text/60 text-xs mb-2 font-semibold">
-                    {article.date}
+                    {new Date(article.publishedDate).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
                   </p>
-                  <h3 className="text-base font-black text-ktsa-text group-hover:text-ktsa-accent transition-colors leading-snug">
+                  <h3 className="text-base font-black text-ktsa-text group-hover:text-ktsa-accent transition-colors leading-snug line-clamp-2">
                     {article.title}
                   </h3>
+                  {article.excerpt && (
+                    <p className="text-ktsa-text/50 text-xs mt-2 line-clamp-2 leading-relaxed">
+                      {article.excerpt}
+                    </p>
+                  )}
                 </div>
               </motion.div>
             ))}
@@ -1342,7 +1388,7 @@ export function Home() {
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-ktsa-primary/80 text-ktsa-text rounded-full font-bold text-base  border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-300 cursor-pointer"
+                className="px-8 py-4 bg-ktsa-primary/80 text-ktsa-text rounded-full font-bold text-base border-ktsa-accent/30 hover:border-ktsa-accent transition-all duration-300 cursor-pointer"
               >
                 Read More News
               </motion.button>

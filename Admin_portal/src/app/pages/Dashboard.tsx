@@ -79,13 +79,13 @@ export const Dashboard: React.FC = () => {
       gradient: "from-blue-400 to-cyan-400",
       action: () => navigate("/articles"),
     },
-    {
-      label: "CMS Sections",
-      value: 6,
-      icon: <FileText size={24} />,
-      gradient: "from-purple-400 to-pink-400",
-      action: () => {},
-    },
+    // {
+    //   label: "CMS Sections",
+    //   value: 6,
+    //   icon: <FileText size={24} />,
+    //   gradient: "from-purple-400 to-pink-400",
+    //   action: () => {},
+    // },
     {
       label: "Sponsors",
       value: counts.sponsors,
@@ -291,7 +291,7 @@ export const Dashboard: React.FC = () => {
       </div>
 
       {/* Info Banner */}
-      <Card className="mt-6 bg-gradient-to-r from-ktsa-secondary/10 to-ktsa-accent/10 border-ktsa-accent/30">
+      {/* <Card className="mt-6 bg-gradient-to-r from-ktsa-secondary/10 to-ktsa-accent/10 border-ktsa-accent/30">
         <div className="flex items-start gap-3">
           <div className="p-2 bg-gradient-to-br from-ktsa-primary to-ktsa-accent rounded-lg shadow-lg">
             <FileText size={20} className="text-black" />
@@ -303,7 +303,7 @@ export const Dashboard: React.FC = () => {
             </p>
           </div>
         </div>
-      </Card>
+      </Card> */}
     </div>
   );
 };

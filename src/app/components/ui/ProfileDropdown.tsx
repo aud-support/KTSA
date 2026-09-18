@@ -38,8 +38,8 @@ export default function ProfileDropdown({
   const email = user?.email ?? "";
   // Support both field names for backwards compatibility
   const avatarSrc = user?.profilePictureUrl || user?.avatarUrl || null;
-  console.log("Navbar User:", user);
-  console.log("Navbar Image:", avatarSrc);
+  // console.log("Navbar User:", user);
+  // console.log("Navbar Image:", avatarSrc);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

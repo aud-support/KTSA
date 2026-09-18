@@ -15,9 +15,18 @@ import {
 } from "lucide-react";
 import AvatarCropModal from "./AvatarCropModal";
 import { toast } from "sonner";
+import { stateCityMap } from "./stateCityData";
 
 const MAX_FILE_SIZE_MB = 1;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"));
+const currentYear = new Date().getFullYear();
+const YEARS = Array.from({ length: 100 }, (_, i) => String(currentYear - i));
 
 interface UserProfile {
   id: number;
@@ -40,7 +49,7 @@ interface Props {
   userId: number;
 }
 
-// ─── Reusable Custom Dropdown (copied from SignupModal) ───────────────────────
+// ─── Reusable Custom Dropdown (with search, same as SignupModal) ──────────────
 interface DropdownProps {
   label?: string;
   value: string;
@@ -49,12 +58,6 @@ interface DropdownProps {
   disabled?: boolean;
   onChange: (val: string) => void;
 }
-
-const stateCityMap: Record<string, string[]> = {
-  Karnataka: ["Bangalore", "Mysore", "Mangalore"],
-  Maharashtra: ["Mumbai", "Pune", "Nagpur"],
-  TamilNadu: ["Chennai", "Coimbatore", "Madurai"],
-};
 
 function CustomDropdown({
   label,
@@ -65,64 +68,97 @@ function CustomDropdown({
   onChange,
 }: DropdownProps) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const lower = search.toLowerCase();
+  const matched = search ? options.filter((o) => o.toLowerCase().includes(lower)) : [];
+  const unmatched = search ? options.filter((o) => !o.toLowerCase().includes(lower)) : options;
+  const sorted = [...matched, ...unmatched];
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node))
+      if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
+        setSearch("");
+      }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  const handleOpen = () => {
+    if (disabled) return;
+    setOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 30);
+  };
+
+  const handleSelect = (opt: string) => {
+    onChange(opt);
+    setOpen(false);
+    setSearch("");
+  };
 
   return (
     <div ref={ref} className="relative">
       {label && (
         <label className="block text-sm text-ktsa-accent mb-1">{label}</label>
       )}
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => !disabled && setOpen((o) => !o)}
+      <div
+        onClick={handleOpen}
         className={`w-full flex items-center justify-between px-4 py-2 rounded-lg border text-sm font-medium transition-colors bg-transparent
-          ${
-            disabled
-              ? "border-gray-700 text-gray-600 cursor-not-allowed opacity-40"
-              : "border-gray-600 text-white hover:border-ktsa-primary focus:outline-none"
+          ${disabled
+            ? "border-gray-700 text-gray-600 cursor-not-allowed opacity-40"
+            : "border-gray-600 hover:border-ktsa-primary cursor-pointer"
           }`}
       >
-        <span className={value ? "text-white" : "text-gray-500"}>
-          {value || placeholder}
-        </span>
+        {open ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={value || placeholder}
+            className="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none text-sm"
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <span className={value ? "text-white" : "text-gray-500"}>
+            {value || placeholder}
+          </span>
+        )}
         <ChevronDown
           size={14}
-          className={`transition-transform duration-200 text-gray-400 flex-shrink-0 ${open ? "rotate-180" : ""}`}
+          className={`transition-transform duration-200 text-gray-400 flex-shrink-0 ml-2 ${open ? "rotate-180" : ""}`}
         />
-      </button>
+      </div>
 
       {open && (
         <div
           className="absolute top-full mt-1 left-0 z-50 w-full bg-ktsa-bg border border-ktsa-accent/30 rounded-lg overflow-y-auto max-h-48"
           style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
         >
-          {options.map((opt) => (
-            <button
-              key={opt}
-              type="button"
-              onClick={() => {
-                onChange(opt);
-                setOpen(false);
-              }}
-              className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${
-                value === opt
-                  ? "bg-ktsa-accent/20 text-ktsa-accent"
-                  : "text-ktsa-text hover:bg-ktsa-primary/40"
-              }`}
-            >
-              {opt}
-            </button>
-          ))}
+          {sorted.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-gray-500 text-center">No results</p>
+          ) : (
+            sorted.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => handleSelect(opt)}
+                className={`w-full text-left px-4 py-2 text-sm font-medium transition-colors ${
+                  value === opt
+                    ? "bg-ktsa-accent/20 text-ktsa-accent"
+                    : matched.includes(opt)
+                      ? "bg-ktsa-primary/20 text-white"
+                      : "text-ktsa-text hover:bg-ktsa-primary/40"
+                }`}
+              >
+                {opt}
+              </button>
+            ))
+          )}
         </div>
       )}
     </div>
@@ -175,8 +211,28 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
     gender: "",
     state: "",
     city: "",
-    dateOfBirth: "",
+    dobDay: "",
+    dobMonth: "",
+    dobYear: "",
   });
+
+  // Helper — parse an ISO date string into {dobDay, dobMonth, dobYear}
+  const parseDob = (iso: string | null) => {
+    if (!iso) return { dobDay: "", dobMonth: "", dobYear: "" };
+    const [year, month, day] = iso.slice(0, 10).split("-");
+    return {
+      dobDay: String(parseInt(day, 10)).padStart(2, "0"),
+      dobMonth: MONTHS[parseInt(month, 10) - 1] ?? "",
+      dobYear: year,
+    };
+  };
+
+  // Helper — build ISO date string from day/month/year form values
+  const buildDob = () => {
+    if (!form.dobDay || !form.dobMonth || !form.dobYear) return null;
+    const monthIndex = String(MONTHS.indexOf(form.dobMonth) + 1).padStart(2, "0");
+    return `${form.dobYear}-${monthIndex}-${form.dobDay}`;
+  };
 
   // ── Fetch user on open ────────────────────────────────────────────────────
   useEffect(() => {
@@ -200,7 +256,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
             : "",
           state: u.state ?? "",
           city: u.city ?? "",
-          dateOfBirth: u.dateOfBirth ? u.dateOfBirth.slice(0, 10) : "",
+          ...parseDob(u.dateOfBirth),
         });
       })
       .catch((err) => setError(err.message))
@@ -237,7 +293,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
         gender: form.gender.toUpperCase(),
         state: form.state,
         city: form.city,
-        dateOfBirth: form.dateOfBirth || null,
+        dateOfBirth: buildDob(),
       };
 
       const res = await fetch(
@@ -263,9 +319,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
           : "",
         state: updated.state ?? "",
         city: updated.city ?? "",
-        dateOfBirth: updated.dateOfBirth
-          ? updated.dateOfBirth.slice(0, 10)
-          : "",
+        ...parseDob(updated.dateOfBirth),
       });
 
       setSaveSuccess(true);
@@ -335,8 +389,6 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
 
     toast.success("Profile picture updated successfully.");
   };
-
-  const cities = form.state ? (stateCityMap[form.state] ?? []) : [];
 
   const formatDate = (iso: string | null) => {
     if (!iso) return "";
@@ -572,6 +624,33 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
                     </div>
                   </div>
 
+                  {/* Date of Birth */}
+                  <div>
+                    <label className="block text-sm text-ktsa-accent mb-1">
+                      Date of Birth
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <CustomDropdown
+                        value={form.dobDay}
+                        options={DAYS}
+                        placeholder="Day"
+                        onChange={(val) => setForm((p) => ({ ...p, dobDay: val }))}
+                      />
+                      <CustomDropdown
+                        value={form.dobMonth}
+                        options={MONTHS}
+                        placeholder="Month"
+                        onChange={(val) => setForm((p) => ({ ...p, dobMonth: val }))}
+                      />
+                      <CustomDropdown
+                        value={form.dobYear}
+                        options={YEARS}
+                        placeholder="Year"
+                        onChange={(val) => setForm((p) => ({ ...p, dobYear: val }))}
+                      />
+                    </div>
+                  </div>
+
                   {/* State + City */}
                   <div className="grid grid-cols-2 gap-3">
                     <CustomDropdown
@@ -585,7 +664,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
                     <CustomDropdown
                       label="City"
                       value={form.city}
-                      options={cities}
+                      options={form.state ? (stateCityMap[form.state] ?? []) : []}
                       disabled={!form.state}
                       onChange={(val) => setForm((p) => ({ ...p, city: val }))}
                     />
@@ -593,7 +672,7 @@ export default function ProfileModal({ isOpen, onClose, userId }: Props) {
 
                   {/* Read-only reminder */}
                   <p className="text-xs text-gray-500 text-center">
-                    Email , date of birth and gender cannot be changed.
+                    Email and gender cannot be changed.
                   </p>
                 </div>
               )}

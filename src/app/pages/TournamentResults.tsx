@@ -24,6 +24,7 @@ import {
   getTournamentById,
   getMatchesByTournament,
   getEnabledCategories,
+  normalizeCategory,
   type MatchResult,
   type TournamentDetail,
 } from "../../services/matchService";
@@ -84,20 +85,24 @@ function buildStandings(matches: MatchResult[]): StandingEntry[] {
     const score2 = m.teamTwoScore ?? 0;
 
     if (isTeam) {
-      const p1 = m.teamOne!;
-      const p2 = m.teamTwo!;
-      ensure(p1, true);
-      ensure(p2, true);
-      map.get(p1)!.matches++;
-      map.get(p2)!.matches++;
+      // Use display names (real player names) as map keys for standings display
+      // but track the raw teamOne/teamTwo for winner comparison (winnerTeam uses teamName)
+      const p1Display = m.teamOneDisplayName ?? m.teamOne ?? "";
+      const p2Display = m.teamTwoDisplayName ?? m.teamTwo ?? "";
+      const p1Raw = m.teamOne ?? "";
+      ensure(p1Display, true);
+      ensure(p2Display, true);
+      map.get(p1Display)!.matches++;
+      map.get(p2Display)!.matches++;
       // Accumulate match scores
-      map.get(p1)!.pointsFor += score1;
-      map.get(p2)!.pointsFor += score2;
+      map.get(p1Display)!.pointsFor += score1;
+      map.get(p2Display)!.pointsFor += score2;
       if (m.winnerTeam) {
-        const winner = m.winnerTeam;
-        const loser = winner === p1 ? p2 : p1;
-        map.get(winner)!.wins++;
-        map.get(loser)!.losses++;
+        // winnerTeam matches raw teamName — resolve to display name
+        const winnerDisplay = m.winnerTeam === p1Raw ? p1Display : p2Display;
+        const loserDisplay  = winnerDisplay === p1Display ? p2Display : p1Display;
+        map.get(winnerDisplay)!.wins++;
+        map.get(loserDisplay)!.losses++;
       }
     } else {
       const p1 = m.playerOne ?? "";
@@ -354,11 +359,11 @@ export function TournamentResults() {
   const matches =
     selectedCategory === "ALL"
       ? allMatches
-      : allMatches.filter(
-          (m) =>
-            m.category?.trim().toLowerCase() ===
-            selectedCategory.trim().toLowerCase(),
-        );
+      : allMatches.filter((m) => {
+          if (!m.category) return false;
+          // DB stores normalized keys (e.g. "OPEN_SINGLES"), URL param has human label (e.g. "Open Singles")
+          return normalizeCategory(m.category) === normalizeCategory(selectedCategory);
+        });
 
   // â”€â”€ Derived data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const standings = buildStandings(matches);

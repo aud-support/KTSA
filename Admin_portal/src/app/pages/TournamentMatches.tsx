@@ -794,24 +794,48 @@ interface CategoryConfig {
 }
 
 const ALL_CATEGORY_CONFIGS: CategoryConfig[] = [
-  { label: "Open Singles",    categoryKey: "MENS_SINGLES",   challongeUrlKey: "openSingleChallongeUrl",   doubles: false },
-  { label: "Women's Singles", categoryKey: "WOMENS_SINGLES", challongeUrlKey: "womenSingleChallongeUrl",  doubles: false },
-  { label: "Men's Singles",   categoryKey: "MENS_SINGLES",   challongeUrlKey: "mensSingleChallongeUrl",   doubles: false },
-  { label: "Under 16",        categoryKey: "UNDER_16",       challongeUrlKey: "underSixteenChallongeUrl", doubles: false },
-  { label: "Above 16",        categoryKey: "ABOVE_16",       challongeUrlKey: "aboveSixteenChallongeUrl", doubles: false },
-  { label: "Open Doubles",    categoryKey: "OPEN_DOUBLES",   challongeUrlKey: "openDoubleChallongeUrl",   doubles: true  },
-  { label: "Mixed Doubles",   categoryKey: "MIXED_DOUBLES",  challongeUrlKey: "mixedDoubleChallongeUrl",  doubles: true  },
+  { label: "Open Singles",            categoryKey: "OPEN_SINGLES",           challongeUrlKey: "openSingleChallongeUrl",          doubles: false },
+  { label: "Women's Singles",         categoryKey: "WOMENS_SINGLES",         challongeUrlKey: "womenSingleChallongeUrl",         doubles: false },
+  { label: "Men's Singles",           categoryKey: "MENS_SINGLES",           challongeUrlKey: "mensSingleChallongeUrl",          doubles: false },
+  { label: "Junior U16 Singles",      categoryKey: "UNDER_16",               challongeUrlKey: "underSixteenChallongeUrl",        doubles: false },
+  { label: "Above 16",                categoryKey: "ABOVE_16",               challongeUrlKey: "aboveSixteenChallongeUrl",        doubles: false },
+  { label: "Junior Above 16 Singles", categoryKey: "JUNIOR_ABOVE16_SINGLES", challongeUrlKey: "juniorAbove16SingleChallongeUrl", doubles: false },
+  { label: "Disabled Singles",        categoryKey: "DISABLED_SINGLES",       challongeUrlKey: "disabledSingleChallongeUrl",      doubles: false },
+  { label: "Open Doubles",            categoryKey: "OPEN_DOUBLES",           challongeUrlKey: "openDoubleChallongeUrl",          doubles: true  },
+  { label: "Mixed Doubles",           categoryKey: "MIXED_DOUBLES",          challongeUrlKey: "mixedDoubleChallongeUrl",         doubles: true  },
+  { label: "Beginner Doubles",        categoryKey: "BEGINNER_DOUBLES",       challongeUrlKey: "beginnerDoubleChallongeUrl",      doubles: true  },
+  { label: "Women's Doubles",         categoryKey: "WOMENS_DOUBLES",         challongeUrlKey: "womensDoubleChallongeUrl",        doubles: true  },
+  { label: "Men's Doubles",           categoryKey: "MENS_DOUBLES",           challongeUrlKey: "mensDoubleChallongeUrl",          doubles: true  },
+  { label: "Junior U16 Doubles",      categoryKey: "JUNIOR_U16_DOUBLES",     challongeUrlKey: "juniorU16DoubleChallongeUrl",     doubles: true  },
+  { label: "Junior Above 16 Doubles", categoryKey: "JUNIOR_ABOVE16_DOUBLES", challongeUrlKey: "juniorAbove16DoubleChallongeUrl", doubles: true  },
+  { label: "Senior Doubles",          categoryKey: "SENIOR_DOUBLES",         challongeUrlKey: "seniorDoubleChallongeUrl",        doubles: true  },
+  { label: "Disabled Doubles",        categoryKey: "DISABLED_DOUBLES",       challongeUrlKey: "disabledDoubleChallongeUrl",      doubles: true  },
+  { label: "Disabled Mixed",          categoryKey: "DISABLED_MIXED",         challongeUrlKey: "disabledMixedChallongeUrl",       doubles: true  },
+  { label: "Monster - DYP",           categoryKey: "MONSTER_DYP",            challongeUrlKey: "monsterDypChallongeUrl",          doubles: true  },
+  { label: "Team Event",              categoryKey: "TEAM_EVENT",             challongeUrlKey: "teamEventChallongeUrl",           doubles: true  },
 ];
 
-// enabledKey maps label â†’ the Boolean enabled field on the tournament
+// enabledKey maps label to the Boolean enabled field on the tournament
 const ENABLED_KEY_MAP: Record<string, string> = {
-  "Open Singles":    "openSingleEnabled",
-  "Women's Singles": "womenSingleEnabled",
-  "Men's Singles":   "mensSingleEnabled",
-  "Under 16":        "underSixteenEnabled",
-  "Above 16":        "aboveSixteenEnabled",
-  "Open Doubles":    "openDoubleEnabled",
-  "Mixed Doubles":   "mixedDoubleEnabled",
+  "Open Singles":            "openSingleEnabled",
+  "Women's Singles":         "womenSingleEnabled",
+  "Men's Singles":           "mensSingleEnabled",
+  "Junior U16 Singles":      "underSixteenEnabled",
+  "Above 16":                "aboveSixteenEnabled",
+  "Junior Above 16 Singles": "juniorAbove16SingleEnabled",
+  "Disabled Singles":        "disabledSingleEnabled",
+  "Open Doubles":            "openDoubleEnabled",
+  "Mixed Doubles":           "mixedDoubleEnabled",
+  "Beginner Doubles":        "beginnerDoubleEnabled",
+  "Women's Doubles":         "womensDoubleEnabled",
+  "Men's Doubles":           "mensDoubleEnabled",
+  "Junior U16 Doubles":      "juniorU16DoubleEnabled",
+  "Junior Above 16 Doubles": "juniorAbove16DoubleEnabled",
+  "Senior Doubles":          "seniorDoubleEnabled",
+  "Disabled Doubles":        "disabledDoubleEnabled",
+  "Disabled Mixed":          "disabledMixedEnabled",
+  "Monster - DYP":           "monsterDypEnabled",
+  "Team Event":              "teamEventEnabled",
 };
 
 // â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

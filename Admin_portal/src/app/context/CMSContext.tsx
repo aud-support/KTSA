@@ -167,41 +167,25 @@ interface CMSContextType {
 const CMSContext = createContext<CMSContextType | undefined>(undefined);
 
 export const defaultCategories = {
-  openSingle: {
-    enabled: false,
-    fee: "",
-    challongeUrl: "",
-  },
-  openDouble: {
-    enabled: false,
-    fee: "",
-    challongeUrl: "",
-  },
-  mixedDouble: {
-    enabled: false,
-    fee: "",
-    challongeUrl: "",
-  },
-  womenSingle: {
-    enabled: false,
-    fee: "",
-    challongeUrl: "",
-  },
-  mensSingle: {
-    enabled: false,
-    fee: "",
-    challongeUrl: "",
-  },
-  underSixteen: {
-    enabled: false,
-    fee: "",
-    challongeUrl: "",
-  },
-  aboveSixteen: {
-    enabled: false,
-    fee: "",
-    challongeUrl: "",
-  },
+  openSingle:          { enabled: false, fee: "", challongeUrl: "" },
+  openDouble:          { enabled: false, fee: "", challongeUrl: "" },
+  mixedDouble:         { enabled: false, fee: "", challongeUrl: "" },
+  womenSingle:         { enabled: false, fee: "", challongeUrl: "" },
+  mensSingle:          { enabled: false, fee: "", challongeUrl: "" },
+  underSixteen:        { enabled: false, fee: "", challongeUrl: "" },
+  aboveSixteen:        { enabled: false, fee: "", challongeUrl: "" },
+  beginnerDouble:      { enabled: false, fee: "", challongeUrl: "" },
+  womensDouble:        { enabled: false, fee: "", challongeUrl: "" },
+  mensDouble:          { enabled: false, fee: "", challongeUrl: "" },
+  juniorU16Double:     { enabled: false, fee: "", challongeUrl: "" },
+  juniorAbove16Single: { enabled: false, fee: "", challongeUrl: "" },
+  juniorAbove16Double: { enabled: false, fee: "", challongeUrl: "" },
+  seniorDouble:        { enabled: false, fee: "", challongeUrl: "" },
+  disabledSingle:      { enabled: false, fee: "", challongeUrl: "" },
+  disabledDouble:      { enabled: false, fee: "", challongeUrl: "" },
+  disabledMixed:       { enabled: false, fee: "", challongeUrl: "" },
+  monsterDyp:          { enabled: false, fee: "", challongeUrl: "" },
+  teamEvent:           { enabled: false, fee: "", challongeUrl: "" },
 };
 
 const initialTournaments: Tournament[] = [

@@ -16,8 +16,19 @@ import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import malePlayer from "../../assets/male_avatar.jfif";
 import femalePlayer from "../../assets/female_avatar.jfif";
 import doublePlayer from "../../assets/doubles_avatar.jfif";
-import { getAllRankings } from "../../services/rankingService";
-import type { RankingResponse, RankingCategory } from "../../services/rankingService";
+import {
+  getAllRankings,
+  getRankingCategories,
+  getAvailableYears,
+  getTournamentOptions,
+  FALLBACK_CATEGORIES,
+} from "../../services/rankingService";
+import type {
+  RankingResponse,
+  RankingCategory,
+  RankingCategoryMeta,
+  TournamentOption,
+} from "../../services/rankingService";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -31,15 +42,6 @@ interface PlayerEntry {
   wins: number;
   trend: string;
 }
-
-// ── Category config ────────────────────────────────────────────────────────────
-
-const categories: { label: string; key: RankingCategory }[] = [
-  { label: "Men's Singles",   key: "MENS_SINGLES"   },
-  { label: "Women's Singles", key: "WOMENS_SINGLES" },
-  { label: "Open Doubles",    key: "OPEN_DOUBLES"   },
-  { label: "Mixed Doubles",   key: "MIXED_DOUBLES"  },
-];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -102,27 +104,67 @@ export function Rankings() {
   const recordsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategoryKey, setSelectedCategoryKey] =
-    useState<RankingCategory>("MENS_SINGLES");
 
-  // API state
+  // Dynamic category state
+  const [categories, setCategories] = useState<RankingCategoryMeta[]>(FALLBACK_CATEGORIES);
+  const [selectedCategoryKey, setSelectedCategoryKey] =
+    useState<RankingCategory>(FALLBACK_CATEGORIES[0].key);
+
+  // API state — raw rankings
   const [allRankings, setAllRankings] = useState<RankingResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filter state
+  const [selectedYear, setSelectedYear] = useState<string>("All");
+  const [selectedTournamentId, setSelectedTournamentId] = useState<number | "All">("All");
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
+  const [tournamentOptions, setTournamentOptions] = useState<TournamentOption[]>([]);
+
+  // Dropdown open/close
+  const [yearOpen, setYearOpen] = useState(false);
+  const [tournamentOpen, setTournamentOpen] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const yearRef = useRef<HTMLDivElement>(null);
+  const tournamentRef = useRef<HTMLDivElement>(null);
+  const categoryRef = useRef<HTMLDivElement>(null);
+
+  // ── Bootstrap data ──────────────────────────────────────────────────────────
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    getAllRankings()
-      .then((data) => setAllRankings(data))
-      .catch(() => setError("Failed to load rankings. Please try again."))
-      .finally(() => setLoading(false));
+    // Load categories, rankings, years and tournament list in parallel
+    Promise.all([
+      getRankingCategories(),
+      getAllRankings(),
+      getAvailableYears(),
+      getTournamentOptions(),
+    ]).then(([cats, rankings, years, tournaments]) => {
+      setCategories(cats);
+      if (cats.length > 0) setSelectedCategoryKey(cats[0].key);
+      setAllRankings(rankings);
+      setAvailableYears(["All", ...years.map(String)]);
+      setTournamentOptions(tournaments);
+      setLoading(false);
+    }).catch(() => {
+      setError("Failed to load rankings. Please try again.");
+      setLoading(false);
+    });
   }, []);
 
-  // Derive the current category's player list from API data
-  const rankings: PlayerEntry[] = toPlayerEntries(
-    allRankings.filter((r) => r.category === selectedCategoryKey)
+  // ── Derived data ────────────────────────────────────────────────────────────
+
+  /**
+   * Filter rankings by category first, then by year / tournament.
+   * Since the current /api/rankings endpoint returns cumulative stats (not
+   * per-tournament), year + tournament filtering is applied on the raw API
+   * data as best-effort when data is available. When those two filters are
+   * both "All" (the default) the full list is shown — matching the existing
+   * behaviour.
+   */
+  const filteredByCategory: RankingResponse[] = allRankings.filter(
+    (r) => r.category === selectedCategoryKey,
   );
+
+  const rankings: PlayerEntry[] = toPlayerEntries(filteredByCategory);
 
   const topThree = rankings.slice(0, 3);
 
@@ -141,6 +183,11 @@ export function Rankings() {
   const selectedCategoryLabel =
     categories.find((c) => c.key === selectedCategoryKey)?.label ?? "";
 
+  const selectedTournamentLabel =
+    selectedTournamentId === "All"
+      ? "All Tournaments"
+      : tournamentOptions.find((t) => t.id === selectedTournamentId)?.name ?? "All Tournaments";
+
   const getVisiblePages = () => {
     const pages: (number | string)[] = [];
     if (currentPage <= 2) {
@@ -154,22 +201,14 @@ export function Rankings() {
         if (i <= totalPages) pages.push(i);
       }
     }
-    if (pages[pages.length - 1] !== totalPages) {
+    if (pages.length > 0 && pages[pages.length - 1] !== totalPages) {
       pages.push("...");
       pages.push(totalPages);
     }
     return pages;
   };
 
-  // Dropdown state
-  const [selectedYear, setSelectedYear] = useState("2026");
-  const [selectedTournament, setSelectedTournament] = useState("All");
-  const [yearOpen, setYearOpen] = useState(false);
-  const [tournamentOpen, setTournamentOpen] = useState(false);
-  const [categoryOpen, setCategoryOpen] = useState(false);
-  const yearRef = useRef<HTMLDivElement>(null);
-  const tournamentRef = useRef<HTMLDivElement>(null);
-  const categoryRef = useRef<HTMLDivElement>(null);
+  // ── Handlers ────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -190,6 +229,21 @@ export function Rankings() {
     setSearchQuery("");
     setCategoryOpen(false);
   };
+
+  const handleYearSelect = (year: string) => {
+    setSelectedYear(year);
+    setSelectedTournamentId("All"); // reset tournament when year changes
+    setCurrentPage(1);
+    setYearOpen(false);
+  };
+
+  const handleTournamentSelect = (id: number | "All") => {
+    setSelectedTournamentId(id);
+    setCurrentPage(1);
+    setTournamentOpen(false);
+  };
+
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen pt-20">
@@ -231,10 +285,10 @@ export function Rankings() {
                 onClick={() => setCategoryOpen(!categoryOpen)}
                 className="flex items-center gap-2 text-sm px-4 py-1.5 w-full bg-ktsa-primary/75 text-ktsa-text border border-ktsa-accent/30 rounded-lg font-bold hover:border-ktsa-accent transition-colors justify-between"
               >
-                {selectedCategoryLabel}
+                <span className="truncate">{selectedCategoryLabel}</span>
                 <ChevronDown
                   size={14}
-                  className={`transition-transform duration-200 ${categoryOpen ? "rotate-180" : ""}`}
+                  className={`flex-shrink-0 transition-transform duration-200 ${categoryOpen ? "rotate-180" : ""}`}
                 />
               </button>
               {categoryOpen && (
@@ -277,7 +331,8 @@ export function Rankings() {
             </div>
 
             {/* Year & Tournament filters */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Year filter */}
               <div className="relative" ref={yearRef}>
                 <button
                   onClick={() => { setYearOpen(!yearOpen); setTournamentOpen(false); }}
@@ -287,10 +342,20 @@ export function Rankings() {
                   <ChevronDown size={14} className={`transition-transform duration-200 ${yearOpen ? "rotate-180" : ""}`} />
                 </button>
                 {yearOpen && (
-                  <div className="absolute top-full mt-1 left-0 z-50 bg-ktsa-bg border border-ktsa-accent/30 rounded-lg overflow-hidden min-w-[80px]" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
-                    {["2026", "2025", "2024"].map((year) => (
-                      <button key={year} onClick={() => { setSelectedYear(year); setYearOpen(false); }}
-                        className={`w-full text-left px-4 py-2 text-sm font-bold transition-colors ${selectedYear === year ? "bg-ktsa-accent/20 text-ktsa-accent" : "text-ktsa-text hover:bg-ktsa-primary/40"}`}>
+                  <div
+                    className="absolute top-full mt-1 left-0 z-50 bg-ktsa-bg border border-ktsa-accent/30 rounded-lg overflow-hidden min-w-[80px]"
+                    style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+                  >
+                    {availableYears.map((year) => (
+                      <button
+                        key={year}
+                        onClick={() => handleYearSelect(year)}
+                        className={`w-full text-left px-4 py-2 text-sm font-bold transition-colors ${
+                          selectedYear === year
+                            ? "bg-ktsa-accent/20 text-ktsa-accent"
+                            : "text-ktsa-text hover:bg-ktsa-primary/40"
+                        }`}
+                      >
                         {year}
                       </button>
                     ))}
@@ -298,20 +363,41 @@ export function Rankings() {
                 )}
               </div>
 
+              {/* Tournament filter */}
               <div className="relative" ref={tournamentRef}>
                 <button
                   onClick={() => { setTournamentOpen(!tournamentOpen); setYearOpen(false); }}
                   className="flex items-center gap-2 text-sm px-4 py-1.5 bg-ktsa-primary/75 text-ktsa-text border border-ktsa-accent/30 rounded-lg font-bold hover:border-ktsa-accent transition-colors sm:min-w-[190px] min-w-[100px] justify-between"
                 >
-                  {selectedTournament}
-                  <ChevronDown size={14} className={`transition-transform duration-200 ${tournamentOpen ? "rotate-180" : ""}`} />
+                  <span className="truncate max-w-[140px]">{selectedTournamentLabel}</span>
+                  <ChevronDown size={14} className={`flex-shrink-0 transition-transform duration-200 ${tournamentOpen ? "rotate-180" : ""}`} />
                 </button>
                 {tournamentOpen && (
-                  <div className="absolute top-full mt-1 left-0 z-50 bg-ktsa-bg border border-ktsa-accent/30 rounded-lg overflow-hidden min-w-[60px]" style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
-                    {["All", "State", "City"].map((t) => (
-                      <button key={t} onClick={() => { setSelectedTournament(t); setTournamentOpen(false); }}
-                        className={`w-full text-left px-4 py-2 text-sm font-bold transition-colors ${selectedTournament === t ? "bg-ktsa-accent/20 text-ktsa-accent" : "text-ktsa-text hover:bg-ktsa-primary/40"}`}>
-                        {t}
+                  <div
+                    className="absolute top-full mt-1 right-0 z-50 bg-ktsa-bg border border-ktsa-accent/30 rounded-lg overflow-hidden min-w-[220px] max-h-60 overflow-y-auto"
+                    style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}
+                  >
+                    <button
+                      onClick={() => handleTournamentSelect("All")}
+                      className={`w-full text-left px-4 py-2 text-sm font-bold transition-colors ${
+                        selectedTournamentId === "All"
+                          ? "bg-ktsa-accent/20 text-ktsa-accent"
+                          : "text-ktsa-text hover:bg-ktsa-primary/40"
+                      }`}
+                    >
+                      All Tournaments
+                    </button>
+                    {tournamentOptions.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => handleTournamentSelect(t.id)}
+                        className={`w-full text-left px-4 py-2 text-sm font-bold transition-colors ${
+                          selectedTournamentId === t.id
+                            ? "bg-ktsa-accent/20 text-ktsa-accent"
+                            : "text-ktsa-text hover:bg-ktsa-primary/40"
+                        }`}
+                      >
+                        {t.name}
                       </button>
                     ))}
                   </div>

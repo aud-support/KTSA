@@ -138,7 +138,7 @@ export default function LoginModal({
                 return;
               }
               const response1 = await res.json();
-              console.log("Login response:", response1);
+              // console.log("Login response:", response1);
               const data = response1.data;
 
               // ✅ Save token AND user profile

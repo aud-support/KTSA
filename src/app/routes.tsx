@@ -10,6 +10,7 @@ import { Services } from "./pages/Services";
 import { Tournaments } from "./pages/Tournaments";
 import { TournamentDetail } from "./pages/TournamentDetail";
 import { TournamentResults } from "./pages/TournamentResults";
+import { ForgotPassword } from "./pages/ForgotPassword";
 import { NotFound } from "./pages/NotFound";
 
 export const router = createBrowserRouter([
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
       { path: "tournaments", Component: Tournaments },
       { path: "tournaments/:id", Component: TournamentDetail },
       { path: "tournaments/:id/results", Component: TournamentResults },
+      { path: "forgot-password", Component: ForgotPassword },
       { path: "*", Component: NotFound },
     ],
   },

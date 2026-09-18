@@ -3,144 +3,57 @@ import { useState, useEffect } from "react";
 import Masonry from "react-responsive-masonry";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { Camera } from "lucide-react";
-import image1 from "../../assets/ktsa-image.jpg";
-import image2 from "../../assets/ktsa-image11.jpg";
-import image3 from "../../assets/ktsa-image3.jpg";
-import image4 from "../../assets/ktsa-image4.jpg";
-import image5 from "../../assets/ktsa-image5.jpg";
-import image6 from "../../assets/ktsa-image6.jpg";
-import image7 from "../../assets/ktsa-image7.jpg";
-import image8 from "../../assets/ktsa-image8.jpg";
-import image9 from "../../assets/ktsa-image9.jpg";
+import { getGalleryItems, GalleryItem } from "../../services/galleryService";
+
+// ── Static fallback (used only when API returns nothing) ──────────────────────
+import image1  from "../../assets/ktsa-image.jpg";
+import image2  from "../../assets/ktsa-image11.jpg";
+import image3  from "../../assets/ktsa-image3.jpg";
+import image4  from "../../assets/ktsa-image4.jpg";
+import image5  from "../../assets/ktsa-image5.jpg";
+import image6  from "../../assets/ktsa-image6.jpg";
+import image7  from "../../assets/ktsa-image7.jpg";
+import image8  from "../../assets/ktsa-image8.jpg";
+import image9  from "../../assets/ktsa-image9.jpg";
 import image10 from "../../assets/ktsa-image10.png";
 import image11 from "../../assets/ktsa-image2.jpg";
 import image12 from "../../assets/ktsa-image14.jpg";
 import image13 from "../../assets/ktsa-image13.jpg";
 
-const years = ["2026", "2025", "2024", "2023"];
-const tournaments = [
-  "All Tournaments",
-  "State Championship",
-  "Bangalore Open",
-  "Mysore League",
-  "Training Sessions",
-];
-
-const galleryImages = [
-  {
-    id: 1,
-    src: image2,
-    tournament: "State Championship",
-    year: "2026",
-    caption: `More than a game — it’s the vibe ⚽
-KTSA moments, memories & madness 🏆
-Big thanks to everyone who made this tournament unforgettable `,
-  },
-  {
-    id: 2,
-    src: image1,
-    tournament: "Bangalore Open",
-    year: "2026",
-    caption: `What an exciting Sunday at The Godown – Gaming Arena, Kalyan Nagar!
-Amazing matches, great sportsmanship, and a fantastic foosball community coming together.`,
-  },
-  {
-    id: 3,
-    src: image3,
-    tournament: "State Championship",
-    year: "2026",
-    caption: `What an exciting Sunday at The Godown – Gaming Arena, Kalyan Nagar!
-Amazing matches, great sportsmanship, and a fantastic foosball community coming together.`,
-  },
-  {
-    id: 4,
-    src: image4,
-    tournament: "Training Sessions",
-    year: "2025",
-    caption: `September series comes to an end with a smile.Let’s prep for Oct “Are you Ready for More`,
-  },
-  {
-    id: 5,
-    src: image5,
-    tournament: "Bangalore Open",
-    year: "2025",
-    caption: `September series comes to an end with a smile.Let’s prep for Oct “Are you Ready for More`,
-  },
-  {
-    id: 6,
-    src: image6,
-    tournament: "State Championship",
-    year: "2026",
-    caption: `September series comes to an end with a smile.Let’s prep for Oct “Are you Ready for More`,
-  },
-  {
-    id: 7,
-    src: image7,
-    tournament: "Mysore League",
-    year: "2025",
-    caption: ` It was an absolute honour to be part of the ITSF World Cup 2025 in Zaragoza, Spain!
-Meeting “Farid”, the President of ITSF, was truly inspiring — his humility and warmth made the experience even more memorable.`,
-  },
-  {
-    id: 8,
-    src: image8,
-    tournament: "Training Sessions",
-    year: "2025",
-    caption: "",
-  },
-  {
-    id: 9,
-    src: image9,
-    tournament: "Bangalore Open",
-    year: "2024",
-    caption: "Glimpse of the May 2025 - Roller Category",
-  },
-  {
-    id: 10,
-    src: image10,
-    tournament: "State Championship",
-    year: "2024",
-    caption: ` `,
-  },
-  {
-    id: 11,
-    src: image11,
-    tournament: "Mysore League",
-    year: "2026",
-    caption: `What an exciting Sunday at The Godown - Gaming Arena, Kalyan Nagar!
-Amazing matches, great sportsmanship, and a fantastic foosball community coming together.`,
-  },
-  {
-    id: 12,
-    src: image12,
-    tournament: "Training Sessions",
-    year: "2024",
-    caption: `17 teams, endless energy, and pure foosball spirit 🙌⚽
-A huge thank you to every player who made the August Tournament by KTSA such a success! 🏆🔥
-
-Take a look at the glimpse of our August tournament highlights 🎥✨
-The passion is growing, the community is stronger — and we're just getting started 🚀`,
-  },
-  {
-    id: 13,
-    src: image13,
-    tournament: "Training Sessions",
-    year: "2025",
-    caption: "Glimpse of the May 2025 - Roller Category",
-  },
+const STATIC_FALLBACK: GalleryItem[] = [
+  { id: "s1",  imageUrl: image2,  year: "2026", displayOrder: 0,  caption: "More than a game — it's the vibe ⚽\nKTSA moments, memories & madness 🏆" },
+  { id: "s2",  imageUrl: image1,  year: "2026", displayOrder: 1,  caption: "What an exciting Sunday at The Godown – Gaming Arena, Kalyan Nagar!" },
+  { id: "s3",  imageUrl: image3,  year: "2026", displayOrder: 2,  caption: "Amazing matches, great sportsmanship, and a fantastic foosball community." },
+  { id: "s4",  imageUrl: image4,  year: "2025", displayOrder: 3,  caption: "September series comes to an end with a smile." },
+  { id: "s5",  imageUrl: image5,  year: "2025", displayOrder: 4,  caption: "September series comes to an end with a smile." },
+  { id: "s6",  imageUrl: image6,  year: "2026", displayOrder: 5,  caption: "September series comes to an end with a smile." },
+  { id: "s7",  imageUrl: image7,  year: "2025", displayOrder: 6,  caption: "It was an absolute honour to be part of the ITSF World Cup 2025 in Zaragoza, Spain!" },
+  { id: "s8",  imageUrl: image8,  year: "2025", displayOrder: 7,  caption: "" },
+  { id: "s9",  imageUrl: image9,  year: "2024", displayOrder: 8,  caption: "Glimpse of the May 2025 - Roller Category" },
+  { id: "s10", imageUrl: image10, year: "2024", displayOrder: 9,  caption: "" },
+  { id: "s11", imageUrl: image11, year: "2026", displayOrder: 10, caption: "What an exciting Sunday at The Godown - Gaming Arena, Kalyan Nagar!" },
+  { id: "s12", imageUrl: image12, year: "2024", displayOrder: 11, caption: "17 teams, endless energy, and pure foosball spirit 🙌⚽" },
+  { id: "s13", imageUrl: image13, year: "2025", displayOrder: 12, caption: "Glimpse of the May 2025 - Roller Category" },
 ];
 
 export function Gallery() {
-  const [selectedImage, setSelectedImage] = useState<
-    (typeof galleryImages)[0] | null
-  >(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [galleryImages, setGalleryImages] = useState<GalleryItem[]>([]);
+  const [loading, setLoading]             = useState(true);
+  const [selectedImage, setSelectedImage] = useState<GalleryItem | null>(null);
+  const [isMobile, setIsMobile]           = useState(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
     check();
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
+    getGalleryItems()
+      .then(data => setGalleryImages(data.length > 0 ? data : STATIC_FALLBACK))
+      .catch(() => setGalleryImages(STATIC_FALLBACK))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -179,7 +92,7 @@ export function Gallery() {
             className="w-full h-full"
             style={{
               backgroundImage:
-                'url("https://images.unsplash.com/photo-1757889693437-30a0290c4dcf?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGZvb3NiYWxsfGVufDB8fDB8fHww")',
+                'url("https://images.unsplash.com/photo-1757889693437-30a0290c4dcf?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0")',
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
@@ -187,30 +100,41 @@ export function Gallery() {
         </div>
 
         <div className="max-w-5xl mx-auto relative z-10">
-          {galleryImages.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-24">
+              <div className="w-8 h-8 border-4 border-ktsa-accent/30 border-t-ktsa-accent rounded-full animate-spin" />
+            </div>
+          ) : galleryImages.length > 0 ? (
             <Masonry columnsCount={3} gutter="1rem">
               {galleryImages.map((image, index) => (
                 <motion.div
                   key={image.id}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
+                  transition={{ delay: index * 0.04 }}
                   whileHover={{ scale: 1.03 }}
                   className={`relative rounded-2xl overflow-hidden group ${isMobile ? "cursor-pointer" : "cursor-default"}`}
                   onClick={() => isMobile && setSelectedImage(image)}
                   style={{ boxShadow: "0 6px 24px rgba(0,229,255,0.08)" }}
                 >
                   <ImageWithFallback
-                    src={image.src}
-                    alt={image.caption}
+                    src={image.imageUrl}
+                    alt={image.caption || "Gallery image"}
                     className="w-full h-auto group-hover:scale-105 transition-transform duration-700"
                   />
                   {/* Hover overlay — desktop only */}
                   <div className="hidden md:block absolute inset-0 bg-gradient-to-t from-ktsa-bg via-ktsa-bg/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <p className="text-ktsa-text font-bold text-sm">
-                        {image.caption}
-                      </p>
+                      {image.caption && (
+                        <p className="text-ktsa-text font-bold text-sm line-clamp-3 mb-2">
+                          {image.caption}
+                        </p>
+                      )}
+                      {image.year && (
+                        <span className="px-2 py-0.5 bg-ktsa-primary/80 text-ktsa-text text-xs font-bold rounded-full">
+                          {image.year}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -219,9 +143,7 @@ export function Gallery() {
           ) : (
             <div className="text-center py-24">
               <Camera className="w-16 h-16 text-ktsa-accent/50 mx-auto mb-4" />
-              <p className="text-ktsa-text/60 text-lg">
-                No images found for the selected filters.
-              </p>
+              <p className="text-ktsa-text/60 text-lg">No gallery images yet.</p>
             </div>
           )}
         </div>
@@ -242,30 +164,35 @@ export function Gallery() {
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="bg-ktsa-bg rounded-t-3xl overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
-            {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-2">
               <div className="w-10 h-1 rounded-full bg-ktsa-text/30" />
             </div>
 
-            {/* Image */}
             <div className="px-4">
               <ImageWithFallback
-                src={selectedImage.src}
-                alt={selectedImage.caption}
+                src={selectedImage.imageUrl}
+                alt={selectedImage.caption || "Gallery image"}
                 className="w-full h-100 object-cover rounded-2xl border border-ktsa-accent/30"
               />
             </div>
 
-            {/* Caption */}
-            <div className="px-4 pt-4 pb-2 border-t border-ktsa-accent/20 mt-4">
-              <p className="text-sm font-black text-ktsa-text mb-1">
-                {selectedImage.caption}
-              </p>
-            </div>
+            {(selectedImage.caption || selectedImage.year) && (
+              <div className="px-4 pt-4 pb-2 border-t border-ktsa-accent/20 mt-4">
+                {selectedImage.caption && (
+                  <p className="text-sm font-black text-ktsa-text mb-2">
+                    {selectedImage.caption}
+                  </p>
+                )}
+                {selectedImage.year && (
+                  <span className="px-2 py-0.5 bg-ktsa-primary/80 text-ktsa-text text-xs font-bold rounded-full">
+                    {selectedImage.year}
+                  </span>
+                )}
+              </div>
+            )}
 
-            {/* Close button */}
             <div className="px-4 pb-8 pt-3">
               <button
                 onClick={() => setSelectedImage(null)}

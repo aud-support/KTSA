@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
-import { ArrowRight, CheckCircle2, Zap, Trophy, Users, X, Phone, Mail } from "lucide-react";
+import { ArrowRight, CheckCircle2, Zap, Trophy, Users, X, Mail } from "lucide-react";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { getServices, Service } from "../../services/servicesService";
 import { defaultServices } from "../data/servicesData";
@@ -125,10 +125,12 @@ const ServiceDetailModal = ({
                     Ready to get started?
                   </h3>
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <button className="flex-1 px-5 py-3 bg-gradient-to-r from-ktsa-accent to-ktsa-primary text-ktsa-bg font-bold rounded-lg hover:shadow-lg hover:shadow-ktsa-accent/50 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base">
+                    <a
+                      href={`mailto:info@ktsa.in?subject=Enquiry: ${encodeURIComponent(service.name)}`}
+                      className="flex-1 px-5 py-3 bg-gradient-to-r from-ktsa-accent to-ktsa-primary text-ktsa-bg font-bold rounded-lg hover:shadow-lg hover:shadow-ktsa-accent/50 transition-all duration-300 flex items-center justify-center gap-2 text-sm sm:text-base">
                       <Mail size={16} />
                       Contact Us
-                    </button>
+                    </a>
                     <button
                       onClick={onClose}
                       className="flex-1 px-5 py-3 bg-ktsa-primary/10 text-ktsa-accent font-bold rounded-lg hover:bg-ktsa-primary/20 transition-all duration-300 border border-ktsa-accent/30 text-sm sm:text-base"
@@ -185,7 +187,7 @@ export function Services() {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setTimeout(() => setSelectedService(null), 300); // Wait for animation to finish
+    setTimeout(() => setSelectedService(null), 300);
   };
 
   return (
@@ -309,7 +311,11 @@ export function Services() {
               </div>
 
               {/* Service Detail Modal */}
-              <ServiceDetailModal service={selectedService} isOpen={isModalOpen} onClose={handleCloseModal} />
+              <ServiceDetailModal
+                service={selectedService}
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+              />
 
               {/* Empty state */}
               {sortedServices.length === 0 && (
@@ -335,9 +341,12 @@ export function Services() {
                   Get in touch with us to discuss your requirements and find the perfect service
                   for your needs.
                 </p>
-                <button className="px-8 py-4 bg-gradient-to-r from-ktsa-accent to-ktsa-primary text-ktsa-bg font-bold rounded-full hover:shadow-lg hover:shadow-ktsa-accent/50 transition-all duration-300 hover:scale-105">
+                <a
+                  href="mailto:info@ktsa.in?subject=Service Enquiry"
+                  className="inline-block px-8 py-4 bg-gradient-to-r from-ktsa-accent to-ktsa-primary text-ktsa-bg font-bold rounded-full hover:shadow-lg hover:shadow-ktsa-accent/50 transition-all duration-300 hover:scale-105"
+                >
                   Contact Us Today
-                </button>
+                </a>
               </motion.div>
             </div>
           </section>

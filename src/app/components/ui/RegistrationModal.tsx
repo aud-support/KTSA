@@ -75,13 +75,24 @@ function useCurrentUser(): { user: AuthUser | null; loading: boolean } {
 
 // ─── Category config ──────────────────────────────────────────────────────────
 const ALL_CATEGORIES = [
-  { id: "Open Singles", label: "Open Singles", doubles: false },
-  { id: "Women's Singles", label: "Women's Singles", doubles: false },
-  { id: "Men's Singles", label: "Men's Singles", doubles: false },
-  { id: "Under 16", label: "Under 16", doubles: false },
-  { id: "Above 16", label: "Above 16", doubles: false },
-  { id: "Open Doubles", label: "Open Doubles", doubles: true },
-  { id: "Mixed Doubles", label: "Mixed Doubles", doubles: true },
+  { id: "Open Singles",            label: "Open Singles",            doubles: false },
+  { id: "Women's Singles",         label: "Women's Singles",         doubles: false },
+  { id: "Men's Singles",           label: "Men's Singles",           doubles: false },
+  { id: "Junior U16 Singles",      label: "Junior U16 Singles",      doubles: false },
+  { id: "Junior Above 16 Singles", label: "Junior Above 16 Singles", doubles: false },
+  { id: "Disabled Singles",        label: "Disabled Singles",        doubles: false },
+  { id: "Open Doubles",            label: "Open Doubles",            doubles: true  },
+  { id: "Mixed Doubles",           label: "Mixed Doubles",           doubles: true  },
+  { id: "Beginner Doubles",        label: "Beginner Doubles",        doubles: true  },
+  { id: "Women's Doubles",         label: "Women's Doubles",         doubles: true  },
+  { id: "Men's Doubles",           label: "Men's Doubles",           doubles: true  },
+  { id: "Junior U16 Doubles",      label: "Junior U16 Doubles",      doubles: true  },
+  { id: "Junior Above 16 Doubles", label: "Junior Above 16 Doubles", doubles: true  },
+  { id: "Senior Doubles",          label: "Senior Doubles",          doubles: true  },
+  { id: "Disabled Doubles",        label: "Disabled Doubles",        doubles: true  },
+  { id: "Disabled Mixed",          label: "Disabled Mixed",          doubles: true  },
+  { id: "Monster - DYP",           label: "Monster - DYP",           doubles: true  },
+  { id: "Team Event",              label: "Team Event",              doubles: true  },
 ] as const;
 
 type CategoryId = (typeof ALL_CATEGORIES)[number]["id"];

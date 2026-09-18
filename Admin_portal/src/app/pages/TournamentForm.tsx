@@ -134,6 +134,66 @@ export const TournamentForm: React.FC = () => {
               fee: tournament.aboveSixteenFee?.toString() || "",
               challongeUrl: tournament.aboveSixteenChallongeUrl || "",
             },
+            beginnerDouble: {
+              enabled: tournament.beginnerDoubleEnabled ?? false,
+              fee: tournament.beginnerDoubleFee?.toString() || "",
+              challongeUrl: tournament.beginnerDoubleChallongeUrl || "",
+            },
+            womensDouble: {
+              enabled: tournament.womensDoubleEnabled ?? false,
+              fee: tournament.womensDoubleFee?.toString() || "",
+              challongeUrl: tournament.womensDoubleChallongeUrl || "",
+            },
+            mensDouble: {
+              enabled: tournament.mensDoubleEnabled ?? false,
+              fee: tournament.mensDoubleFee?.toString() || "",
+              challongeUrl: tournament.mensDoubleChallongeUrl || "",
+            },
+            juniorU16Double: {
+              enabled: tournament.juniorU16DoubleEnabled ?? false,
+              fee: tournament.juniorU16DoubleFee?.toString() || "",
+              challongeUrl: tournament.juniorU16DoubleChallongeUrl || "",
+            },
+            juniorAbove16Single: {
+              enabled: tournament.juniorAbove16SingleEnabled ?? false,
+              fee: tournament.juniorAbove16SingleFee?.toString() || "",
+              challongeUrl: tournament.juniorAbove16SingleChallongeUrl || "",
+            },
+            juniorAbove16Double: {
+              enabled: tournament.juniorAbove16DoubleEnabled ?? false,
+              fee: tournament.juniorAbove16DoubleFee?.toString() || "",
+              challongeUrl: tournament.juniorAbove16DoubleChallongeUrl || "",
+            },
+            seniorDouble: {
+              enabled: tournament.seniorDoubleEnabled ?? false,
+              fee: tournament.seniorDoubleFee?.toString() || "",
+              challongeUrl: tournament.seniorDoubleChallongeUrl || "",
+            },
+            disabledSingle: {
+              enabled: tournament.disabledSingleEnabled ?? false,
+              fee: tournament.disabledSingleFee?.toString() || "",
+              challongeUrl: tournament.disabledSingleChallongeUrl || "",
+            },
+            disabledDouble: {
+              enabled: tournament.disabledDoubleEnabled ?? false,
+              fee: tournament.disabledDoubleFee?.toString() || "",
+              challongeUrl: tournament.disabledDoubleChallongeUrl || "",
+            },
+            disabledMixed: {
+              enabled: tournament.disabledMixedEnabled ?? false,
+              fee: tournament.disabledMixedFee?.toString() || "",
+              challongeUrl: tournament.disabledMixedChallongeUrl || "",
+            },
+            monsterDyp: {
+              enabled: tournament.monsterDypEnabled ?? false,
+              fee: tournament.monsterDypFee?.toString() || "",
+              challongeUrl: tournament.monsterDypChallongeUrl || "",
+            },
+            teamEvent: {
+              enabled: tournament.teamEventEnabled ?? false,
+              fee: tournament.teamEventFee?.toString() || "",
+              challongeUrl: tournament.teamEventChallongeUrl || "",
+            },
           },
         });
 
@@ -360,14 +420,56 @@ export const TournamentForm: React.FC = () => {
         : null,
 
       aboveSixteenEnabled: formData.categories.aboveSixteen.enabled,
+      aboveSixteenFee: formData.categories.aboveSixteen.enabled ? Number(formData.categories.aboveSixteen.fee) : null,
+      aboveSixteenChallongeUrl: formData.categories.aboveSixteen.enabled ? formData.categories.aboveSixteen.challongeUrl.trim() || null : null,
 
-      aboveSixteenFee: formData.categories.aboveSixteen.enabled
-        ? Number(formData.categories.aboveSixteen.fee)
-        : null,
+      beginnerDoubleEnabled: formData.categories.beginnerDouble.enabled,
+      beginnerDoubleFee: formData.categories.beginnerDouble.enabled ? Number(formData.categories.beginnerDouble.fee) : null,
+      beginnerDoubleChallongeUrl: formData.categories.beginnerDouble.enabled ? formData.categories.beginnerDouble.challongeUrl.trim() || null : null,
 
-      aboveSixteenChallongeUrl: formData.categories.aboveSixteen.enabled
-        ? formData.categories.aboveSixteen.challongeUrl.trim() || null
-        : null,
+      womensDoubleEnabled: formData.categories.womensDouble.enabled,
+      womensDoubleFee: formData.categories.womensDouble.enabled ? Number(formData.categories.womensDouble.fee) : null,
+      womensDoubleChallongeUrl: formData.categories.womensDouble.enabled ? formData.categories.womensDouble.challongeUrl.trim() || null : null,
+
+      mensDoubleEnabled: formData.categories.mensDouble.enabled,
+      mensDoubleFee: formData.categories.mensDouble.enabled ? Number(formData.categories.mensDouble.fee) : null,
+      mensDoubleChallongeUrl: formData.categories.mensDouble.enabled ? formData.categories.mensDouble.challongeUrl.trim() || null : null,
+
+      juniorU16DoubleEnabled: formData.categories.juniorU16Double.enabled,
+      juniorU16DoubleFee: formData.categories.juniorU16Double.enabled ? Number(formData.categories.juniorU16Double.fee) : null,
+      juniorU16DoubleChallongeUrl: formData.categories.juniorU16Double.enabled ? formData.categories.juniorU16Double.challongeUrl.trim() || null : null,
+
+      juniorAbove16SingleEnabled: formData.categories.juniorAbove16Single.enabled,
+      juniorAbove16SingleFee: formData.categories.juniorAbove16Single.enabled ? Number(formData.categories.juniorAbove16Single.fee) : null,
+      juniorAbove16SingleChallongeUrl: formData.categories.juniorAbove16Single.enabled ? formData.categories.juniorAbove16Single.challongeUrl.trim() || null : null,
+
+      juniorAbove16DoubleEnabled: formData.categories.juniorAbove16Double.enabled,
+      juniorAbove16DoubleFee: formData.categories.juniorAbove16Double.enabled ? Number(formData.categories.juniorAbove16Double.fee) : null,
+      juniorAbove16DoubleChallongeUrl: formData.categories.juniorAbove16Double.enabled ? formData.categories.juniorAbove16Double.challongeUrl.trim() || null : null,
+
+      seniorDoubleEnabled: formData.categories.seniorDouble.enabled,
+      seniorDoubleFee: formData.categories.seniorDouble.enabled ? Number(formData.categories.seniorDouble.fee) : null,
+      seniorDoubleChallongeUrl: formData.categories.seniorDouble.enabled ? formData.categories.seniorDouble.challongeUrl.trim() || null : null,
+
+      disabledSingleEnabled: formData.categories.disabledSingle.enabled,
+      disabledSingleFee: formData.categories.disabledSingle.enabled ? Number(formData.categories.disabledSingle.fee) : null,
+      disabledSingleChallongeUrl: formData.categories.disabledSingle.enabled ? formData.categories.disabledSingle.challongeUrl.trim() || null : null,
+
+      disabledDoubleEnabled: formData.categories.disabledDouble.enabled,
+      disabledDoubleFee: formData.categories.disabledDouble.enabled ? Number(formData.categories.disabledDouble.fee) : null,
+      disabledDoubleChallongeUrl: formData.categories.disabledDouble.enabled ? formData.categories.disabledDouble.challongeUrl.trim() || null : null,
+
+      disabledMixedEnabled: formData.categories.disabledMixed.enabled,
+      disabledMixedFee: formData.categories.disabledMixed.enabled ? Number(formData.categories.disabledMixed.fee) : null,
+      disabledMixedChallongeUrl: formData.categories.disabledMixed.enabled ? formData.categories.disabledMixed.challongeUrl.trim() || null : null,
+
+      monsterDypEnabled: formData.categories.monsterDyp.enabled,
+      monsterDypFee: formData.categories.monsterDyp.enabled ? Number(formData.categories.monsterDyp.fee) : null,
+      monsterDypChallongeUrl: formData.categories.monsterDyp.enabled ? formData.categories.monsterDyp.challongeUrl.trim() || null : null,
+
+      teamEventEnabled: formData.categories.teamEvent.enabled,
+      teamEventFee: formData.categories.teamEvent.enabled ? Number(formData.categories.teamEvent.fee) : null,
+      teamEventChallongeUrl: formData.categories.teamEvent.enabled ? formData.categories.teamEvent.challongeUrl.trim() || null : null,
 
       registrationClosed: formData.registrationClosed,
     };
@@ -664,34 +766,25 @@ export const TournamentForm: React.FC = () => {
 
               <div className="space-y-4">
                 {[
-                  {
-                    key: "openSingle",
-                    label: "Open Single",
-                  },
-                  {
-                    key: "womenSingle",
-                    label: "Women Single",
-                  },
-                  {
-                    key: "mensSingle",
-                    label: "Men Singles",
-                  },
-                  {
-                    key: "underSixteen",
-                    label: "Under 16",
-                  },
-                  {
-                    key: "aboveSixteen",
-                    label: "Above 16",
-                  },
-                  {
-                    key: "openDouble",
-                    label: "Open Double",
-                  },
-                  {
-                    key: "mixedDouble",
-                    label: "Mixed Double",
-                  },
+                  { key: "openSingle",          label: "Open Singles"              },
+                  { key: "womenSingle",          label: "Women's Singles"           },
+                  { key: "mensSingle",           label: "Men's Singles"             },
+                  { key: "underSixteen",         label: "Junior U16 Singles"        },
+                  { key: "aboveSixteen",         label: "Above 16"                  },
+                  { key: "juniorAbove16Single",  label: "Junior Above 16 Singles"   },
+                  { key: "openDouble",           label: "Open Doubles"              },
+                  { key: "mixedDouble",          label: "Mixed Doubles"             },
+                  { key: "beginnerDouble",       label: "Beginner Doubles"          },
+                  { key: "womensDouble",         label: "Women's Doubles"           },
+                  { key: "mensDouble",           label: "Men's Doubles"             },
+                  { key: "juniorU16Double",      label: "Junior U16 Doubles"        },
+                  { key: "juniorAbove16Double",  label: "Junior Above 16 Doubles"   },
+                  { key: "seniorDouble",         label: "Senior Doubles"            },
+                  { key: "disabledSingle",       label: "Disabled Singles"          },
+                  { key: "disabledDouble",       label: "Disabled Doubles"          },
+                  { key: "disabledMixed",        label: "Disabled Mixed"            },
+                  { key: "monsterDyp",           label: "Monster - DYP"             },
+                  { key: "teamEvent",            label: "Team Event"                },
                 ].map((item) => (
                   <div
                     key={item.key}

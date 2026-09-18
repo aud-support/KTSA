@@ -84,13 +84,25 @@ function formatDateRangeShort(start: string, end: string): string {
 
 function getCategories(t: ApiTournament) {
   const cats: string[] = [];
-  if (t.openSingleEnabled) cats.push("Open Singles");
-  if (t.womenSingleEnabled) cats.push("Women's Singles");
-  if (t.mensSingleEnabled) cats.push("Men's Singles");
-  if (t.underSixteenEnabled) cats.push("Under 16");
-  if (t.aboveSixteenEnabled) cats.push("Above 16");
-  if (t.openDoubleEnabled) cats.push("Open Doubles");
-  if (t.mixedDoubleEnabled) cats.push("Mixed Doubles");
+  if (t.openSingleEnabled)          cats.push("Open Singles");
+  if (t.womenSingleEnabled)         cats.push("Women's Singles");
+  if (t.mensSingleEnabled)          cats.push("Men's Singles");
+  if (t.underSixteenEnabled)        cats.push("Junior U16 Singles");
+  if (t.aboveSixteenEnabled)        cats.push("Above 16");
+  if (t.juniorAbove16SingleEnabled) cats.push("Junior Above 16 Singles");
+  if (t.disabledSingleEnabled)      cats.push("Disabled Singles");
+  if (t.openDoubleEnabled)          cats.push("Open Doubles");
+  if (t.mixedDoubleEnabled)         cats.push("Mixed Doubles");
+  if (t.beginnerDoubleEnabled)      cats.push("Beginner Doubles");
+  if (t.womensDoubleEnabled)        cats.push("Women's Doubles");
+  if (t.mensDoubleEnabled)          cats.push("Men's Doubles");
+  if (t.juniorU16DoubleEnabled)     cats.push("Junior U16 Doubles");
+  if (t.juniorAbove16DoubleEnabled) cats.push("Junior Above 16 Doubles");
+  if (t.seniorDoubleEnabled)        cats.push("Senior Doubles");
+  if (t.disabledDoubleEnabled)      cats.push("Disabled Doubles");
+  if (t.disabledMixedEnabled)       cats.push("Disabled Mixed");
+  if (t.monsterDypEnabled)          cats.push("Monster - DYP");
+  if (t.teamEventEnabled)           cats.push("Team Event");
   return cats;
 }
 
@@ -431,13 +443,25 @@ function TournamentCard({
     image: tournament.bannerUrl,
     enabledCategories: getCategories(tournament),
     categoryFees: {
-      "Open Singles":     tournament.openSingleFee   ?? null,
-      "Women's Singles":  tournament.womenSingleFee  ?? null,
-      "Men's Singles":    tournament.mensSingleFee   ?? null,
-      "Under 16":         tournament.underSixteenFee ?? null,
-      "Above 16":         tournament.aboveSixteenFee ?? null,
-      "Open Doubles":     tournament.openDoubleFee   ?? null,
-      "Mixed Doubles":    tournament.mixedDoubleFee  ?? null,
+      "Open Singles":            tournament.openSingleFee          ?? null,
+      "Women's Singles":         tournament.womenSingleFee         ?? null,
+      "Men's Singles":           tournament.mensSingleFee          ?? null,
+      "Junior U16 Singles":      tournament.underSixteenFee        ?? null,
+      "Above 16":                tournament.aboveSixteenFee        ?? null,
+      "Junior Above 16 Singles": tournament.juniorAbove16SingleFee ?? null,
+      "Disabled Singles":        tournament.disabledSingleFee      ?? null,
+      "Open Doubles":            tournament.openDoubleFee          ?? null,
+      "Mixed Doubles":           tournament.mixedDoubleFee         ?? null,
+      "Beginner Doubles":        tournament.beginnerDoubleFee      ?? null,
+      "Women's Doubles":         tournament.womensDoubleFee        ?? null,
+      "Men's Doubles":           tournament.mensDoubleFee          ?? null,
+      "Junior U16 Doubles":      tournament.juniorU16DoubleFee     ?? null,
+      "Junior Above 16 Doubles": tournament.juniorAbove16DoubleFee ?? null,
+      "Senior Doubles":          tournament.seniorDoubleFee        ?? null,
+      "Disabled Doubles":        tournament.disabledDoubleFee      ?? null,
+      "Disabled Mixed":          tournament.disabledMixedFee       ?? null,
+      "Monster - DYP":           tournament.monsterDypFee          ?? null,
+      "Team Event":              tournament.teamEventFee           ?? null,
     },
     qrCodeUrl: tournament.qrCodeUrl,
   };

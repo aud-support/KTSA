@@ -49,12 +49,16 @@ interface Tournament {
 
 function deriveStatus(t: Tournament): TournamentStatus {
   const now = Date.now();
-  const start = new Date(
-    t.startDate.includes("T") ? t.startDate : t.startDate + "T00:00:00",
-  ).getTime();
-  const end = new Date(
-    t.endDate.includes("T") ? t.endDate : t.endDate + "T23:59:59",
-  ).getTime();
+  const start = t.startDate
+    ? new Date(
+        t.startDate.includes("T") ? t.startDate : t.startDate + "T00:00:00",
+      ).getTime()
+    : Infinity;
+  const end = t.endDate
+    ? new Date(
+        t.endDate.includes("T") ? t.endDate : t.endDate + "T23:59:59",
+      ).getTime()
+    : Infinity;
 
   if (t.status === "ACTIVE" || t.status === "LIVE") return "LIVE";
   if (t.status === "COMPLETED") return "COMPLETED";

@@ -493,8 +493,8 @@ export default function MyTeamsModal({ isOpen, onClose, userId }: Props) {
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return teams.filter((team) => {
-      if (q && !team.teamName.toLowerCase().includes(q) &&
-          !team.partner?.name.toLowerCase().includes(q)) return false;
+      if (q && !(team.teamName ?? "").toLowerCase().includes(q) &&
+          !(team.partner?.name ?? "").toLowerCase().includes(q)) return false;
       if (categoryFilter && team.category !== categoryFilter) return false;
       if (statusFilter) {
         const hasMatchingTournament = team.tournaments.some(

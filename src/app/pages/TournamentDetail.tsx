@@ -28,8 +28,11 @@ import {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function formatDateRange(start: string, end: string) {
+function formatDateRange(start: string | null | undefined, end: string | null | undefined) {
+  if (!start && !end) return "TBD";
   const parse = (s: string) => new Date(s.includes("T") ? s : s + "T00:00:00");
+  if (!start) return parse(end!).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+  if (!end) return parse(start).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
   const s = parse(start);
   const e = parse(end);
   const opts: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
@@ -38,7 +41,8 @@ function formatDateRange(start: string, end: string) {
   return `${s.toLocaleDateString("en-IN", opts)} — ${e.toLocaleDateString("en-IN", opts)}`;
 }
 
-function formatTime(iso: string) {
+function formatTime(iso: string | null | undefined) {
+  if (!iso) return null;
   const d = new Date(iso.includes("T") ? iso : iso + "T00:00:00");
   if (d.getHours() === 0 && d.getMinutes() === 0) return null;
   return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
@@ -59,6 +63,7 @@ function statusMeta(status: ApiTournament["status"]) {
 function isRegistrationOpen(t: ApiTournament): boolean {
   if (t.status !== "UPCOMING") return false;
   if (t.registrationClosed) return false;
+  if (!t.startDate) return false;
   const start = new Date(t.startDate.includes("T") ? t.startDate : t.startDate + "T00:00:00");
   return start.getTime() > Date.now();
 }

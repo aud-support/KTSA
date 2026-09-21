@@ -411,7 +411,7 @@ export default function MyMatchesModal({ isOpen, onClose, userId }: Props) {
     const q = searchQuery.trim().toLowerCase();
     return matches.filter((m) => {
       if (m.status !== tab) return false;
-      if (q && !m.opponent.toLowerCase().includes(q) && !m.tournamentName.toLowerCase().includes(q))
+      if (q && !(m.opponent ?? "").toLowerCase().includes(q) && !(m.tournamentName ?? "").toLowerCase().includes(q))
         return false;
       if (categoryFilter && m.category?.toUpperCase() !== categoryFilter) return false;
       if (resultFilter && m.result !== resultFilter) return false;

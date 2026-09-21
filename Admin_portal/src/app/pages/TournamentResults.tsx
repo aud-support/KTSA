@@ -296,6 +296,7 @@ export const TournamentResults: React.FC = () => {
 
   const filteredStandings = standings.filter((s) => {
     if (!searchQuery.trim()) return true;
+    if (!s.name) return false;
     return s.name.toLowerCase().includes(searchQuery.toLowerCase());
   });
   const totalPages = Math.ceil(filteredStandings.length / recordsPerPage);

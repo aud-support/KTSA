@@ -23,7 +23,8 @@ import {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatDateTime(iso: string): string {
+function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return "TBD";
   const d = new Date(iso.includes("T") ? iso : iso + "T00:00:00");
   const date = d.toLocaleDateString("en-IN", {
     day: "numeric",
@@ -42,10 +43,10 @@ function formatDateTime(iso: string): string {
   return `${date} ${time}`;
 }
 
-function formatDateRange(start: string, end: string) {
+function formatDateRange(start: string | null | undefined, end: string | null | undefined) {
   const s = formatDateTime(start);
   const e = formatDateTime(end);
-  if (start === end) return s;
+  if (!start || !end || start === end) return s;
   return `${s} To ${e}`;
 }
 
@@ -53,9 +54,12 @@ function formatDateRange(start: string, end: string) {
  *  Single day:  "10 Jan '27, 11:35 am"
  *  Range:       "10–20 Jan '27"  /  "10 Jan – 2 Feb '27"
  */
-function formatDateRangeShort(start: string, end: string): string {
-  const s = new Date(start.includes("T") ? start : start + "T00:00:00");
-  const e = new Date(end.includes("T") ? end : end + "T00:00:00");
+function formatDateRangeShort(start: string | null | undefined, end: string | null | undefined): string {
+  if (!start && !end) return "TBD";
+  const safeStart = start ?? end!;
+  const safeEnd = end ?? start!;
+  const s = new Date(safeStart.includes("T") ? safeStart : safeStart + "T00:00:00");
+  const e = new Date(safeEnd.includes("T") ? safeEnd : safeEnd + "T00:00:00");
 
   const hasTime = (d: Date) => !(d.getHours() === 0 && d.getMinutes() === 0);
 
@@ -121,6 +125,7 @@ function statusMeta(status: ApiTournament["status"]) {
 function isRegistrationOpen(t: ApiTournament): boolean {
   if (t.status !== "UPCOMING") return false;
   if (t.registrationClosed) return false;
+  if (!t.startDate) return false;
   const start = new Date(
     t.startDate.includes("T") ? t.startDate : t.startDate + "T00:00:00",
   );

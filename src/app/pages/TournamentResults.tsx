@@ -177,7 +177,8 @@ function groupMatches(
   return byRound;
 }
 
-function formatDate(iso: string) {
+function formatDate(iso: string | null | undefined) {
+  if (!iso) return "TBD";
   const d = new Date(iso.includes("T") ? iso : iso + "T00:00:00");
   return d.toLocaleDateString("en-IN", {
     day: "numeric",
@@ -186,10 +187,12 @@ function formatDate(iso: string) {
   });
 }
 
-function formatDateRange(start: string, end: string) {
+function formatDateRange(start: string | null | undefined, end: string | null | undefined) {
+  if (!start && !end) return "TBD";
   const s = formatDate(start);
   const e = formatDate(end);
-  return start === end ? s : `${s} - ${e}`;
+  if (!start || !end || start === end) return s;
+  return `${s} - ${e}`;
 }
 
 function statusBadge(status: string) {

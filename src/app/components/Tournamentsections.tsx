@@ -259,7 +259,8 @@ export function useAvailableYears() {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Format "2026-06-09" → "9 June 2026" */
-function formatDate(iso: string) {
+function formatDate(iso: string | null | undefined) {
+  if (!iso) return "TBD";
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, m - 1, d).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -269,7 +270,10 @@ function formatDate(iso: string) {
 }
 
 /** "2026-06-09" → "9–12 June 2026" style range */
-function formatDateRange(start: string, end: string) {
+function formatDateRange(start: string | null | undefined, end: string | null | undefined) {
+  if (!start && !end) return "TBD";
+  if (!start) return formatDate(end);
+  if (!end) return formatDate(start);
   // If already has time component (contains "T"), use as-is; otherwise append midnight
   const s = new Date(start.includes("T") ? start : start + "T00:00:00");
   const e = new Date(end.includes("T") ? end : end + "T00:00:00");
@@ -289,14 +293,17 @@ function formatDateRange(start: string, end: string) {
     month: "long",
     year: "numeric",
   });
-  return `${sStr} ${formatTime(start)} To ${eStr} ${formatTime(end)}`;
+  const sTime = formatTime(start);
+  const eTime = formatTime(end);
+  return `${sStr}${sTime ? ` ${sTime}` : ""} To ${eStr}${eTime ? ` ${eTime}` : ""}`;
 }
 
 /**
  * Extract a human-readable time from an ISO date string.
  * Returns e.g. "9:00 AM" if the string contains a time component, otherwise null.
  */
-function formatTime(iso: string): string | null {
+function formatTime(iso: string | null | undefined): string | null {
+  if (!iso) return null;
   if (!iso.includes("T")) return null;
   const d = new Date(iso);
   const h = d.getHours();
@@ -341,7 +348,8 @@ function isVisibleOnHome(t: ApiTournament): boolean {
   if (t.status === "LIVE" || t.status === "ACTIVE") return true;
   // Never show COMPLETED
   if (t.status === "COMPLETED") return false;
-  // For UPCOMING: only show if start date hasn't passed yet
+  // For UPCOMING: only show if start date hasn't passed yet (treat missing date as future)
+  if (!t.startDate) return true;
   const start = new Date(
     t.startDate.includes("T") ? t.startDate : t.startDate + "T00:00:00",
   );

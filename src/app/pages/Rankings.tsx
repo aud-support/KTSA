@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { WinnerCard } from "../components/ui/WinnerCard";
 import { CubePodium } from "../components/ui/CubePodium";
+import { DoublesAvatar } from "../components/ui/DoublesAvatar";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import malePlayer from "../../assets/male_avatar.jfif";
 import femalePlayer from "../../assets/female_avatar.jfif";
@@ -37,6 +38,11 @@ interface PlayerEntry {
   name?: string;
   names?: string[];
   image?: string;
+  /** Default avatar to fall back to if the profile picture URL fails to load */
+  fallbackImage?: string;
+  /** Per-player URLs for doubles entries */
+  player1PictureUrl?: string | null;
+  player2PictureUrl?: string | null;
   points: number;
   matches: number;
   wins: number;
@@ -45,10 +51,21 @@ interface PlayerEntry {
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-function avatarForEntry(r: RankingResponse): string {
+/** Returns the default avatar asset based on gender / doubles. */
+function defaultAvatarForEntry(r: RankingResponse): string {
   if (r.teamId) return doublePlayer;
   if (r.gender === "FEMALE") return femalePlayer;
   return malePlayer;
+}
+
+/**
+ * Returns the best image to use for a ranking entry:
+ * – the player's own profile picture if present
+ * – otherwise the gender/type-based default avatar
+ */
+function avatarForEntry(r: RankingResponse): string {
+  if (r.profilePictureUrl) return r.profilePictureUrl;
+  return defaultAvatarForEntry(r);
 }
 
 function toPlayerEntries(data: RankingResponse[]): PlayerEntry[] {
@@ -59,12 +76,20 @@ function toPlayerEntries(data: RankingResponse[]): PlayerEntry[] {
       return {
         rank: i + 1,
         ...(isDoubles
-          ? { names: r.userName.split(" & "), image: doublePlayer }
+          ? {
+              names: r.userName.split(" & "),
+              image: avatarForEntry(r),
+              player1PictureUrl: r.player1PictureUrl,
+              player2PictureUrl: r.player2PictureUrl,
+            }
           : { name: r.userName, image: avatarForEntry(r) }),
         points: r.points,
         matches: r.matches,
         wins: r.wins,
         trend: "same",
+        // Keep a reference to the default fallback so the <img> onError handler
+        // can swap to it if the profile picture URL fails to load.
+        fallbackImage: defaultAvatarForEntry(r),
       };
     });
 }
@@ -106,7 +131,8 @@ export function Rankings() {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Dynamic category state
-  const [categories, setCategories] = useState<RankingCategoryMeta[]>(FALLBACK_CATEGORIES);
+  const [categories, setCategories] =
+    useState<RankingCategoryMeta[]>(FALLBACK_CATEGORIES);
   const [selectedCategoryKey, setSelectedCategoryKey] =
     useState<RankingCategory>(FALLBACK_CATEGORIES[0].key);
 
@@ -117,9 +143,13 @@ export function Rankings() {
 
   // Filter state
   const [selectedYear, setSelectedYear] = useState<string>("All");
-  const [selectedTournamentId, setSelectedTournamentId] = useState<number | "All">("All");
+  const [selectedTournamentId, setSelectedTournamentId] = useState<
+    number | "All"
+  >("All");
   const [availableYears, setAvailableYears] = useState<string[]>([]);
-  const [tournamentOptions, setTournamentOptions] = useState<TournamentOption[]>([]);
+  const [tournamentOptions, setTournamentOptions] = useState<
+    TournamentOption[]
+  >([]);
 
   // Dropdown open/close
   const [yearOpen, setYearOpen] = useState(false);
@@ -137,17 +167,19 @@ export function Rankings() {
       getAllRankings(),
       getAvailableYears(),
       getTournamentOptions(),
-    ]).then(([cats, rankings, years, tournaments]) => {
-      setCategories(cats);
-      if (cats.length > 0) setSelectedCategoryKey(cats[0].key);
-      setAllRankings(rankings);
-      setAvailableYears(["All", ...years.map(String)]);
-      setTournamentOptions(tournaments);
-      setLoading(false);
-    }).catch(() => {
-      setError("Failed to load rankings. Please try again.");
-      setLoading(false);
-    });
+    ])
+      .then(([cats, rankings, years, tournaments]) => {
+        setCategories(cats);
+        if (cats.length > 0) setSelectedCategoryKey(cats[0].key);
+        setAllRankings(rankings);
+        setAvailableYears(["All", ...years.map(String)]);
+        setTournamentOptions(tournaments);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Failed to load rankings. Please try again.");
+        setLoading(false);
+      });
   }, []);
 
   // ── Derived data ────────────────────────────────────────────────────────────
@@ -186,7 +218,8 @@ export function Rankings() {
   const selectedTournamentLabel =
     selectedTournamentId === "All"
       ? "All Tournaments"
-      : tournamentOptions.find((t) => t.id === selectedTournamentId)?.name ?? "All Tournaments";
+      : (tournamentOptions.find((t) => t.id === selectedTournamentId)?.name ??
+        "All Tournaments");
 
   const getVisiblePages = () => {
     const pages: (number | string)[] = [];
@@ -212,11 +245,17 @@ export function Rankings() {
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
-      if (categoryRef.current && !categoryRef.current.contains(e.target as Node))
+      if (
+        categoryRef.current &&
+        !categoryRef.current.contains(e.target as Node)
+      )
         setCategoryOpen(false);
       if (yearRef.current && !yearRef.current.contains(e.target as Node))
         setYearOpen(false);
-      if (tournamentRef.current && !tournamentRef.current.contains(e.target as Node))
+      if (
+        tournamentRef.current &&
+        !tournamentRef.current.contains(e.target as Node)
+      )
         setTournamentOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -278,9 +317,11 @@ export function Rankings() {
       <section className="py-3 sticky top-20 z-40 border-b border-ktsa-accent/20 backdrop-blur-lg">
         <div className="max-w-7xl mx-auto px-3">
           <div className="flex flex-row justify-around items-center gap-3">
-
             {/* Mobile: category dropdown */}
-            <div className="relative md:hidden w-full max-w-[200px]" ref={categoryRef}>
+            <div
+              className="relative md:hidden w-full max-w-[200px]"
+              ref={categoryRef}
+            >
               <button
                 onClick={() => setCategoryOpen(!categoryOpen)}
                 className="flex items-center gap-2 text-sm px-4 py-1.5 w-full bg-ktsa-primary/75 text-ktsa-text border border-ktsa-accent/30 rounded-lg font-bold hover:border-ktsa-accent transition-colors justify-between"
@@ -335,11 +376,17 @@ export function Rankings() {
               {/* Year filter */}
               <div className="relative" ref={yearRef}>
                 <button
-                  onClick={() => { setYearOpen(!yearOpen); setTournamentOpen(false); }}
+                  onClick={() => {
+                    setYearOpen(!yearOpen);
+                    setTournamentOpen(false);
+                  }}
                   className="flex items-center gap-2 text-sm px-4 py-1.5 bg-ktsa-primary/75 text-ktsa-text border border-ktsa-accent/30 rounded-lg font-bold hover:border-ktsa-accent transition-colors min-w-[80px] justify-between"
                 >
                   {selectedYear}
-                  <ChevronDown size={14} className={`transition-transform duration-200 ${yearOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-200 ${yearOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
                 {yearOpen && (
                   <div
@@ -366,11 +413,19 @@ export function Rankings() {
               {/* Tournament filter */}
               <div className="relative" ref={tournamentRef}>
                 <button
-                  onClick={() => { setTournamentOpen(!tournamentOpen); setYearOpen(false); }}
+                  onClick={() => {
+                    setTournamentOpen(!tournamentOpen);
+                    setYearOpen(false);
+                  }}
                   className="flex items-center gap-2 text-sm px-4 py-1.5 bg-ktsa-primary/75 text-ktsa-text border border-ktsa-accent/30 rounded-lg font-bold hover:border-ktsa-accent transition-colors sm:min-w-[190px] min-w-[100px] justify-between"
                 >
-                  <span className="truncate max-w-[140px]">{selectedTournamentLabel}</span>
-                  <ChevronDown size={14} className={`flex-shrink-0 transition-transform duration-200 ${tournamentOpen ? "rotate-180" : ""}`} />
+                  <span className="truncate max-w-[140px]">
+                    {selectedTournamentLabel}
+                  </span>
+                  <ChevronDown
+                    size={14}
+                    className={`flex-shrink-0 transition-transform duration-200 ${tournamentOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
                 {tournamentOpen && (
                   <div
@@ -411,7 +466,6 @@ export function Rankings() {
       {/* Podium section */}
       <section className="bg-gradient-to-b from-ktsa-bg to-ktsa-bg/95 relative overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 max-w-7xl mx-auto py-8">
-
           {/* Mobile — cube view */}
           <div className="sm:hidden flex flex-col items-center py-8">
             <CubePodium players={topThree} />
@@ -425,12 +479,22 @@ export function Rankings() {
                   const player = topThree[playerIdx];
                   if (!player) return null;
                   const meta = rankMeta[player.rank as 1 | 2 | 3];
-                  const cardHeight = player.rank === 1 ? "320px" : player.rank === 2 ? "280px" : "250px";
+                  const cardHeight =
+                    player.rank === 1
+                      ? "320px"
+                      : player.rank === 2
+                        ? "280px"
+                        : "250px";
                   return (
                     <motion.div
                       key={player.rank}
                       className="flex flex-col items-center"
-                      style={{ width: player.rank === 1 ? "clamp(110px, 30vw, 220px)" : "clamp(95px, 26vw, 180px)" }}
+                      style={{
+                        width:
+                          player.rank === 1
+                            ? "clamp(110px, 30vw, 220px)"
+                            : "clamp(95px, 26vw, 180px)",
+                      }}
                       initial={{ opacity: 0, y: 30 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
@@ -442,34 +506,67 @@ export function Rankings() {
                         whileInView={{ height: cardHeight }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
-                        whileHover={{ scale: 1.04, y: -8, boxShadow: "0 20px 40px rgba(255,255,255,0.5)", transition: { duration: 0.25 } }}
+                        whileHover={{
+                          scale: 1.04,
+                          y: -8,
+                          boxShadow: "0 20px 40px rgba(255,255,255,0.5)",
+                          transition: { duration: 0.25 },
+                        }}
                         whileTap={{ scale: 0.97 }}
                       >
-                        <img
-                          src={player.image ?? malePlayer}
-                          alt={player.name ?? (player.names ?? []).join(" & ")}
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
+                        {player.names ? (
+                          <DoublesAvatar
+                            fill
+                            p1Url={player.player1PictureUrl}
+                            p2Url={player.player2PictureUrl}
+                            defaultSrc={player.fallbackImage ?? doublePlayer}
+                            alt1={player.names[0]}
+                            alt2={player.names[1]}
+                          />
+                        ) : (
+                          <img
+                            src={player.image ?? malePlayer}
+                            alt={player.name ?? ""}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            onError={(e) => {
+                              const fallback =
+                                player.fallbackImage ?? malePlayer;
+                              if (e.currentTarget.src !== fallback) {
+                                e.currentTarget.src = fallback;
+                              }
+                            }}
+                          />
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
                         <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
                           <p className="text-white font-black text-sm sm:text-base leading-tight">
                             {player.name ?? (player.names ?? []).join(" & ")}
                           </p>
-                          <p className="text-ktsa-accent font-black text-lg">{player.points}</p>
+                          <p className="text-ktsa-accent font-black text-lg">
+                            {player.points}
+                          </p>
                           <p className="text-white/70 text-[11px] mb-2">PTS</p>
                           <div className="grid grid-cols-2 gap-2 text-white">
                             <div>
-                              <p className="font-black text-sm">{player.matches}</p>
-                              <p className="text-[10px] text-white/70">Played</p>
+                              <p className="font-black text-sm">
+                                {player.matches}
+                              </p>
+                              <p className="text-[10px] text-white/70">
+                                Played
+                              </p>
                             </div>
                             <div>
-                              <p className="font-black text-sm">{player.wins}</p>
+                              <p className="font-black text-sm">
+                                {player.wins}
+                              </p>
                               <p className="text-[10px] text-white/70">Wins</p>
                             </div>
                           </div>
                         </div>
                       </motion.div>
-                      <div className={`mt-2 px-4 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${meta.gradient} text-white shadow-md`}>
+                      <div
+                        className={`mt-2 px-4 py-1 rounded-full text-xs font-bold bg-gradient-to-r ${meta.gradient} text-white shadow-md`}
+                      >
                         #{player.rank}
                       </div>
                     </motion.div>
@@ -482,7 +579,10 @@ export function Rankings() {
           {/* Winner Card */}
           <div className="relative lg:top-20 top-0 py-3 px-2">
             {rankings[0] && (
-              <WinnerCard player={rankings[0]} category={selectedCategoryLabel} />
+              <WinnerCard
+                player={rankings[0]}
+                category={selectedCategoryLabel}
+              />
             )}
           </div>
         </div>
@@ -498,12 +598,18 @@ export function Rankings() {
             type="text"
             placeholder="Search player..."
             value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             className="w-100 pl-9 pr-4 py-2 bg-ktsa-accent/20 text-ktsa-text text-sm font-semibold border border-ktsa-accent/30 rounded-lg focus:outline-none focus:border-ktsa-accent placeholder:text-ktsa-text/40 transition-colors"
           />
           {searchQuery && (
             <button
-              onClick={() => { setSearchQuery(""); setCurrentPage(1); }}
+              onClick={() => {
+                setSearchQuery("");
+                setCurrentPage(1);
+              }}
               className="absolute inset-y-0 right-3 flex items-center text-ktsa-text/80 hover:text-ktsa-text transition-colors"
             >
               <X size={14} />
@@ -529,14 +635,32 @@ export function Rankings() {
 
           {loading ? (
             <div className="flex items-center justify-center py-10 text-ktsa-text/70 text-sm gap-2">
-              <svg className="animate-spin h-4 w-4 text-ktsa-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              <svg
+                className="animate-spin h-4 w-4 text-ktsa-accent"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                />
               </svg>
               Loading rankings...
             </div>
           ) : error ? (
-            <div className="flex items-center justify-center py-10 text-red-400 text-sm">{error}</div>
+            <div className="flex items-center justify-center py-10 text-red-400 text-sm">
+              {error}
+            </div>
           ) : paginatedRankings.length > 0 ? (
             paginatedRankings.map((player, index) => (
               <motion.div
@@ -551,8 +675,30 @@ export function Rankings() {
                     {player.rank}
                   </span>
                 </div>
-                <div className="col-span-2 text-ktsa-text text-sm flex items-center">
-                  {player.name ?? (player.names ?? []).join(" & ")}
+                <div className="col-span-2 text-ktsa-text text-sm flex items-center gap-2">
+                  {player.names ? (
+                    <DoublesAvatar
+                      p1Url={player.player1PictureUrl}
+                      p2Url={player.player2PictureUrl}
+                      defaultSrc={player.fallbackImage ?? doublePlayer}
+                      size={36}
+                      alt1={player.names[0]}
+                      alt2={player.names[1]}
+                    />
+                  ) : (
+                    <img
+                      src={player.image ?? player.fallbackImage ?? malePlayer}
+                      alt={player.name ?? ""}
+                      className="w-7 h-7 rounded-full object-cover flex-shrink-0 border border-ktsa-accent/30"
+                      onError={(e) => {
+                        const fallback = player.fallbackImage ?? malePlayer;
+                        if (e.currentTarget.src !== fallback) {
+                          e.currentTarget.src = fallback;
+                        }
+                      }}
+                    />
+                  )}
+                  <span>{player.name ?? (player.names ?? []).join(" & ")}</span>
                 </div>
                 <div className="text-right text-ktsa-text font-semibold text-sm flex items-center justify-end">
                   {player.points}
@@ -589,7 +735,9 @@ export function Rankings() {
           </button>
           {getVisiblePages().map((page, i) =>
             page === "..." ? (
-              <span key={i} className="px-2 text-ktsa-text">...</span>
+              <span key={i} className="px-2 text-ktsa-text">
+                ...
+              </span>
             ) : (
               <button
                 key={i}
@@ -602,7 +750,7 @@ export function Rankings() {
               >
                 {page}
               </button>
-            )
+            ),
           )}
           <button
             disabled={currentPage === totalPages || totalPages === 0}

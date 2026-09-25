@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { DoublesAvatar } from "./DoublesAvatar";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type FaceKey = "front" | "right" | "left";
@@ -76,7 +77,13 @@ const samplePlayers = [
   },
 ];
 
-type Player = (typeof samplePlayers)[0];
+type Player = (typeof samplePlayers)[0] & {
+  fallbackImage?: string;
+  /** Set for doubles entries */
+  player1PictureUrl?: string | null;
+  player2PictureUrl?: string | null;
+  names?: string[];
+};
 type RankMeta = (typeof rankMeta)[RankKey];
 
 // ─── Player face card ─────────────────────────────────────────────────────────
@@ -97,11 +104,28 @@ function PlayerFaceCard({
         boxShadow: "3px 3px 3px  rgba(255,255,255,0.5)",
       }}
     >
-      <img
-        src={player.image}
-        alt={player.name}
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+      {player.names ? (
+        <DoublesAvatar
+          fill
+          p1Url={player.player1PictureUrl}
+          p2Url={player.player2PictureUrl}
+          defaultSrc={player.fallbackImage ?? player.image}
+          alt1={player.names[0]}
+          alt2={player.names[1] ?? ""}
+        />
+      ) : (
+        <img
+          src={player.image}
+          alt={player.name}
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={(e) => {
+            const fallback = player.fallbackImage;
+            if (fallback && e.currentTarget.src !== fallback) {
+              e.currentTarget.src = fallback;
+            }
+          }}
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 p-2 text-center">
         <p className="text-white font-black text-xs leading-tight pb-3">

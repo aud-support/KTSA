@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Trophy } from "lucide-react";
 import { ImageWithFallback } from "../figma/ImageWithFallback";
+import { DoublesAvatar } from "./DoublesAvatar";
 import maleAvatar from "../../../assets/male_avatar.jfif";
 import femaleAvatar from "../../../assets/female_avatar.jfif";
 import doublesAvatar from "../../../assets/doubles_avatar.jfif";
@@ -17,6 +18,10 @@ interface SpotlightPlayer {
   points: number;
   category: string;
   image: string;
+  /** True for doubles entries — use DoublesAvatar instead of a single image */
+  isDoubles: boolean;
+  player1PictureUrl?: string | null;
+  player2PictureUrl?: string | null;
 }
 
 /** Picks the correct fallback avatar based on backend category */
@@ -40,13 +45,19 @@ function categoryLabel(category: string): string {
 
 /** Converts the API response array to the 3-slot spotlight format */
 function toSpotlight(data: RankingResponse[]): SpotlightPlayer[] {
-  return data.slice(0, 3).map((r, i) => ({
-    rank: i + 1,
-    name: r.userName,
-    points: r.points,
-    category: categoryLabel(r.category),
-    image: r.profilePictureUrl ?? fallbackAvatar(r.category),
-  }));
+  return data.slice(0, 3).map((r, i) => {
+    const isDoubles = !!r.teamId;
+    return {
+      rank: i + 1,
+      name: r.userName,
+      points: r.points,
+      category: categoryLabel(r.category),
+      image: r.profilePictureUrl ?? fallbackAvatar(r.category),
+      isDoubles,
+      player1PictureUrl: isDoubles ? r.player1PictureUrl : null,
+      player2PictureUrl: isDoubles ? r.player2PictureUrl : null,
+    };
+  });
 }
 
 // Display order: rank2 left, rank1 center, rank3 right
@@ -165,8 +176,6 @@ export function TopPlayersStack() {
           const translateY = isHovered || isFocused ? -18 : 0;
           const zIndex = getZIndex(displayIdx);
 
-
-
           const borderColor =
             isHovered || isFocused
               ? "rgba(0,229,255,0.9)"
@@ -203,18 +212,27 @@ export function TopPlayersStack() {
               onClick={(e) => {
                 e.stopPropagation();
                 if (isMobile && opened) {
-                  setFocusedIndex(
-                    focusedIndex === displayIdx ? 1 : displayIdx,
-                  );
+                  setFocusedIndex(focusedIndex === displayIdx ? 1 : displayIdx);
                 }
               }}
             >
               {/* Player photo */}
-              <ImageWithFallback
-                src={player.image}
-                alt={player.name}
-                className="w-full h-full object-cover"
-              />
+              {player.isDoubles ? (
+                <DoublesAvatar
+                  fill
+                  p1Url={player.player1PictureUrl}
+                  p2Url={player.player2PictureUrl}
+                  defaultSrc={doublesAvatar}
+                  alt1={player.name.split(" & ")[0]}
+                  alt2={player.name.split(" & ")[1] ?? ""}
+                />
+              ) : (
+                <ImageWithFallback
+                  src={player.image}
+                  alt={player.name}
+                  className="w-full h-full object-cover"
+                />
+              )}
 
               {/* Gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />

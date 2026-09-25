@@ -1,11 +1,18 @@
 import { motion } from "motion/react";
 import { Trophy, TrendingUp, Target, Zap } from "lucide-react";
+import { DoublesAvatar } from "./DoublesAvatar";
 
 // Supports Singles + Doubles
 interface Player {
   rank: number;
   name?: string;
   names?: string[];
+  image?: string;
+  /** Default avatar to fall back to if the profile picture URL fails */
+  fallbackImage?: string;
+  /** Per-player picture URLs for doubles entries */
+  player1PictureUrl?: string | null;
+  player2PictureUrl?: string | null;
   points: number;
   matches: number;
   wins: number;
@@ -74,23 +81,57 @@ export function WinnerCard({ player, category = "Overall" }: WinnerCardProps) {
         {/* Avatar + Name */}
         <div className="flex items-center gap-4 mb-4">
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 overflow-hidden"
+            className={`flex items-center justify-center text-sm font-black flex-shrink-0 ${
+              player.names
+                ? "rounded-lg overflow-visible" // doubles: wider, no circle crop
+                : "w-10 h-10 rounded-full overflow-hidden" // singles: circle
+            }`}
             style={{
               border: "1.5px solid rgba(255,200,0,0.5)",
               boxShadow: "0 0 20px rgba(255,200,0,0.2)",
+              ...(player.names ? { width: 72, height: 48 } : {}),
             }}
           >
-            <img
-              src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
-                playerName,
-              )}&backgroundColor=1a1a2e&textColor=f5d000`}
-              alt={playerName}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-                e.currentTarget.parentElement!.innerText = initials;
-              }}
-            />
+            {player.names ? (
+              // Doubles: side-by-side team avatar
+              <DoublesAvatar
+                p1Url={player.player1PictureUrl}
+                p2Url={player.player2PictureUrl}
+                defaultSrc={player.fallbackImage ?? player.image ?? ""}
+                size={48}
+                alt1={player.names[0]}
+                alt2={player.names[1] ?? ""}
+              />
+            ) : player.image ? (
+              <img
+                src={player.image}
+                alt={playerName}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Try static fallback first, then DiceBear
+                  if (
+                    player.fallbackImage &&
+                    e.currentTarget.src !== player.fallbackImage
+                  ) {
+                    e.currentTarget.src = player.fallbackImage;
+                  } else {
+                    e.currentTarget.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(playerName)}&backgroundColor=1a1a2e&textColor=f5d000`;
+                  }
+                }}
+              />
+            ) : (
+              <img
+                src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
+                  playerName,
+                )}&backgroundColor=1a1a2e&textColor=f5d000`}
+                alt={playerName}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                  e.currentTarget.parentElement!.innerText = initials;
+                }}
+              />
+            )}
           </div>
 
           <div>

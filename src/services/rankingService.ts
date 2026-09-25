@@ -25,23 +25,26 @@ export interface RankingResponse {
   wins: number;
   losses: number;
   matches: number;
-  userName: string;       // "Player Name" for singles, "P1 & P2" for doubles
+  userName: string; // "Player Name" for singles, "P1 & P2" for doubles
   email: string | null;
   gender: "MALE" | "FEMALE" | "OTHER" | null;
   category: RankingCategory;
-  teamId: number | null;  // only set for doubles entries
+  teamId: number | null; // only set for doubles entries
   profilePictureUrl: string | null;
+  /** Per-player picture URLs for doubles entries; null for singles. */
+  player1PictureUrl: string | null;
+  player2PictureUrl: string | null;
 }
 
 /** Fallback categories used when the API call fails */
 export const FALLBACK_CATEGORIES: RankingCategoryMeta[] = [
-  { key: "MENS_SINGLES",   label: "Men's Singles"   },
+  { key: "MENS_SINGLES", label: "Men's Singles" },
   { key: "WOMENS_SINGLES", label: "Women's Singles" },
-  { key: "OPEN_SINGLES",   label: "Open Singles"    },
-  { key: "UNDER_16",       label: "Under 16"        },
-  { key: "ABOVE_16",       label: "Above 16"        },
-  { key: "OPEN_DOUBLES",   label: "Open Doubles"    },
-  { key: "MIXED_DOUBLES",  label: "Mixed Doubles"   },
+  { key: "OPEN_SINGLES", label: "Open Singles" },
+  { key: "UNDER_16", label: "Under 16" },
+  { key: "ABOVE_16", label: "Above 16" },
+  { key: "OPEN_DOUBLES", label: "Open Doubles" },
+  { key: "MIXED_DOUBLES", label: "Mixed Doubles" },
 ];
 
 export const getAllRankings = async (): Promise<RankingResponse[]> => {
@@ -59,11 +62,14 @@ export const getAllRankings = async (): Promise<RankingResponse[]> => {
  * Fetches the ordered list of ranking categories from the backend.
  * Falls back to the local FALLBACK_CATEGORIES constant on error.
  */
-export const getRankingCategories = async (): Promise<RankingCategoryMeta[]> => {
+export const getRankingCategories = async (): Promise<
+  RankingCategoryMeta[]
+> => {
   if (isMissingBaseUrl) return FALLBACK_CATEGORIES;
   try {
     const response = await axios.get(`${API_BASE_URL}/api/rankings/categories`);
-    const data: { key: string; label: string }[] = response.data?.data ?? response.data;
+    const data: { key: string; label: string }[] =
+      response.data?.data ?? response.data;
     if (Array.isArray(data) && data.length > 0) {
       return data as RankingCategoryMeta[];
     }
@@ -80,7 +86,9 @@ export const getRankingCategories = async (): Promise<RankingCategoryMeta[]> => 
 export const getAvailableYears = async (): Promise<number[]> => {
   if (isMissingBaseUrl) return [new Date().getFullYear()];
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/tournament/available-years`);
+    const response = await axios.get(
+      `${API_BASE_URL}/api/tournament/available-years`,
+    );
     const data = response.data?.data ?? response.data;
     return Array.isArray(data) ? data : [];
   } catch {
@@ -99,8 +107,11 @@ export interface TournamentOption {
 export const getTournamentOptions = async (): Promise<TournamentOption[]> => {
   if (isMissingBaseUrl) return [];
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/tournament?page=0&size=100`);
-    const content = response.data?.data?.content ?? response.data?.content ?? [];
+    const response = await axios.get(
+      `${API_BASE_URL}/api/tournament?page=0&size=100`,
+    );
+    const content =
+      response.data?.data?.content ?? response.data?.content ?? [];
     return (content as { id: number; tournamentName: string }[]).map((t) => ({
       id: t.id,
       name: t.tournamentName,
@@ -110,9 +121,13 @@ export const getTournamentOptions = async (): Promise<TournamentOption[]> => {
   }
 };
 
-export const getRankingByUserId = async (userId: number): Promise<RankingResponse | null> => {
+export const getRankingByUserId = async (
+  userId: number,
+): Promise<RankingResponse | null> => {
   if (isMissingBaseUrl) return null;
-  const response = await axios.get(`${API_BASE_URL}/api/rankings/user/${userId}`);
+  const response = await axios.get(
+    `${API_BASE_URL}/api/rankings/user/${userId}`,
+  );
   return response.data?.data ?? response.data;
 };
 

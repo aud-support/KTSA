@@ -1,4 +1,4 @@
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Calendar,
   MapPin,
@@ -43,7 +43,10 @@ function formatDateTime(iso: string | null | undefined): string {
   return `${date} ${time}`;
 }
 
-function formatDateRange(start: string | null | undefined, end: string | null | undefined) {
+function formatDateRange(
+  start: string | null | undefined,
+  end: string | null | undefined,
+) {
   const s = formatDateTime(start);
   const e = formatDateTime(end);
   if (!start || !end || start === end) return s;
@@ -54,11 +57,16 @@ function formatDateRange(start: string | null | undefined, end: string | null | 
  *  Single day:  "10 Jan '27, 11:35 am"
  *  Range:       "10–20 Jan '27"  /  "10 Jan – 2 Feb '27"
  */
-function formatDateRangeShort(start: string | null | undefined, end: string | null | undefined): string {
+function formatDateRangeShort(
+  start: string | null | undefined,
+  end: string | null | undefined,
+): string {
   if (!start && !end) return "TBD";
   const safeStart = start ?? end!;
   const safeEnd = end ?? start!;
-  const s = new Date(safeStart.includes("T") ? safeStart : safeStart + "T00:00:00");
+  const s = new Date(
+    safeStart.includes("T") ? safeStart : safeStart + "T00:00:00",
+  );
   const e = new Date(safeEnd.includes("T") ? safeEnd : safeEnd + "T00:00:00");
 
   const hasTime = (d: Date) => !(d.getHours() === 0 && d.getMinutes() === 0);
@@ -67,7 +75,11 @@ function formatDateRangeShort(start: string | null | undefined, end: string | nu
     d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
   const fmtTime = (d: Date) =>
-    d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
+    d.toLocaleTimeString("en-IN", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
 
   const year = `'${String(e.getFullYear()).slice(2)}`;
   const sameDay = s.toDateString() === e.toDateString();
@@ -88,25 +100,25 @@ function formatDateRangeShort(start: string | null | undefined, end: string | nu
 
 function getCategories(t: ApiTournament) {
   const cats: string[] = [];
-  if (t.openSingleEnabled)          cats.push("Open Singles");
-  if (t.womenSingleEnabled)         cats.push("Women's Singles");
-  if (t.mensSingleEnabled)          cats.push("Men's Singles");
-  if (t.underSixteenEnabled)        cats.push("Junior U16 Singles");
-  if (t.aboveSixteenEnabled)        cats.push("Above 16");
+  if (t.openSingleEnabled) cats.push("Open Singles");
+  if (t.womenSingleEnabled) cats.push("Women's Singles");
+  if (t.mensSingleEnabled) cats.push("Men's Singles");
+  if (t.underSixteenEnabled) cats.push("Junior U16 Singles");
+  if (t.aboveSixteenEnabled) cats.push("Above 16");
   if (t.juniorAbove16SingleEnabled) cats.push("Junior Above 16 Singles");
-  if (t.disabledSingleEnabled)      cats.push("Disabled Singles");
-  if (t.openDoubleEnabled)          cats.push("Open Doubles");
-  if (t.mixedDoubleEnabled)         cats.push("Mixed Doubles");
-  if (t.beginnerDoubleEnabled)      cats.push("Beginner Doubles");
-  if (t.womensDoubleEnabled)        cats.push("Women's Doubles");
-  if (t.mensDoubleEnabled)          cats.push("Men's Doubles");
-  if (t.juniorU16DoubleEnabled)     cats.push("Junior U16 Doubles");
+  if (t.disabledSingleEnabled) cats.push("Disabled Singles");
+  if (t.openDoubleEnabled) cats.push("Open Doubles");
+  if (t.mixedDoubleEnabled) cats.push("Mixed Doubles");
+  if (t.beginnerDoubleEnabled) cats.push("Beginner Doubles");
+  if (t.womensDoubleEnabled) cats.push("Women's Doubles");
+  if (t.mensDoubleEnabled) cats.push("Men's Doubles");
+  if (t.juniorU16DoubleEnabled) cats.push("Junior U16 Doubles");
   if (t.juniorAbove16DoubleEnabled) cats.push("Junior Above 16 Doubles");
-  if (t.seniorDoubleEnabled)        cats.push("Senior Doubles");
-  if (t.disabledDoubleEnabled)      cats.push("Disabled Doubles");
-  if (t.disabledMixedEnabled)       cats.push("Disabled Mixed");
-  if (t.monsterDypEnabled)          cats.push("Monster - DYP");
-  if (t.teamEventEnabled)           cats.push("Team Event");
+  if (t.seniorDoubleEnabled) cats.push("Senior Doubles");
+  if (t.disabledDoubleEnabled) cats.push("Disabled Doubles");
+  if (t.disabledMixedEnabled) cats.push("Disabled Mixed");
+  if (t.monsterDypEnabled) cats.push("Monster - DYP");
+  if (t.teamEventEnabled) cats.push("Team Event");
   return cats;
 }
 
@@ -247,7 +259,9 @@ function TournamentDrawer({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={() => { if (!lightboxOpen) onClose(); }}
+        onClick={() => {
+          if (!lightboxOpen) onClose();
+        }}
         className="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm"
       />
 
@@ -273,28 +287,47 @@ function TournamentDrawer({
             <div className="w-10 h-1 rounded-full bg-white/20" />
           </div>
 
-        {/* Banner */}
-        <div
-          className={`relative h-40 overflow-hidden flex-shrink-0 ${tournament.bannerUrl ? "cursor-zoom-in" : "cursor-default"}`}
-          onClick={() => tournament.bannerUrl && onImageClick()}
-        >
-          {tournament.bannerUrl ? (
-            <ImageWithFallback
-              src={tournament.bannerUrl}
-              alt={tournament.tournamentName}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-ktsa-primary/30 border-b border-ktsa-accent/10 gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-ktsa-accent/30">
-                <rect x="3" y="3" width="18" height="18" rx="2"/><path d="m3 16 5-5 4 4 3-3 4 4"/><circle cx="8.5" cy="8.5" r="1.5"/>
-              </svg>
-              <span className="text-xs text-ktsa-text/30 font-medium">No Image</span>
-            </div>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a1a19] via-[#0a1a19]/30 to-transparent pointer-events-none" />
+          {/* Banner */}
+          <div
+            className={`relative h-40 overflow-hidden flex-shrink-0 ${tournament.bannerUrl ? "cursor-zoom-in" : "cursor-default"}`}
+            onClick={() => tournament.bannerUrl && onImageClick()}
+          >
+            {tournament.bannerUrl ? (
+              <ImageWithFallback
+                src={tournament.bannerUrl}
+                alt={tournament.tournamentName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-ktsa-primary/30 border-b border-ktsa-accent/10 gap-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-ktsa-accent/30"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" />
+                  <path d="m3 16 5-5 4 4 3-3 4 4" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                </svg>
+                <span className="text-xs text-ktsa-text/30 font-medium">
+                  No Image
+                </span>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a1a19] via-[#0a1a19]/30 to-transparent pointer-events-none" />
             <div className="absolute top-3 left-3">
-              <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${cls}`}>{label}</span>
+              <span
+                className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${cls}`}
+              >
+                {label}
+              </span>
             </div>
             {/* Close button */}
             <button
@@ -313,7 +346,6 @@ function TournamentDrawer({
 
           {/* Details */}
           <div className="p-4 flex flex-col gap-3">
-
             {/* Format badge */}
             <span className="self-start px-2.5 py-1 rounded text-[10px] font-semibold bg-ktsa-accent/10 border border-ktsa-accent/20 text-ktsa-accent/80">
               {tournament.format.replace(/_/g, " ")}
@@ -322,35 +354,61 @@ function TournamentDrawer({
             {/* Info grid */}
             <div className="grid grid-cols-1 gap-2">
               <div className="flex items-start gap-3 p-3 rounded-xl bg-ktsa-primary/20 border border-ktsa-accent/10">
-                <Calendar size={14} className="text-ktsa-accent flex-shrink-0 mt-0.5" />
+                <Calendar
+                  size={14}
+                  className="text-ktsa-accent flex-shrink-0 mt-0.5"
+                />
                 <div>
-                  <p className="text-[9px] text-ktsa-text/40 uppercase tracking-wider font-semibold mb-0.5">Date & Time</p>
+                  <p className="text-[9px] text-ktsa-text/40 uppercase tracking-wider font-semibold mb-0.5">
+                    Date & Time
+                  </p>
                   <p className="text-xs font-semibold text-ktsa-text leading-snug">
                     {formatDateRange(tournament.startDate, tournament.endDate)}
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 rounded-xl bg-ktsa-primary/20 border border-ktsa-accent/10">
-                <MapPin size={14} className="text-ktsa-accent flex-shrink-0 mt-0.5" />
+                <MapPin
+                  size={14}
+                  className="text-ktsa-accent flex-shrink-0 mt-0.5"
+                />
                 <div>
-                  <p className="text-[9px] text-ktsa-text/40 uppercase tracking-wider font-semibold mb-0.5">Venue</p>
-                  <p className="text-xs font-semibold text-ktsa-text">{tournament.venue}</p>
+                  <p className="text-[9px] text-ktsa-text/40 uppercase tracking-wider font-semibold mb-0.5">
+                    Venue
+                  </p>
+                  <p className="text-xs font-semibold text-ktsa-text">
+                    {tournament.venue}
+                  </p>
                 </div>
               </div>
               <div className="flex gap-2">
                 <div className="flex-1 flex items-start gap-2 p-3 rounded-xl bg-ktsa-primary/20 border border-ktsa-accent/10">
-                  <Users size={13} className="text-ktsa-accent flex-shrink-0 mt-0.5" />
+                  <Users
+                    size={13}
+                    className="text-ktsa-accent flex-shrink-0 mt-0.5"
+                  />
                   <div>
-                    <p className="text-[9px] text-ktsa-text/40 uppercase tracking-wider font-semibold mb-0.5">Max</p>
-                    <p className="text-xs font-semibold text-ktsa-text">{tournament.maxParticipants}</p>
+                    <p className="text-[9px] text-ktsa-text/40 uppercase tracking-wider font-semibold mb-0.5">
+                      Max
+                    </p>
+                    <p className="text-xs font-semibold text-ktsa-text">
+                      {tournament.maxParticipants}
+                    </p>
                   </div>
                 </div>
                 {tournament.pricePool > 0 && (
                   <div className="flex-1 flex items-start gap-2 p-3 rounded-xl bg-ktsa-primary/20 border border-ktsa-accent/10">
-                    <IndianRupee size={13} className="text-ktsa-accent flex-shrink-0 mt-0.5" />
+                    <IndianRupee
+                      size={13}
+                      className="text-ktsa-accent flex-shrink-0 mt-0.5"
+                    />
                     <div>
-                      <p className="text-[9px] text-ktsa-text/40 uppercase tracking-wider font-semibold mb-0.5">Prize</p>
-                      <p className="text-xs font-semibold text-ktsa-text">₹{tournament.pricePool.toLocaleString("en-IN")}</p>
+                      <p className="text-[9px] text-ktsa-text/40 uppercase tracking-wider font-semibold mb-0.5">
+                        Prize
+                      </p>
+                      <p className="text-xs font-semibold text-ktsa-text">
+                        ₹{tournament.pricePool.toLocaleString("en-IN")}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -360,10 +418,15 @@ function TournamentDrawer({
             {/* Categories */}
             {categories.length > 0 && (
               <div>
-                <p className="text-[9px] text-ktsa-text/40 uppercase tracking-wider font-semibold mb-1.5">Categories</p>
+                <p className="text-[9px] text-ktsa-text/40 uppercase tracking-wider font-semibold mb-1.5">
+                  Categories
+                </p>
                 <div className="flex flex-wrap gap-1.5">
                   {categories.map((c) => (
-                    <span key={c} className="px-2.5 py-1 text-[10px] font-semibold rounded-full bg-ktsa-accent/10 border border-ktsa-accent/20 text-ktsa-accent/80">
+                    <span
+                      key={c}
+                      className="px-2.5 py-1 text-[10px] font-semibold rounded-full bg-ktsa-accent/10 border border-ktsa-accent/20 text-ktsa-accent/80"
+                    >
                       {c}
                     </span>
                   ))}
@@ -372,11 +435,12 @@ function TournamentDrawer({
             )}
 
             {/* Registration closed notice */}
-            {tournament.status === "UPCOMING" && tournament.registrationClosed && (
-              <p className="text-center text-xs text-amber-400/80 font-semibold py-1">
-                Registration closed · contact admin
-              </p>
-            )}
+            {tournament.status === "UPCOMING" &&
+              tournament.registrationClosed && (
+                <p className="text-center text-xs text-amber-400/80 font-semibold py-1">
+                  Registration closed · contact admin
+                </p>
+              )}
 
             {/* CTA */}
             <div className="pt-1">
@@ -396,7 +460,8 @@ function TournamentDrawer({
                   View Details
                 </button>
               )}
-              {(tournament.status === "LIVE" || tournament.status === "ACTIVE") && (
+              {(tournament.status === "LIVE" ||
+                tournament.status === "ACTIVE") && (
                 <button
                   onClick={onDetails}
                   className="w-full py-3 rounded-full font-bold text-sm bg-red-500 text-white animate-pulse"
@@ -448,25 +513,25 @@ function TournamentCard({
     image: tournament.bannerUrl,
     enabledCategories: getCategories(tournament),
     categoryFees: {
-      "Open Singles":            tournament.openSingleFee          ?? null,
-      "Women's Singles":         tournament.womenSingleFee         ?? null,
-      "Men's Singles":           tournament.mensSingleFee          ?? null,
-      "Junior U16 Singles":      tournament.underSixteenFee        ?? null,
-      "Above 16":                tournament.aboveSixteenFee        ?? null,
+      "Open Singles": tournament.openSingleFee ?? null,
+      "Women's Singles": tournament.womenSingleFee ?? null,
+      "Men's Singles": tournament.mensSingleFee ?? null,
+      "Junior U16 Singles": tournament.underSixteenFee ?? null,
+      "Above 16": tournament.aboveSixteenFee ?? null,
       "Junior Above 16 Singles": tournament.juniorAbove16SingleFee ?? null,
-      "Disabled Singles":        tournament.disabledSingleFee      ?? null,
-      "Open Doubles":            tournament.openDoubleFee          ?? null,
-      "Mixed Doubles":           tournament.mixedDoubleFee         ?? null,
-      "Beginner Doubles":        tournament.beginnerDoubleFee      ?? null,
-      "Women's Doubles":         tournament.womensDoubleFee        ?? null,
-      "Men's Doubles":           tournament.mensDoubleFee          ?? null,
-      "Junior U16 Doubles":      tournament.juniorU16DoubleFee     ?? null,
+      "Disabled Singles": tournament.disabledSingleFee ?? null,
+      "Open Doubles": tournament.openDoubleFee ?? null,
+      "Mixed Doubles": tournament.mixedDoubleFee ?? null,
+      "Beginner Doubles": tournament.beginnerDoubleFee ?? null,
+      "Women's Doubles": tournament.womensDoubleFee ?? null,
+      "Men's Doubles": tournament.mensDoubleFee ?? null,
+      "Junior U16 Doubles": tournament.juniorU16DoubleFee ?? null,
       "Junior Above 16 Doubles": tournament.juniorAbove16DoubleFee ?? null,
-      "Senior Doubles":          tournament.seniorDoubleFee        ?? null,
-      "Disabled Doubles":        tournament.disabledDoubleFee      ?? null,
-      "Disabled Mixed":          tournament.disabledMixedFee       ?? null,
-      "Monster - DYP":           tournament.monsterDypFee          ?? null,
-      "Team Event":              tournament.teamEventFee           ?? null,
+      "Senior Doubles": tournament.seniorDoubleFee ?? null,
+      "Disabled Doubles": tournament.disabledDoubleFee ?? null,
+      "Disabled Mixed": tournament.disabledMixedFee ?? null,
+      "Monster - DYP": tournament.monsterDypFee ?? null,
+      "Team Event": tournament.teamEventFee ?? null,
     },
     qrCodeUrl: tournament.qrCodeUrl,
   };
@@ -494,15 +559,32 @@ function TournamentCard({
             />
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center bg-ktsa-primary/30 gap-1.5">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-ktsa-accent/30">
-                <rect x="3" y="3" width="18" height="18" rx="2"/><path d="m3 16 5-5 4 4 3-3 4 4"/><circle cx="8.5" cy="8.5" r="1.5"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-ktsa-accent/30"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="m3 16 5-5 4 4 3-3 4 4" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
               </svg>
-              <span className="text-[10px] text-ktsa-text/30 font-medium">No Image</span>
+              <span className="text-[10px] text-ktsa-text/30 font-medium">
+                No Image
+              </span>
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-ktsa-bg/80 via-transparent to-transparent pointer-events-none" />
           <div className="absolute top-2 left-2">
-            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wide ${cls}`}>
+            <span
+              className={`px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wide ${cls}`}
+            >
               {label}
             </span>
           </div>
@@ -540,12 +622,16 @@ function TournamentCard({
               </button>
             ) : tournament.status === "COMPLETED" ? (
               <div className="flex items-center justify-end gap-1">
-                <span className="text-[10px] text-green-400/60 font-medium tracking-wide">view results</span>
+                <span className="text-[10px] text-green-400/60 font-medium tracking-wide">
+                  view results
+                </span>
                 <ChevronRight size={11} className="text-green-400/60" />
               </div>
             ) : (
               <div className="flex items-center justify-end gap-1">
-                <span className="text-[10px] text-ktsa-accent/50 font-medium tracking-wide">tap for details</span>
+                <span className="text-[10px] text-ktsa-accent/50 font-medium tracking-wide">
+                  tap for details
+                </span>
                 <ChevronRight size={11} className="text-ktsa-accent/50" />
               </div>
             )}
@@ -558,11 +644,107 @@ function TournamentCard({
         <RegistrationModal
           tournament={modalShape}
           onClose={() => setModalType(null)}
-          onLoginClick={() => { setModalType(null); openLogin(); }}
-          onSignupClick={() => { setModalType(null); openSignup(); }}
+          onLoginClick={() => {
+            setModalType(null);
+            openLogin();
+          }}
+          onSignupClick={() => {
+            setModalType(null);
+            openSignup();
+          }}
         />
       )}
     </>
+  );
+}
+
+// ─── Completed Tournament Row (list layout) ───────────────────────────────────
+
+function CompletedRow({
+  tournament,
+  index,
+}: {
+  tournament: ApiTournament;
+  index: number;
+}) {
+  const navigate = useNavigate();
+  const dateStr = formatDateRangeShort(
+    tournament.startDate,
+    tournament.endDate,
+  );
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -12 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.04 }}
+      onClick={() => navigate(`/tournaments/${tournament.id}`)}
+      className="group cursor-pointer flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-3 rounded-xl border border-ktsa-accent/20 hover:border-ktsa-accent/50 bg-gradient-to-r from-ktsa-primary/30 to-ktsa-secondary/20 hover:from-ktsa-primary/50 transition-all duration-300"
+      style={{ boxShadow: "0 2px 10px rgba(0,229,255,0.04)" }}
+    >
+      {/* Thumbnail */}
+      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden flex-shrink-0 border border-ktsa-accent/20">
+        {tournament.bannerUrl ? (
+          <ImageWithFallback
+            src={tournament.bannerUrl}
+            alt={tournament.tournamentName}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-ktsa-primary/30">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-ktsa-accent/30"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="m3 16 5-5 4 4 3-3 4 4" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+            </svg>
+          </div>
+        )}
+      </div>
+
+      {/* Name + meta */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-black text-ktsa-accent leading-tight line-clamp-1 mb-1">
+          {tournament.tournamentName}
+        </p>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+          <div className="flex items-center gap-1">
+            <Calendar size={10} className="text-ktsa-accent/50 flex-shrink-0" />
+            <span className="text-[11px] text-ktsa-text/60">{dateStr}</span>
+          </div>
+          <div className="flex items-center gap-1 min-w-0">
+            <MapPin size={10} className="text-ktsa-accent/50 flex-shrink-0" />
+            <span className="text-[11px] text-ktsa-text/60 truncate">
+              {tournament.venue}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Status badge + CTA */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[9px] font-bold bg-green-600 text-white">
+          COMPLETED
+        </span>
+        <div className="flex items-center gap-0.5 text-green-400/70 group-hover:text-green-400 transition-colors">
+          <span className="text-[10px] font-semibold hidden xs:inline">
+            Results
+          </span>
+          <ChevronRight size={14} />
+        </div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -660,15 +842,25 @@ export function Tournaments() {
     return () => observer.disconnect();
   }, [handleObserver]);
 
-  // Status filter is applied client-side on top of the paginated results
-  const filtered =
-    statusFilter === "ALL"
-      ? tournaments
-      : statusFilter === "LIVE"
-        ? tournaments.filter(
-            (t) => t.status === "LIVE" || t.status === "ACTIVE",
-          )
-        : tournaments.filter((t) => t.status === statusFilter);
+  // Status filter is applied client-side on top of the paginated results.
+  // For the default "ALL" view we split live/upcoming and completed into
+  // separate sections. When the user explicitly filters to a single status
+  // we respect that and show only those tournaments in the relevant section.
+  const liveUpcoming =
+    statusFilter === "COMPLETED"
+      ? []
+      : statusFilter === "ALL"
+        ? tournaments.filter((t) => t.status !== "COMPLETED")
+        : statusFilter === "LIVE"
+          ? tournaments.filter(
+              (t) => t.status === "LIVE" || t.status === "ACTIVE",
+            )
+          : tournaments.filter((t) => t.status === "UPCOMING");
+
+  const completed =
+    statusFilter === "UPCOMING" || statusFilter === "LIVE"
+      ? []
+      : tournaments.filter((t) => t.status === "COMPLETED");
 
   const counts = {
     ALL: tournaments.length,
@@ -889,29 +1081,66 @@ export function Tournaments() {
         {/* Grid */}
         {!error && (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {loading ? (
-                Array.from({ length: 9 }).map((_, i) => (
-                  <CardSkeleton key={i} />
-                ))
-              ) : filtered.length === 0 ? (
-                <div className="col-span-2 sm:col-span-3 lg:col-span-4 text-center py-20 text-ktsa-text/40 text-sm">
+            {/* ── Live & Upcoming — card grid ──────────────────────────── */}
+            {(loading || liveUpcoming.length > 0) && (
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                {loading
+                  ? Array.from({ length: 9 }).map((_, i) => (
+                      <CardSkeleton key={i} />
+                    ))
+                  : liveUpcoming.map((t, i) => (
+                      <TournamentCard key={t.id} tournament={t} index={i} />
+                    ))}
+
+                {/* Skeleton cards appended while loading more */}
+                {loadingMore &&
+                  Array.from({ length: 3 }).map((_, i) => (
+                    <CardSkeleton key={`more-${i}`} />
+                  ))}
+              </div>
+            )}
+
+            {/* Empty state — only when filter explicitly targets live/upcoming */}
+            {!loading &&
+              liveUpcoming.length === 0 &&
+              statusFilter !== "ALL" &&
+              statusFilter !== "COMPLETED" && (
+                <div className="text-center py-16 text-ktsa-text/40 text-sm">
                   {hasDateFilter
                     ? "No tournaments found for the selected period."
                     : `No ${statusFilter.toLowerCase()} tournaments found.`}
                 </div>
-              ) : (
-                filtered.map((t, i) => (
-                  <TournamentCard key={t.id} tournament={t} index={i} />
-                ))
               )}
 
-              {/* Skeleton cards appended while loading more */}
-              {loadingMore &&
-                Array.from({ length: 3 }).map((_, i) => (
-                  <CardSkeleton key={`more-${i}`} />
-                ))}
-            </div>
+            {/* ── Completed — row/list layout ──────────────────────────── */}
+            {!loading && completed.length > 0 && (
+              <div className="mt-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <h2 className="text-lg font-black text-ktsa-text">
+                    Past <span className="text-green-400">Tournaments</span>
+                  </h2>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-600/20 border border-green-600/30 text-green-400">
+                    {completed.length}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {completed.map((t, i) => (
+                    <CompletedRow key={t.id} tournament={t} index={i} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Empty state — all statuses, nothing found at all */}
+            {!loading &&
+              liveUpcoming.length === 0 &&
+              completed.length === 0 && (
+                <div className="text-center py-20 text-ktsa-text/40 text-sm">
+                  {hasDateFilter
+                    ? "No tournaments found for the selected period."
+                    : "No tournaments found."}
+                </div>
+              )}
 
             {/* Invisible sentinel — observed by IntersectionObserver */}
             <div ref={sentinelRef} className="h-1 w-full" aria-hidden="true" />
@@ -924,12 +1153,15 @@ export function Tournaments() {
             )}
 
             {/* End-of-results message */}
-            {!loading && !hasNext && filtered.length > 0 && (
-              <p className="text-center text-xs text-ktsa-text/30 mt-8">
-                You've seen all {filtered.length} tournament
-                {filtered.length !== 1 ? "s" : ""}
-              </p>
-            )}
+            {!loading &&
+              !hasNext &&
+              liveUpcoming.length + completed.length > 0 && (
+                <p className="text-center text-xs text-ktsa-text/30 mt-8">
+                  You've seen all {liveUpcoming.length + completed.length}{" "}
+                  tournament
+                  {liveUpcoming.length + completed.length !== 1 ? "s" : ""}
+                </p>
+              )}
           </>
         )}
       </div>
